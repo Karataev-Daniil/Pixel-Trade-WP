@@ -26,7 +26,7 @@ function custom_enqueue_assets() {
         );
     }
 
-    if ( is_page_template( 'page-user-products.php' ) ) {
+    if ( is_page( 'my-products' ) ) {
         wp_enqueue_style(
             'page-user-products-style',
             $theme_dir . '/assets/css/template/page-user-products.css',
@@ -35,7 +35,7 @@ function custom_enqueue_assets() {
         );
     }
 
-    if ( is_front_page() ) {
+    if ( is_front_page() || is_tax( 'product_cat' )) {
         wp_enqueue_style(
             'front-page-style',
             $theme_dir . '/assets/css/template/front-page.css',
@@ -76,6 +76,16 @@ function custom_enqueue_assets() {
             'ajaxurl' => admin_url( 'admin-ajax.php' ),
         ]);
     }
+
+   
+        wp_enqueue_style(
+            'page-test-style',
+            $theme_dir . '/assets/css/template/page-test.css',
+            [],
+            filemtime( $theme_path . '/assets/css/template/page-test.css' )
+        );
+    
+
 
     if ( is_singular( 'product' ) || is_page( 'add-product' ) ) {
         global $language;

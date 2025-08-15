@@ -7,39 +7,6 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
         <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
         <script>
-          document.addEventListener("DOMContentLoaded", function () {
-            const slider = document.getElementById('price-slider');
-            const minInput = document.getElementById('price-min');
-            const maxInput = document.getElementById('price-max');
-            const minLabel = document.getElementById('price-min-label');
-            const maxLabel = document.getElementById('price-max-label');
-
-            if (slider) {
-              noUiSlider.create(slider, {
-                start: [1000, 5000],
-                connect: true,
-                range: {
-                  'min': 0,
-                  'max': 10000
-                },
-                step: 50,
-                format: {
-                  to: value => Math.round(value),
-                  from: value => Number(value)
-                }
-              });
-            
-              slider.noUiSlider.on('update', function (values, handle) {
-                const [min, max] = values;
-                minInput.value = min;
-                maxInput.value = max;
-                minLabel.textContent = 'от ' + min + ' ₽';
-                maxLabel.textContent = 'до ' + max + ' ₽';
-              });
-            }
-          });
-        </script>
-        <script>
           document.addEventListener('DOMContentLoaded', function () {
             const toggleButton = document.getElementById('catalogToggle');
             const dropdown = document.getElementById('catalogDropdown');

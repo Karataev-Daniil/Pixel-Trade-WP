@@ -1,4 +1,6 @@
 <?php
+add_theme_support('post-thumbnails');
+
 function register_product_post_type() {
     register_post_type('product', [
         'labels' => [

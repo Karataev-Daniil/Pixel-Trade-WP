@@ -1,0 +1,150 @@
+.weather-widget {
+    font-family: Arial, sans-serif;
+}
+/* Текущая погода (вертикально для мобильных) */
+.weather-current {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.weather-current__location {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+    font-family: IBM Plex Serif;
+    font-weight: 500;
+    font-size: H5;
+    line-height: 130%;
+    letter-spacing: 0%;
+}
+.weather-current__temp {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 15px;
+}
+.weather-current__value {
+    font-size: 36px;
+    font-weight: bold;
+    color: #333;
+}
+.weather-current__icon {
+    width: 54px;
+    height: 48px;
+}
+.weather-current__details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 14px;
+    color: #666;
+    width: 100%;
+}
+.weather-current__detail {
+    display: grid;
+    grid-template-columns: max-content 1fr max-content;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #666;
+    font-family: IBM Plex Sans;
+    font-weight: 400;
+    font-size: Labels;
+    line-height: 130%;
+    letter-spacing: 0%;
+    position: relative;
+}
+
+.weather-current__detail::before {
+    content: "";
+    height: 1px;
+    border-bottom: 1px dashed #666;
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+}
+/* Прогноз погоды */
+.weather-forecast {
+    margin-top: 20px;
+}
+.weather-forecast__title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+}
+.weather-forecast__list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+.weather-forecast__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #333;
+}
+.weather-forecast__city {
+    flex: 1;
+}
+.weather-forecast__temp {
+    font-weight: bold;
+}
+.weather-forecast__icon {
+    width: 24px;
+    height: 24px;
+}
+/* Десктопная версия (горизонтально) */
+@media (min-width: 768px) {
+    .weather-widget {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .weather-current {
+        flex: 1;
+        margin-right: 20px;
+    }
+
+    .weather-current__temp {
+        justify-content: flex-start;
+    }
+
+    .weather-forecast {
+        flex: 1;
+        margin-top: 0;
+    }
+
+    .weather-forecast__list {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+}
+/* Улучшения для больших экранов */
+@media (min-width: 1024px) {
+    .weather-widget {
+        padding: 25px;
+    }
+
+    .weather-current__location {
+        font-size: 16px;
+    }
+
+    .weather-current__value {
+        font-size: 48px;
+    }
+
+    .weather-current__details {
+        font-size: 16px;
+    }
+
+    .weather-forecast__title {
+        font-size: 18px;
+    }
+
+    .weather-forecast__item {
+        font-size: 16px;
+    }
+}

@@ -1,96 +1,99 @@
 <?php
-add_action('wp_ajax_filter_products', 'ajax_filter_products');
-add_action('wp_ajax_nopriv_filter_products', 'ajax_filter_products');
+add_action('wp_ajax_filter_products', 'filter_products');
+add_action('wp_ajax_nopriv_filter_products', 'filter_products');
 
-function ajax_filter_products() {
-  $meta_query = [];
-  $tax_query = [];
-
-  $orderby = 'date';
-  $order = 'DESC';
-  $meta_key = '';
-
-  if (!empty($_GET['product_cat'])) {
-    $cat_slug = sanitize_text_field($_GET['product_cat']);
-    $tax_query[] = [
-      'taxonomy' => 'product_cat',
-      'field'    => 'slug',
-      'terms'    => $cat_slug,
-      'operator' => 'IN',
+function filter_products() {
+    $args = [
+        'post_type' => 'product',
+        'posts_per_page' => -1,
+        'tax_query'  => [],
+        'meta_query' => []
     ];
-  }
 
+    // --- Категории ---
+    $categories = isset($_POST['categories']) && is_array($_POST['categories']) ? array_map('intval', $_POST['categories']) : [];
+    if ($categories) {
+        $all_cats = [];
+        foreach ($categories as $cat_id) {
+            $all_cats[] = $cat_id;
+            $children = get_term_children($cat_id, 'product_cat');
+            if (!is_wp_error($children) && !empty($children)) $all_cats = array_merge($all_cats, $children);
+        }
+        $all_cats = array_unique($all_cats);
 
-  if (!empty($_GET['price_min']) || !empty($_GET['price_max'])) {
-    $price_filter = ['key' => 'product_price', 'type' => 'NUMERIC'];
-
-    if (!empty($_GET['price_min']) && !empty($_GET['price_max'])) {
-      $price_filter['value'] = [floatval($_GET['price_min']), floatval($_GET['price_max'])];
-      $price_filter['compare'] = 'BETWEEN';
-    } elseif (!empty($_GET['price_min'])) {
-      $price_filter['value'] = floatval($_GET['price_min']);
-      $price_filter['compare'] = '>=';
-    } elseif (!empty($_GET['price_max'])) {
-      $price_filter['value'] = floatval($_GET['price_max']);
-      $price_filter['compare'] = '<=';
+        $args['tax_query'][] = [
+            'taxonomy' => 'product_cat',
+            'field'    => 'term_id',
+            'terms'    => $all_cats,
+            'operator' => 'IN'
+        ];
     }
 
-    $meta_query[] = $price_filter;
-  }
+    // --- Цена ---
+    $price_min = isset($_POST['price_min']) ? intval($_POST['price_min']) : 0;
+    $price_max = isset($_POST['price_max']) ? intval($_POST['price_max']) : 999999;
 
-  if (!empty($_GET['sort'])) {
-    switch ($_GET['sort']) {
-      case 'date_asc':
-        $orderby = 'date';
-        $order = 'ASC';
-        break;
-      case 'date_desc':
-        $orderby = 'date';
-        $order = 'DESC';
-        break;
-      case 'views_desc':
-        $orderby = 'meta_value_num';
-        $meta_key = 'product_views';
-        $order = 'DESC';
-        $meta_query[] = ['key' => 'product_views', 'compare' => 'EXISTS'];
-        break;
-      case 'views_asc':
-        $orderby = 'meta_value_num';
-        $meta_key = 'product_views';
-        $order = 'ASC';
-        $meta_query[] = ['key' => 'product_views', 'compare' => 'EXISTS'];
-        break;
+    $args['meta_query'][] = [
+        'key' => 'product_price',
+        'value' => [$price_min, $price_max],
+        'compare' => 'BETWEEN',
+        'type' => 'NUMERIC'
+    ];
+
+    // --- Сортировка ---
+    if (!empty($_POST['sort'])) {
+        switch ($_POST['sort']) {
+            case 'date_asc':
+                $args['orderby'] = 'date';
+                $args['order'] = 'ASC';
+                break;
+            case 'date_desc':
+                $args['orderby'] = 'date';
+                $args['order'] = 'DESC';
+                break;
+            case 'views_desc':
+                $args['meta_key'] = 'product_views';
+                $args['orderby'] = 'meta_value_num';
+                $args['order'] = 'DESC';
+                break;
+            case 'views_asc':
+                $args['meta_key'] = 'product_views';
+                $args['orderby'] = 'meta_value_num';
+                $args['order'] = 'ASC';
+                break;
+        }
     }
-  }
 
-  $query = new WP_Query([
-    'post_type'      => 'product',
-    'post_status'    => 'publish',
-    'posts_per_page' => -1,
-    'meta_query'     => $meta_query,
-    'tax_query'      => $tax_query,
-    'orderby'        => $orderby,
-    'order'          => $order,
-    'meta_key'       => $meta_key,
-  ]);
+    $q = new WP_Query($args);
 
-  if ($query->have_posts()) :
-    while ($query->have_posts()) : $query->the_post(); ?>
-      <div class="product-card">
-        <a href="<?php the_permalink(); ?>">
-          <?php if (has_post_thumbnail()) the_post_thumbnail('medium'); ?>
-          <h3><?php the_title(); ?></h3>
-          <?php
-          $price = get_post_meta(get_the_ID(), 'product_price', true);
-          if ($price) echo '<p>' . esc_html($price) . ' ₽</p>';
-          ?>
-        </a>
-      </div>
-    <?php endwhile;
-    wp_reset_postdata();
-  else :
-    echo '<p>Нет товаров.</p>';
-  endif;
+    if ($q->have_posts()) {
+        while ($q->have_posts()) {
+            $q->the_post();
+            $price = get_post_meta(get_the_ID(), 'product_price', true);
+            ?>
+            <div class="product-card">
+                <a href="<?php the_permalink(); ?>" class="product-link">
+                    <div class="product-image-wrapper">
+                        <?php 
+                        $thumbnail = get_the_post_thumbnail_url(get_the_ID(), 'medium');
+                        if ($thumbnail) {
+                            echo '<img src="' . esc_url($thumbnail) . '" class="product-image" alt="' . esc_attr(get_the_title()) . '">';
+                        } else {
+                            $default_img = get_template_directory_uri() . '/images/default-product.png';
+                            echo '<img src="' . esc_url($default_img) . '" class="product-image" alt="' . esc_attr(get_the_title()) . '">';
+                        }
+                        ?>
+                    </div>
+                    <h3 class="product-title title-medium"><?php the_title(); ?></h3>
+                    <div class="product-price body-small-regular"><?php echo esc_html($price); ?> ₽</div>
+                </a>
+            </div>
+            <?php
+        }
+        wp_reset_postdata();
+    } else {
+        echo '<p>Товары не найдены</p>';
+    }
 
-  wp_die();
+    wp_die();
 }

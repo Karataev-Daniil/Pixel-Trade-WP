@@ -1,7 +1,7 @@
 .product__wrapper {
     padding: 60px 0;
     background-color: var(--gray_6);
-    overflow: hidden;
+    overflow: visible;
 }
 .product__wrapper .container-medium {
     overflow: visible;
@@ -254,6 +254,15 @@
 
 
 /* ркдактор поста */
+.product-create,
+.product-edit {
+    display: grid;
+    grid-template-columns: 5fr 1fr;
+    gap: 24px;
+}
+.form-progress-bar {
+
+}
 .product-create h3,
 .product-edit h3 {
     margin: 0 0 16px;
@@ -387,4 +396,39 @@
     right: 0;
     background-color: var(--gray_5);
     border-radius: 0 0 0 4px;
+}
+
+.form-progress {
+    height: 100%;
+    position: relative;
+}
+.form-progress__steps {
+    top: 70px;
+    margin: 70px 0 0;
+    position: sticky;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    border: 1px solid var(--gray_3);
+    background-color: var(--gray_5);
+    border-radius: 4px;
+}
+.form-progress__step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.form-progress__step .form-progress__circle {
+    display: block;
+    box-sizing: border-box;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid var(--gray_1);
+    transition: background-color 0.3s, ;
+}
+.form-progress__step.filled .form-progress__circle {
+    background-color: var(--green_0);
+    border: 2px solid var(--gray_0);
 }

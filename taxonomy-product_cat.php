@@ -1,8 +1,20 @@
-<?php get_header(); ?>
+<?php
+get_header();
+
+// Получаем ID текущей категории
+$current_cat_id = 0;
+if (is_tax('product_cat')) {
+    $current_cat = get_queried_object();
+    $current_cat_id = $current_cat->term_id;
+}
+?>
+
 <div class="main-wrapper">
   <div class="container-medium">
     <div class="content-columns">
+
         <?php
+        // Функция перевода названий
         function cat_t($term_id) {
             $ru = get_term($term_id)->name;
             $en = get_term_meta($term_id, 'translation_en', true);
@@ -10,6 +22,7 @@
             return t($ru, $en, $ro);
         }
 
+        // Рекурсивное дерево категорий
         function render_cat_tree($parent_id) {
             $children = get_terms([
                 'taxonomy'   => 'product_cat',
@@ -37,12 +50,14 @@
             }
         }
 
+        // Родительские категории
         $terms = get_terms([
             'taxonomy'   => 'product_cat',
             'hide_empty' => false,
             'parent'     => 0
         ]);
         ?>
+
         <aside class="sidebar" style="width: 260px;">
             <h2 class="title-medium">Категории</h2>
             <form id="filter-form">
@@ -86,7 +101,7 @@
         </aside>
                 
         <main class="product-grid" style="flex:1;">
-            <h1>Каталог товаров</h1>
+            <h1><?= single_term_title('', false); ?></h1>
             <div id="product-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:32px;"></div>
         </main>
     </div>
@@ -95,34 +110,46 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Показ/скрытие подкатегорий ---
+    var defaultCategoryId = <?= $current_cat_id ?>;
+
+    if (defaultCategoryId > 0) {
+        localStorage.removeItem('product_filters');
+    }
+
+    // Раскрытие вложенных категорий
     document.querySelectorAll('.category-list label').forEach(label => {
         label.addEventListener('click', function(e) {
-            if (e.target.tagName === 'INPUT') return;
-            const li = label.closest('li');
+            if (e.target.tagName === 'INPUT') return; // если кликнули на чекбокс, не сворачивать
+
+            let li = label.closest('li');
             if (!li) return;
-            const subLists = li.querySelectorAll(':scope > ul');
-            subLists.forEach(sub => sub.style.display = sub.style.display === 'block' ? 'none' : 'block');
+
+            // находим сразу все вложенные UL внутри li
+            let subLists = li.querySelectorAll(':scope > ul');
+            subLists.forEach(sub => {
+                sub.style.display = sub.style.display === 'block' ? 'none' : 'block';
+            });
         });
     });
 
-    // --- noUiSlider ---
-    const priceSlider = document.getElementById('price-slider');
-    const priceMinInput = document.getElementById('price-min');
-    const priceMaxInput = document.getElementById('price-max');
-    const priceMinLabel = document.getElementById('price-min-label');
-    const priceMaxLabel = document.getElementById('price-max-label');
+
+    // noUiSlider
+    let priceSlider = document.getElementById('price-slider');
+    let priceMinInput = document.getElementById('price-min');
+    let priceMaxInput = document.getElementById('price-max');
+    let priceMinLabel = document.getElementById('price-min-label');
+    let priceMaxLabel = document.getElementById('price-max-label');
 
     noUiSlider.create(priceSlider, {
         start: [0, 50000],
         connect: true,
-        range: { min: 0, max: 50000 },
+        range: { 'min': 0, 'max': 50000 },
         step: 50
     });
 
     priceSlider.noUiSlider.on('update', function(values) {
-        const min = Math.round(values[0]);
-        const max = Math.round(values[1]);
+        let min = Math.round(values[0]);
+        let max = Math.round(values[1]);
         priceMinInput.value = min;
         priceMaxInput.value = max;
         priceMinLabel.textContent = min + ' ₽';
@@ -130,13 +157,13 @@ document.addEventListener('DOMContentLoaded', function() {
         saveFiltersToStorage();
     });
 
-    // --- localStorage ---
     function saveFiltersToStorage() {
-        const formData = new FormData(document.getElementById('filter-form'));
-        const filters = {};
+        let formData = new FormData(document.getElementById('filter-form'));
+        let filters = {};
         formData.forEach((value, key) => {
-            if (!filters[key]) filters[key] = value;
-            else {
+            if (!filters[key]) {
+                filters[key] = value;
+            } else {
                 if (!Array.isArray(filters[key])) filters[key] = [filters[key]];
                 filters[key].push(value);
             }
@@ -145,37 +172,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function loadFiltersFromStorage() {
-        const saved = localStorage.getItem('product_filters');
+        let saved = localStorage.getItem('product_filters');
         if (!saved) return;
-        const filters = JSON.parse(saved);
+        let filters = JSON.parse(saved);
 
-        for (const key in filters) {
-            const fields = document.querySelectorAll(`[name="${key}"]`);
-            if (!fields.length) continue;
-            if (fields[0].type === 'checkbox') {
-                fields.forEach(f => {
-                    if (Array.isArray(filters[key])) f.checked = filters[key].includes(f.value);
-                    else f.checked = filters[key] === f.value;
+        for (let key in filters) {
+            let field = document.querySelectorAll(`[name="${key}"]`);
+            if (!field.length) continue;
+
+            if (field[0].type === 'checkbox') {
+                field.forEach(f => {
+                    if (Array.isArray(filters[key])) {
+                        f.checked = filters[key].includes(f.value);
+                    } else {
+                        f.checked = filters[key] === f.value;
+                    }
                 });
-            } else if (fields[0].tagName === 'SELECT' || fields[0].type === 'hidden') {
+            } else if (field[0].tagName === 'SELECT' || field[0].type === 'hidden') {
                 if (Array.isArray(filters[key])) {
-                    fields.forEach((f, i) => f.value = filters[key][i] || '');
+                    field.forEach((f, i) => f.value = filters[key][i] || '');
                 } else {
-                    fields.forEach(f => f.value = filters[key]);
+                    field.forEach(f => f.value = filters[key]);
                 }
             }
         }
-
-        // Раскрываем UL для выбранных категорий
-        document.querySelectorAll('.category-list input[type="checkbox"]:checked').forEach(checkbox => {
-            let parentLi = checkbox.closest('li')?.closest('ul')?.closest('li');
-            while (parentLi) {
-                const directUl = parentLi.querySelector(':scope > ul.sub-category');
-                if (directUl) directUl.style.display = 'block';
-                parentLi = parentLi.closest('li')?.closest('ul')?.closest('li');
-            }
-        });
-
         if (filters.price_min !== undefined && filters.price_max !== undefined) {
             priceSlider.noUiSlider.set([filters.price_min, filters.price_max]);
         }
@@ -183,37 +203,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('filter-form').addEventListener('change', saveFiltersToStorage);
 
-    // --- AJAX ---
     document.getElementById('filter-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        
-        const formData = new FormData();
-        
-        // --- Все выбранные категории ---
-        document.querySelectorAll('input[name="categories[]"]:checked').forEach(cb => {
-            formData.append('categories[]', cb.value);
-        });
-    
-        // --- Цена ---
-        formData.append('price_min', document.getElementById('price-min').value);
-        formData.append('price_max', document.getElementById('price-max').value);
-    
-        // --- Сортировка ---
-        formData.append('sort', document.querySelector('select[name="sort"]').value);
-    
-        // --- Действие AJAX ---
-        formData.append('action', 'filter_products');
-    
-        fetch('/wp-admin/admin-ajax.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(r => r.text())
-        .then(html => {
-            document.getElementById('product-results').innerHTML = html;
-        });
+        saveFiltersToStorage();
+        loadProducts();
     });
-
 
     document.getElementById('reset-filters').addEventListener('click', function() {
         localStorage.removeItem('product_filters');
@@ -223,11 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function loadProducts() {
-        const formData = new FormData();
-        document.querySelectorAll('input[name="categories[]"]:checked').forEach(cb => formData.append('categories[]', cb.value));
-        formData.append('price_min', document.getElementById('price-min').value);
-        formData.append('price_max', document.getElementById('price-max').value);
-        formData.append('sort', document.querySelector('select[name="sort"]').value);
+        let formData = new FormData(document.getElementById('filter-form'));
         formData.append('action', 'filter_products');
 
         fetch('/wp-admin/admin-ajax.php', {
@@ -240,13 +230,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Инициализация ---
     loadFiltersFromStorage();
-    loadProducts(); // сразу показываем все товары
-});
 
+    if (defaultCategoryId > 0) {
+        let checkbox = document.querySelector(`input[name="categories[]"][value="${defaultCategoryId}"]`);
+        if (checkbox) {
+            // Выбираем текущую
+            checkbox.checked = true;
+
+            // Поднимаемся по родителям
+            let parentLi = checkbox.closest('li')?.closest('ul')?.closest('li');
+            while (parentLi) {
+                let parentCheckbox = parentLi.querySelector(':scope > label > input[name="categories[]"]');
+                if (parentCheckbox) parentCheckbox.checked = true;
+            
+                // Раскрыть только прямой UL
+                let directSubUl = parentLi.querySelector(':scope > ul.sub-category');
+                if (directSubUl) directSubUl.style.display = 'block';
+            
+                parentLi = parentLi.closest('li')?.closest('ul')?.closest('li');
+            }
+
+
+            saveFiltersToStorage();
+        }
+    }
+
+    loadProducts();
+});
 </script>
 
-<?php
-get_footer();
-?>
+<?php get_footer(); ?>

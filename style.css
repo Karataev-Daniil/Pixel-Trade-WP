@@ -21,7 +21,7 @@ Author: Daniil
 
 .container {
   max-width: 1416px;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 .container-medium {
@@ -56,7 +56,7 @@ p {
     margin-bottom: 16px;
 }
 .dashboard__wrapper {
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 /* Small screens (440px and below) */
