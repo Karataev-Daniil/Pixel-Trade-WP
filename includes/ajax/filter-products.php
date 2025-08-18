@@ -1,4 +1,5 @@
 <?php
+// AJAX для фильтрации товаров
 add_action('wp_ajax_filter_products', 'filter_products');
 add_action('wp_ajax_nopriv_filter_products', 'filter_products');
 
@@ -11,7 +12,9 @@ function filter_products() {
     ];
 
     // --- Категории ---
-    $categories = isset($_POST['categories']) && is_array($_POST['categories']) ? array_map('intval', $_POST['categories']) : [];
+    $categories = isset($_POST['categories']) ? json_decode(stripslashes($_POST['categories']), true) : [];
+    $categories = array_map('intval', (array)$categories);
+
     if ($categories) {
         $all_cats = [];
         foreach ($categories as $cat_id) {
@@ -32,7 +35,6 @@ function filter_products() {
     // --- Цена ---
     $price_min = isset($_POST['price_min']) ? intval($_POST['price_min']) : 0;
     $price_max = isset($_POST['price_max']) ? intval($_POST['price_max']) : 999999;
-
     $args['meta_query'][] = [
         'key' => 'product_price',
         'value' => [$price_min, $price_max],

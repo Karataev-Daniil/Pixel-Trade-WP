@@ -1,88 +1,84 @@
 <?php
 /* Template Name: Создание товара */
 
-get_header();
-
 if (!is_user_logged_in()) {
-    echo '<p>' . t('Только для зарегистрированных пользователей.', 'Only for registered users.', 'Doar pentru utilizatori înregistrați.') . '</p>';
-    get_footer();
-    exit;
+    wp_die(t('Только для зарегистрированных пользователей.', 'Only for registered users.', 'Doar pentru utilizatori înregistrați.'));
 }
 
 $current_user_id = get_current_user_id();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_product'])) {
     if (!isset($_POST['product_form_nonce']) || !wp_verify_nonce($_POST['product_form_nonce'], 'create_product_form')) {
-        echo '<p>' . t('Ошибка безопасности.', 'Security error.', 'Eroare de securitate.') . '</p>';
-    } else {
-        $post_data = [
-            'post_title'   => sanitize_text_field($_POST['product_title']),
-            'post_content' => sanitize_textarea_field($_POST['product_content']),
-            'post_status'  => sanitize_text_field($_POST['product_status']),
-            'post_type'    => 'product',
-            'post_author'  => $current_user_id,
-        ];
+        wp_die(t('Ошибка безопасности.', 'Security error.', 'Eroare de securitate.'));
+    }
 
-        $post_id = wp_insert_post($post_data);
+    $post_data = [
+        'post_title'   => sanitize_text_field($_POST['product_title']),
+        'post_content' => sanitize_textarea_field($_POST['product_content']),
+        'post_status'  => sanitize_text_field($_POST['product_status']),
+        'post_type'    => 'product',
+        'post_author'  => $current_user_id,
+    ];
 
-        if ($post_id) {
-            $gallery_ids = explode(',', get_post_meta($post_id, '_product_image_gallery', true));
-            update_post_meta($post_id, 'product_price', floatval($_POST['product_price']));
-            update_post_meta($post_id, '_title_en', sanitize_text_field($_POST['title_en']));
-            update_post_meta($post_id, '_description_en', sanitize_textarea_field($_POST['description_en']));
-            update_post_meta($post_id, '_title_ro', sanitize_text_field($_POST['title_ro']));
-            update_post_meta($post_id, '_description_ro', sanitize_textarea_field($_POST['description_ro']));
+    $post_id = wp_insert_post($post_data);
 
-            if (!empty($_POST['selected_categories'])) {
-                wp_set_post_terms($post_id, array_map('intval', $_POST['selected_categories']), 'product_cat');
-            }
+    if ($post_id) {
+        update_post_meta($post_id, 'product_price', floatval($_POST['product_price']));
+        update_post_meta($post_id, '_title_en', sanitize_text_field($_POST['title_en']));
+        update_post_meta($post_id, '_description_en', sanitize_textarea_field($_POST['description_en']));
+        update_post_meta($post_id, '_title_ro', sanitize_text_field($_POST['title_ro']));
+        update_post_meta($post_id, '_description_ro', sanitize_textarea_field($_POST['description_ro']));
 
-            if (!empty($_FILES['product_gallery']['name'][0])) {
-                require_once(ABSPATH . 'wp-admin/includes/file.php');
-                require_once(ABSPATH . 'wp-admin/includes/media.php');
-                require_once(ABSPATH . 'wp-admin/includes/image.php');
+        if (!empty($_POST['selected_categories'])) {
+            wp_set_post_terms($post_id, array_map('intval', $_POST['selected_categories']), 'product_cat');
+        }
 
-                $attachment_ids = [];
-                foreach ($_FILES['product_gallery']['name'] as $key => $value) {
-                    if ($_FILES['product_gallery']['name'][$key]) {
-                        $file = [
-                            'name'     => $_FILES['product_gallery']['name'][$key],
-                            'type'     => $_FILES['product_gallery']['type'][$key],
-                            'tmp_name' => $_FILES['product_gallery']['tmp_name'][$key],
-                            'error'    => $_FILES['product_gallery']['error'][$key],
-                            'size'     => $_FILES['product_gallery']['size'][$key],
-                        ];
-                        $_FILES['upload_attachment'] = $file;
-                        $attachment_id = media_handle_upload('upload_attachment', $post_id);
-                        if (!is_wp_error($attachment_id)) {
-                            $attachment_ids[] = $attachment_id;
-                        }
+        if (!empty($_FILES['product_gallery']['name'][0])) {
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+            require_once(ABSPATH . 'wp-admin/includes/media.php');
+            require_once(ABSPATH . 'wp-admin/includes/image.php');
+
+            $attachment_ids = [];
+            foreach ($_FILES['product_gallery']['name'] as $key => $value) {
+                if ($_FILES['product_gallery']['name'][$key]) {
+                    $file = [
+                        'name'     => $_FILES['product_gallery']['name'][$key],
+                        'type'     => $_FILES['product_gallery']['type'][$key],
+                        'tmp_name' => $_FILES['product_gallery']['tmp_name'][$key],
+                        'error'    => $_FILES['product_gallery']['error'][$key],
+                        'size'     => $_FILES['product_gallery']['size'][$key],
+                    ];
+                    $_FILES['upload_attachment'] = $file;
+                    $attachment_id = media_handle_upload('upload_attachment', $post_id);
+                    if (!is_wp_error($attachment_id)) {
+                        $attachment_ids[] = $attachment_id;
                     }
                 }
-                if (!empty($attachment_ids)) {
-                    set_post_thumbnail($post_id, $attachment_ids[0]);
-                    update_post_meta($post_id, '_product_image_gallery', implode(',', $attachment_ids));
-                }
             }
-
-            echo '<p>' . t('Объявление создано!', 'Listing created!', 'Anunțul a fost creat!') . '</p>';
-        } else {
-            echo '<p>' . t('Ошибка создания.', 'Creation error.', 'Eroare la creare.') . '</p>';
+            if (!empty($attachment_ids)) {
+                set_post_thumbnail($post_id, $attachment_ids[0]);
+                update_post_meta($post_id, '_product_image_gallery', implode(',', $attachment_ids));
+            }
         }
+
+        wp_safe_redirect(get_permalink($post_id));
+        exit;
+    } else {
+        wp_die(t('Ошибка создания.', 'Creation error.', 'Eroare la creare.'));
     }
 }
+
+get_header();
 ?>
 
 <div class="product__wrapper create">
     <div class="container-medium">
-        <div class="product-create">
-            <h3 class="product-create__title display-small"><?php echo t('Создать объявление', 'Create Listing', 'Creează Anunț'); ?></h3>
-
+        <section class="product-create">
             <form method="post" enctype="multipart/form-data">
+                <h1 class="product-create__title display-small"><?php echo t('Создать объявление', 'Create Listing', 'Creează Anunț'); ?></h1>
                 <?php wp_nonce_field('create_product_form', 'product_form_nonce'); ?>
 
-                <div class="form-group">
-                    <h4 class="label-large"><?php echo t('Категории', 'Categories', 'Categorii'); ?></h4>
+                <fieldset class="form-group">
                     <div class="category-selectors" id="category-selectors" data-restored="1">
                         <?php
                         $selected_categories = isset($selected_categories) ? $selected_categories : [];
@@ -98,11 +94,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_product'])) {
                             };
                         </script>
                     </div>
-                </div>
+                </fieldset>
 
-
-
-                <div class="form-group tabs">
+                <section class="form-group tabs">
                     <?php $language = $GLOBALS['language']; ?>
                     <ul class="tab-buttons">
                         <li class="tab-btn body-small-semibold <?php if ($language === 'ru') echo 'active'; ?>" data-tab="tab-ru">RU</li>
@@ -111,30 +105,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_product'])) {
                     </ul>
 
                     <div class="tab-content <?php if ($language === 'ru') echo 'active'; ?>" id="tab-ru">
-                        <h4 class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></h4>
+                        <label class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
                         <input type="text" class="form-input input-secondary body-medium-regular" name="product_title"
                                placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>">
-                        <h4 class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></h4>
+                        <label class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
                         <textarea name="product_content" rows="5" class="form-textarea input-tertiary body-medium-regular"
                                   placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>"></textarea>
                     </div>
 
                     <div class="tab-content <?php if ($language === 'en') echo 'active'; ?>" id="tab-en">
-                        <h4 class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></h4>
+                        <label class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
                         <input type="text" class="form-input input-secondary body-medium-regular" name="title_en"
                                placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>">
-                        <h4 class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></h4>
+                        <label class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
                         <textarea name="description_en" rows="5" class="form-textarea input-tertiary body-medium-regular"
                                   placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>"></textarea>
                     </div>
 
                     <div class="tab-content <?php if ($language === 'ro') echo 'active'; ?>" id="tab-ro">
-                        <h4 class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></h4>
+                        <label class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
                         <input type="text" class="form-input input-secondary body-medium-regular" name="title_ro"
                                placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>">
-                        <h4 class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></h4>
+                        <label class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
                         <textarea name="description_ro" rows="5" class="form-textarea input-tertiary body-medium-regular"
                                   placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>"></textarea>
+                        <small class="body-small-regular">0 / 300</small>
                     </div>
 
                     <div class="translation-button">
@@ -143,12 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_product'])) {
                             <?php echo t('Сгенерировать переводы', 'Generate Translations', 'Generează traduceri'); ?>
                         </button>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label"><?php echo t('Цена (леи)', 'Price (lei)', 'Preț (lei)'); ?></label>
-                    <input type="number" step="0.01" name="product_price" class="form-input input-secondary body-medium-regular" required>
-                </div>
+                </section>
 
                 <div class="form-group">
                     <label class="form-label label-large">
@@ -179,6 +169,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_product'])) {
                     </div>
                 </div>
 
+                <section class="form-group">
+                    <label class="form-label label-large"><?php echo t('Цена (леи)', 'Price (lei)', 'Preț (lei)'); ?></label>
+                    <input type="number" step="0.01" name="product_price" class="form-input input-secondary body-medium-regular" required>
+                </section>
+
                 <div class="form-group">
                     <label class="form-label"><?php echo t('Статус', 'Status', 'Stare'); ?></label>
                     <select name="product_status" class="form-select">
@@ -187,11 +182,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_product'])) {
                     </select>
                 </div>
 
+                <!-- Кнопка -->
                 <div class="form-group">
-                    <input type="submit" name="submit_product" value="<?php echo t('Создать', 'Create', 'Creează'); ?>" class="form-submit">
+                    <input type="submit" name="submit_product" value="<?php echo t('Создать', 'Create', 'Creează'); ?>" class="form-submit primary-button-large button-large">
                 </div>
             </form>
-        </div>
+
+            <nav class="form-progress" aria-label="Progress">
+                <ol class="form-progress__steps" id="form-progress-bar">
+                    <li class="form-progress__step" data-step="category">
+                        <span class="form-progress__circle"></span>
+                        <span class="form-progress__label body-small-semibold"><?php echo t('Категория', 'Category', 'Categorie'); ?></span>
+                    </li>
+                    <li class="form-progress__step" data-step="title" aria-current="step">
+                        <span class="form-progress__circle"></span>
+                        <span class="form-progress__label body-small-semibold"><?php echo t('Название', 'Title', 'Titlu'); ?></span>
+                    </li>
+                    <li class="form-progress__step" data-step="description">
+                        <span class="form-progress__circle"></span>
+                        <span class="form-progress__label body-small-semibold"><?php echo t('Описание', 'Description', 'Descriere'); ?></span>
+                    </li>
+                    <li class="form-progress__step" data-step="image">
+                        <span class="form-progress__circle"></span>
+                        <span class="form-progress__label body-small-semibold"><?php echo t('Изображения', 'Images', 'Imagini'); ?></span>
+                    </li>
+                    <li class="form-progress__step" data-step="price">
+                        <span class="form-progress__circle"></span>
+                        <span class="form-progress__label body-small-semibold"><?php echo t('Цена', 'Price', 'Preț'); ?></span>
+                    </li>
+                </ol>
+            </nav>
+        </section>
     </div>
 </div>
 

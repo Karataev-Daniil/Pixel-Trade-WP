@@ -7,24 +7,22 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
         <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
         <script>
-          document.addEventListener('DOMContentLoaded', function () {
-            const toggleButton = document.getElementById('catalogToggle');
-            const dropdown = document.getElementById('catalogDropdown');
-          
-            toggleButton.addEventListener('click', function () {
-              dropdown.classList.toggle('show');
-            });
-          
-            document.addEventListener('click', function (event) {
-              if (!toggleButton.contains(event.target) && !dropdown.contains(event.target)) {
-                dropdown.classList.remove('show');
-              }
-            });
-          });
-          document.querySelector('.language-toggle')?.addEventListener('click', function(e) {
-            const switcher = this.closest('.language-switcher');
-            switcher.classList.toggle('open');
-          });
+        document.addEventListener('click', e => {
+          const btn = e.target.closest('#catalogToggle');
+          if (btn) {
+            const list = document.querySelector('#catalogDropdown');
+            const isOpen = list.classList.toggle('is-open');
+            btn.setAttribute('aria-expanded', isOpen);
+          }
+        
+          const toggle = e.target.closest('.submenu-toggle');
+          if (toggle) {
+            const submenu = toggle.parentElement.querySelector('.submenu');
+            const isOpen = submenu.classList.toggle('is-open');
+            toggle.setAttribute('aria-expanded', isOpen);
+          }
+        });
+
         </script>
         <?php wp_head(); ?>
     </head>
@@ -138,25 +136,69 @@
                       
                 <!-- Каталог -->
                 <div class="catalog-dropdown-wrapper">
-                  <button class="secondary-button-small catalog-toggle-button" id="catalogToggle" type="button" aria-haspopup="true" aria-expanded="false">
+                  <button class="secondary-button-small catalog-toggle-button"
+                          id="catalogToggle"
+                          type="button"
+                          aria-haspopup="true"
+                          aria-expanded="false"
+                          aria-controls="catalogDropdown">
                     <?= t('Каталог', 'Catalog', 'Catalog'); ?>
                   </button>
-                  <ul class="catalog-dropdown-list" id="catalogDropdown">
-                    <?php
+                                      
+                  <?php
+                  if ( ! function_exists('render_product_cat_tree') ) {
+                    function render_product_cat_tree( $parent_id = 0, $is_root = false ) {
                       $terms = get_terms([
-                        'taxonomy' => 'product_cat',
+                        'taxonomy'   => 'product_cat',
                         'hide_empty' => false,
+                        'parent'     => $parent_id,
+                        'orderby'    => 'name',
+                        'order'      => 'ASC',
                       ]);
-                      if (!empty($terms) && !is_wp_error($terms)) {
-                        foreach ($terms as $term) {
-                          echo '<li><a class="link-button" href="' . esc_url(get_term_link($term)) . '">' . esc_html($term->name) . '</a></li>';
+                    
+                      if ( empty($terms) || is_wp_error($terms) ) {
+                        if ( $is_root ) {
+                          echo '<ul class="catalog-dropdown-list" id="catalogDropdown">
+                                  <li class="label-small">'. t('Нет категорий', 'No categories', 'Fără categorii') .'</li>
+                                </ul>';
                         }
-                      } else {
-                        echo '<li class="label-small">' . t('Нет категорий', 'No categories', 'Fără categorii') . '</li>';
+                        return;
                       }
-                    ?>
-                  </ul>
+                    
+                      echo $is_root
+                        ? '<ul class="catalog-dropdown-list" id="catalogDropdown">'
+                        : '<ul class="submenu">';
+                    
+                      foreach ( $terms as $term ) {
+                        $children = get_terms([
+                          'taxonomy'   => 'product_cat',
+                          'hide_empty' => false,
+                          'parent'     => $term->term_id,
+                          'number'     => 1,
+                        ]);
+                        $has_children = ! empty($children) && ! is_wp_error($children);
+                      
+                        echo '<li class="catalog-item'. ( $has_children ? ' has-children' : '' ) .'">';
+                        echo '<a class="link-button" href="'. esc_url( get_term_link($term) ) .'">'. esc_html( $term->name ) .'</a>';
+                      
+                        if ( $has_children ) {
+                          echo '<button class="submenu-toggle" type="button" aria-expanded="false">
+                                  <span class="icon-caret"></span>
+                                </button>';
+                          render_product_cat_tree( $term->term_id, false );
+                        }
+                      
+                        echo '</li>';
+                      }
+                    
+                      echo '</ul>';
+                    }
+                  }
+                
+                  render_product_cat_tree( 0, true );
+                  ?>
                 </div>
+
                     
                 <!-- Поиск -->
                 <form role="search" method="get" class="search-form search-panel has-content" action="<?= esc_url(home_url('/blog/')); ?>">

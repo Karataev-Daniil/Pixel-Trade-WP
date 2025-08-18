@@ -95,18 +95,19 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+
     // --- Показ/скрытие подкатегорий ---
     document.querySelectorAll('.category-list label').forEach(label => {
         label.addEventListener('click', function(e) {
             if (e.target.tagName === 'INPUT') return;
             const li = label.closest('li');
             if (!li) return;
-            const subLists = li.querySelectorAll(':scope > ul');
+            const subLists = li.querySelectorAll(':scope > ul.sub-category');
             subLists.forEach(sub => sub.style.display = sub.style.display === 'block' ? 'none' : 'block');
         });
     });
 
-    // --- noUiSlider ---
+    // --- noUiSlider для цены ---
     const priceSlider = document.getElementById('price-slider');
     const priceMinInput = document.getElementById('price-min');
     const priceMaxInput = document.getElementById('price-max');
@@ -168,11 +169,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Раскрываем UL для выбранных категорий
         document.querySelectorAll('.category-list input[type="checkbox"]:checked').forEach(checkbox => {
-            let parentLi = checkbox.closest('li')?.closest('ul')?.closest('li');
-            while (parentLi) {
-                const directUl = parentLi.querySelector(':scope > ul.sub-category');
-                if (directUl) directUl.style.display = 'block';
-                parentLi = parentLi.closest('li')?.closest('ul')?.closest('li');
+            let li = checkbox.closest('li');
+            while (li) {
+                const ul = li.querySelector(':scope > ul.sub-category');
+                if (ul) ul.style.display = 'block';
+                li = li.parentElement.closest('li');
             }
         });
 
@@ -183,50 +184,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('filter-form').addEventListener('change', saveFiltersToStorage);
 
-    // --- AJAX ---
-    document.getElementById('filter-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData();
-        
-        // --- Все выбранные категории ---
-        document.querySelectorAll('input[name="categories[]"]:checked').forEach(cb => {
-            formData.append('categories[]', cb.value);
-        });
-    
-        // --- Цена ---
-        formData.append('price_min', document.getElementById('price-min').value);
-        formData.append('price_max', document.getElementById('price-max').value);
-    
-        // --- Сортировка ---
-        formData.append('sort', document.querySelector('select[name="sort"]').value);
-    
-        // --- Действие AJAX ---
-        formData.append('action', 'filter_products');
-    
-        fetch('/wp-admin/admin-ajax.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(r => r.text())
-        .then(html => {
-            document.getElementById('product-results').innerHTML = html;
-        });
-    });
-
-
-    document.getElementById('reset-filters').addEventListener('click', function() {
-        localStorage.removeItem('product_filters');
-        document.getElementById('filter-form').reset();
-        priceSlider.noUiSlider.set([0, 50000]);
-        loadProducts();
-    });
-
+    // --- AJAX фильтр ---
     function loadProducts() {
+        const categories = [];
+        document.querySelectorAll('input[name="categories[]"]:checked').forEach(cb => categories.push(cb.value));
+
         const formData = new FormData();
-        document.querySelectorAll('input[name="categories[]"]:checked').forEach(cb => formData.append('categories[]', cb.value));
-        formData.append('price_min', document.getElementById('price-min').value);
-        formData.append('price_max', document.getElementById('price-max').value);
+        formData.append('categories', JSON.stringify(categories));
+        formData.append('price_min', priceMinInput.value);
+        formData.append('price_max', priceMaxInput.value);
         formData.append('sort', document.querySelector('select[name="sort"]').value);
         formData.append('action', 'filter_products');
 
@@ -240,12 +206,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    document.getElementById('filter-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        loadProducts();
+    });
+
+    // --- Сброс фильтров ---
+    document.getElementById('reset-filters').addEventListener('click', function() {
+        localStorage.removeItem('product_filters');
+        document.getElementById('filter-form').reset();
+        priceSlider.noUiSlider.set([0, 50000]);
+        document.querySelectorAll('.sub-category').forEach(ul => ul.style.display = 'none');
+        loadProducts();
+    });
+
     // --- Инициализация ---
     loadFiltersFromStorage();
     loadProducts(); // сразу показываем все товары
 });
-
 </script>
+
 
 <?php
 get_footer();

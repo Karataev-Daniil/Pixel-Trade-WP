@@ -2,6 +2,9 @@
 Theme Name: PixelTrade
 Author: Daniil
 */
+body {
+  overflow: hidden;
+}
 /* Base container styles */
 .container-big,
 .container,

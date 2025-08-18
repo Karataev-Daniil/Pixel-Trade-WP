@@ -161,6 +161,10 @@ if (have_posts()) :
                         <!-- Прогресс -->
                         <nav class="form-progress" aria-label="Progress">
                             <ol class="form-progress__steps" id="form-progress-bar">
+                                <li class="form-progress__step" data-step="category">
+                                    <span class="form-progress__circle"></span>
+                                    <span class="form-progress__label body-small-semibold"><?php echo t('Категория', 'Category', 'Categorie'); ?></span>
+                                </li>
                                 <li class="form-progress__step" data-step="title" aria-current="step">
                                     <span class="form-progress__circle"></span>
                                     <span class="form-progress__label body-small-semibold"><?php echo t('Название', 'Title', 'Titlu'); ?></span>
@@ -169,17 +173,13 @@ if (have_posts()) :
                                     <span class="form-progress__circle"></span>
                                     <span class="form-progress__label body-small-semibold"><?php echo t('Описание', 'Description', 'Descriere'); ?></span>
                                 </li>
-                                <li class="form-progress__step" data-step="category">
+                                <li class="form-progress__step" data-step="image">
                                     <span class="form-progress__circle"></span>
-                                    <span class="form-progress__label body-small-semibold"><?php echo t('Категория', 'Category', 'Categorie'); ?></span>
+                                    <span class="form-progress__label body-small-semibold"><?php echo t('Изображения', 'Images', 'Imagini'); ?></span>
                                 </li>
                                 <li class="form-progress__step" data-step="price">
                                     <span class="form-progress__circle"></span>
                                     <span class="form-progress__label body-small-semibold"><?php echo t('Цена', 'Price', 'Preț'); ?></span>
-                                </li>
-                                <li class="form-progress__step" data-step="image">
-                                    <span class="form-progress__circle"></span>
-                                    <span class="form-progress__label body-small-semibold"><?php echo t('Изображения', 'Images', 'Imagini'); ?></span>
                                 </li>
                             </ol>
                         </nav>
