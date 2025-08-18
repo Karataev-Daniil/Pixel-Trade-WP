@@ -51,15 +51,11 @@ function handle_product_edit_form_submission() {
     }
 
     $remove_ids = array_filter(array_map('intval', explode(',', $_POST['remove_gallery_ids_input'] ?? '')));
-    $gallery_order = explode(',', $_POST['gallery_order_input'] ?? '');
-
     $current_gallery = get_post_meta($product_id, 'product_gallery', true);
     $current_gallery = is_array($current_gallery) ? $current_gallery : [];
-
     $current_gallery = array_diff($current_gallery, $remove_ids);
 
     $new_attachment_ids = [];
-
     if (!empty($_FILES['product_gallery_input']['name'][0])) {
         $files = $_FILES['product_gallery_input'];
         foreach ($files['name'] as $i => $name) {
@@ -83,18 +79,13 @@ function handle_product_edit_form_submission() {
     }
 
     $final_gallery = [];
-
-    $new_indexes = $_POST['new_file_indexes'] ?? [];
-
-    $mapped_attachments = array_values($new_attachment_ids);
+    $gallery_order = explode(',', $_POST['gallery_order_input'] ?? '');
 
     foreach ($gallery_order as $order_id) {
         if (strpos($order_id, 'new-') === 0) {
             $index = (int) str_replace('new-', '', $order_id);
-
-            $position = array_search($index, $new_indexes);
-            if ($position !== false && isset($mapped_attachments[$position])) {
-                $final_gallery[] = $mapped_attachments[$position];
+            if (isset($new_attachment_ids[$index])) {
+                $final_gallery[] = $new_attachment_ids[$index];
             }
         } else {
             $id = (int)$order_id;
@@ -104,15 +95,14 @@ function handle_product_edit_form_submission() {
         }
     }
 
-
     update_post_meta($product_id, 'product_gallery', $final_gallery);
-
-    foreach ($remove_ids as $remove_id) {
-        wp_delete_attachment((int)$remove_id, true);
-    }
 
     if (!has_post_thumbnail($product_id) && !empty($final_gallery)) {
         set_post_thumbnail($product_id, $final_gallery[0]);
+    }
+
+    foreach ($remove_ids as $remove_id) {
+        wp_delete_attachment((int)$remove_id, true);
     }
 
     wp_redirect(get_permalink($product_id));

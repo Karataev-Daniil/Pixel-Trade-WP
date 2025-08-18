@@ -117,6 +117,32 @@ if (have_posts()) :
                                 </select>
                             </fieldset>
                                 
+                            <?php
+                            // Получаем Featured Image
+                            $thumbnail_id = get_post_thumbnail_id($product_id);
+
+                            // Получаем галерею продукта
+                            $gallery = get_field('product_gallery', $product_id);
+                            $gallery_ids = [];
+
+                            if (!empty($gallery)) {
+                                if (is_array($gallery)) {
+                                    foreach ($gallery as $image) {
+                                        if (is_array($image) && isset($image['ID'])) {
+                                            $gallery_ids[] = $image['ID'];
+                                        } elseif (is_numeric($image)) {
+                                            $gallery_ids[] = $image; // если ACF возвращает массив ID
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Если Featured Image есть и её нет в галерее, добавляем в начало
+                            if ($thumbnail_id && !in_array($thumbnail_id, $gallery_ids)) {
+                                array_unshift($gallery_ids, $thumbnail_id);
+                            }
+                            ?>
+
                             <fieldset class="form-group">
                                 <label class="form-label label-large" for="product_gallery_input">
                                     <?php echo t('Изображения (до 6 шт., первое — миниатюра)', 'Images (up to 6, first is thumbnail)', 'Imagini (până la 6, prima este miniatura)'); ?>
@@ -129,15 +155,13 @@ if (have_posts()) :
                                 <input type="hidden" id="gallery_order_input" name="gallery_order_input" value="">
                                 <input type="hidden" id="remove_gallery_ids_input" name="remove_gallery_ids_input" value="">
 
-
+                                <!-- Превью галереи -->
                                 <div id="gallery_preview" class="gallery-preview">
                                     <?php foreach (array_filter($gallery_ids) as $index => $id): ?>
                                         <div class="gallery-item<?php echo ($index === 0) ? ' thumbnail' : ''; ?>" data-id="<?php echo esc_attr($id); ?>">
                                             <?php echo wp_get_attachment_image($id, 'full'); ?>
                                             <input type="hidden" name="existing_gallery_ids[]" value="<?php echo esc_attr($id); ?>">
-                                            <button type="button" class="gallery-remove link-small-default" title="<?php echo t('Удалить', 'Remove', 'Șterge'); ?>">
-                                                ✕
-                                            </button>
+                                            <button type="button" class="gallery-remove link-small-default" title="<?php echo t('Удалить', 'Remove', 'Șterge'); ?>">✕</button>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
@@ -226,10 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('textarea[maxlength]').forEach(updateCharCount);
 });
 
-</script>
 
-
-<script>
 document.addEventListener('DOMContentLoaded', function () {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -244,6 +265,21 @@ document.addEventListener('DOMContentLoaded', function () {
             this.classList.add('active');
             document.getElementById(target).classList.add('active');
         });
+    });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const gallery = document.getElementById('gallery_preview');
+
+    // Инициализируем Sortable
+    new Sortable(gallery, {
+        animation: 150, // плавная анимация
+        ghostClass: 'sortable-ghost',
+        onEnd: function () {
+            // После каждого перетаскивания обновляем порядок
+            updateGalleryOrder();
+        }
     });
 });
 </script>
@@ -344,6 +380,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <?php
                                 $gallery_ids = get_post_meta(get_the_ID(), 'product_gallery', true);
                                 $gallery_ids = is_array($gallery_ids) ? array_filter($gallery_ids) : [];
+
+                                $thumbnail_id = get_post_thumbnail_id(get_the_ID());
+
+                                if ($thumbnail_id && !in_array($thumbnail_id, $gallery_ids)) {
+                                    array_unshift($gallery_ids, $thumbnail_id);
+                                }
                                 ?>
 
                                 <?php if (!empty($gallery_ids)) : ?>

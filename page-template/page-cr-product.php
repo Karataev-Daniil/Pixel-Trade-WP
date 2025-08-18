@@ -7,74 +7,13 @@ if (!is_user_logged_in()) {
 
 $current_user_id = get_current_user_id();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_product'])) {
-    if (!isset($_POST['product_form_nonce']) || !wp_verify_nonce($_POST['product_form_nonce'], 'create_product_form')) {
-        wp_die(t('Ошибка безопасности.', 'Security error.', 'Eroare de securitate.'));
-    }
-
-    $post_data = [
-        'post_title'   => sanitize_text_field($_POST['product_title']),
-        'post_content' => sanitize_textarea_field($_POST['product_content']),
-        'post_status'  => sanitize_text_field($_POST['product_status']),
-        'post_type'    => 'product',
-        'post_author'  => $current_user_id,
-    ];
-
-    $post_id = wp_insert_post($post_data);
-
-    if ($post_id) {
-        update_post_meta($post_id, 'product_price', floatval($_POST['product_price']));
-        update_post_meta($post_id, '_title_en', sanitize_text_field($_POST['title_en']));
-        update_post_meta($post_id, '_description_en', sanitize_textarea_field($_POST['description_en']));
-        update_post_meta($post_id, '_title_ro', sanitize_text_field($_POST['title_ro']));
-        update_post_meta($post_id, '_description_ro', sanitize_textarea_field($_POST['description_ro']));
-
-        if (!empty($_POST['selected_categories'])) {
-            wp_set_post_terms($post_id, array_map('intval', $_POST['selected_categories']), 'product_cat');
-        }
-
-        if (!empty($_FILES['product_gallery']['name'][0])) {
-            require_once(ABSPATH . 'wp-admin/includes/file.php');
-            require_once(ABSPATH . 'wp-admin/includes/media.php');
-            require_once(ABSPATH . 'wp-admin/includes/image.php');
-
-            $attachment_ids = [];
-            foreach ($_FILES['product_gallery']['name'] as $key => $value) {
-                if ($_FILES['product_gallery']['name'][$key]) {
-                    $file = [
-                        'name'     => $_FILES['product_gallery']['name'][$key],
-                        'type'     => $_FILES['product_gallery']['type'][$key],
-                        'tmp_name' => $_FILES['product_gallery']['tmp_name'][$key],
-                        'error'    => $_FILES['product_gallery']['error'][$key],
-                        'size'     => $_FILES['product_gallery']['size'][$key],
-                    ];
-                    $_FILES['upload_attachment'] = $file;
-                    $attachment_id = media_handle_upload('upload_attachment', $post_id);
-                    if (!is_wp_error($attachment_id)) {
-                        $attachment_ids[] = $attachment_id;
-                    }
-                }
-            }
-            if (!empty($attachment_ids)) {
-                set_post_thumbnail($post_id, $attachment_ids[0]);
-                update_post_meta($post_id, '_product_image_gallery', implode(',', $attachment_ids));
-            }
-        }
-
-        wp_safe_redirect(get_permalink($post_id));
-        exit;
-    } else {
-        wp_die(t('Ошибка создания.', 'Creation error.', 'Eroare la creare.'));
-    }
-}
-
 get_header();
 ?>
 
 <div class="product__wrapper create">
     <div class="container-medium">
         <section class="product-create">
-            <form method="post" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data" action="<?php echo admin_url('admin-post.php?action=create_product'); ?>">
                 <h1 class="product-create__title display-small"><?php echo t('Создать объявление', 'Create Listing', 'Creează Anunț'); ?></h1>
                 <?php wp_nonce_field('create_product_form', 'product_form_nonce'); ?>
 
@@ -85,6 +24,8 @@ get_header();
                         $sorted_term_ids = sort_categories_by_hierarchy($selected_categories);
                         ?>
                         <div id="preselected-categories" data-terms="<?php echo esc_attr(json_encode($sorted_term_ids)); ?>"></div>
+                        <!-- ✅ скрытое поле для выбранных категорий -->
+                        <input type="hidden" name="selected_categories" id="selected_categories_input" value="">
                         <script>
                             const translations = {
                                 selectCategory: <?php echo json_encode(t('Выберите категорию', 'Select category', 'Selectați categoria')); ?>,
@@ -232,6 +173,10 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById(target).classList.add('active');
         });
     });
+
+    function updateSelectedCategories(ids) {
+        document.getElementById('selected_categories_input').value = ids.join(',');
+    }
 });
 </script>
 

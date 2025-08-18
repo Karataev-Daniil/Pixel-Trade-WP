@@ -40,7 +40,7 @@ window.checkGalleryLimit = function (input) {
         reader.readAsDataURL(file);
     });
 
-    input.value = '';
+    // input.value = '';
 };
 
 function updateGalleryOrder() {
@@ -66,6 +66,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Инициализация порядка при загрузке страницы
     updateGalleryOrder();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const preview = document.getElementById('gallery_preview');
+
+    updateGalleryOrder();
+
+    preview.addEventListener('click', function (e) {
+        if (e.target.classList.contains('gallery-remove')) {
+            const item = e.target.closest('.gallery-item');
+            const removeInput = document.getElementById('remove_gallery_ids_input');
+
+            if (item.dataset.id && !item.dataset.id.startsWith('new-')) {
+                const currentValue = removeInput.value ? removeInput.value.split(',') : [];
+                currentValue.push(item.dataset.id);
+                removeInput.value = currentValue.join(',');
+            }
+
+            item.remove();
+            updateGalleryOrder();
+        }
+    });
 });
