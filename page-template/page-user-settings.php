@@ -14,7 +14,6 @@ if (!is_user_logged_in()) {
 $current_user = wp_get_current_user();
 $user_id = $current_user->ID;
 
-// Обработка формы
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_settings_nonce']) && wp_verify_nonce($_POST['user_settings_nonce'], 'save_user_settings')) {
     if (isset($_POST['display_name'])) {
         wp_update_user([
@@ -37,7 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_settings_nonce']
     echo '<div class="notice success" style="padding:10px; background:#d4edda; color:#155724; border:1px solid #c3e6cb; margin-bottom: 20px;">Профиль обновлён.</div>';
 }
 
-// Получаем обновленные данные
 $region = get_user_meta($user_id, 'region', true);
 ?>
 
@@ -58,8 +56,24 @@ $region = get_user_meta($user_id, 'region', true);
         </p>
 
         <p>
-            <label for="region"><strong>Регион:</strong></label><br>
-            <input type="text" name="region" id="region" value="<?php echo esc_attr($region); ?>" class="widefat">
+            <label for="region"><strong><?php echo t('Регион', 'Region', 'Regiune'); ?>:</strong></label><br>
+            <select name="region" id="region" class="widefat">
+                <option value=""><?php echo t('-- Выберите регион --', '-- Select Region --', '-- Selectați Regiunea --'); ?></option>
+                <?php
+                $regions = get_moldova_regions();
+                foreach ($regions as $main) {
+                    $main_label = t($main['ru'], $main['en'], $main['ro']);
+                    echo '<option value="' . esc_attr($main_label) . '" ' . selected($region, $main_label, false) . '>' . esc_html($main_label) . '</option>';
+                
+                    if (!empty($main['sub'])) {
+                        foreach ($main['sub'] as $sub) {
+                            $sub_label = t($sub['ru'], $sub['en'], $sub['ro']);
+                            echo '<option value="' . esc_attr($sub_label) . '" ' . selected($region, $sub_label, false) . '>&nbsp;&nbsp;&nbsp;— ' . esc_html($sub_label) . '</option>';
+                        }
+                    }
+                }
+                ?>
+            </select>
         </p>
 
         <p>

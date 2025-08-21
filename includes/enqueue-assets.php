@@ -146,3 +146,18 @@ function custom_enqueue_assets() {
     );
 }
 add_action( 'wp_enqueue_scripts', 'custom_enqueue_assets' );
+
+function favorites_enqueue_assets() {
+    wp_enqueue_script(
+        'favorites-js',
+        get_template_directory_uri() . '/assets/js/favorites.js',
+        ['jquery'],
+        null,
+        true
+    );
+    wp_localize_script('favorites-js', 'favorites_ajax', [
+        'url' => admin_url('admin-ajax.php'),
+    ]);
+}
+add_action('wp_enqueue_scripts', 'favorites_enqueue_assets');
+

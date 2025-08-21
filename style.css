@@ -3,6 +3,23 @@ Theme Name: PixelTrade
 Author: Daniil
 */
 
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+}
+header {
+  flex-shrink: 0;
+}
+main {
+  flex: 1;
+  background: var(--gray_6);
+}
+footer {
+  flex-shrink: 0;
+}
+
 /* Base container styles */
 .container-big,
 .container,

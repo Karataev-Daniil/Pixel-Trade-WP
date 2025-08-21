@@ -3,6 +3,7 @@
         <input type="text" id="chat-input" placeholder="Введите сообщение">
         <button id="send-chat">Отправить</button>
     </div>
+  </main>
 
     <footer class="footer" role="contentinfo">
       <div class="footer__wrapper">

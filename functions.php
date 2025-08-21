@@ -11,6 +11,8 @@ require_once get_template_directory() . '/includes/user-registration.php';
 require_once get_template_directory() . '/includes/user-login.php';
 require_once get_template_directory() . '/includes/user-create-product.php';
 require_once get_template_directory() . '/includes/user-edit-product.php';
+require_once get_template_directory() . '/includes/user-settings.php';
+require_once get_template_directory() . '/includes/user-favorites.php';
 
 require_once get_template_directory() . '/includes/ajax/filter-products.php';
 

@@ -24,7 +24,7 @@ get_header();
                         $sorted_term_ids = sort_categories_by_hierarchy($selected_categories);
                         ?>
                         <div id="preselected-categories" data-terms="<?php echo esc_attr(json_encode($sorted_term_ids)); ?>"></div>
-                        <!-- ✅ скрытое поле для выбранных категорий -->
+                        
                         <input type="hidden" name="selected_categories" id="selected_categories_input" value="">
                         <script>
                             const translations = {

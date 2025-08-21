@@ -38,7 +38,7 @@
               
                 <!-- Логотип и информация -->
                 <div class="header-top-left">
-                  <div class="logo">
+                  <div class="logo logo-hover">
                     <a href="/" aria-label="<?= t('На главную', 'Home', 'Acasă'); ?>" class="logo-link">
                       <?php echo file_get_contents(get_template_directory() . '/images/logo.svg'); ?>
                     </a>
@@ -219,3 +219,4 @@
           </section>
         </div>
       </header>
+  <main>
