@@ -108,3 +108,109 @@ function render_user_settings_page() {
     </script>
     <?php
 }
+
+// Обработка сохранения настроек аккаунта
+add_action('admin_post_save_user_settings', function() {
+    if (!is_user_logged_in()) {
+        wp_redirect(wp_login_url());
+        exit;
+    }
+    
+    $current_user = wp_get_current_user();
+    $user_id = $current_user->ID;
+    
+    // Проверяем nonce безопасности
+    if (!isset($_POST['user_settings_nonce']) || !wp_verify_nonce($_POST['user_settings_nonce'], 'save_user_settings')) {
+        wp_die(__('Ошибка проверки безопасности.'));
+    }
+    
+    // --- Обновляем display_name ---
+    if (isset($_POST['display_name'])) {
+        $display_name = sanitize_text_field($_POST['display_name']);
+        wp_update_user([
+            'ID' => $user_id,
+            'display_name' => $display_name
+        ]);
+    }
+    
+    // --- Обновляем email ---
+    if (isset($_POST['user_email'])) {
+        $user_email = sanitize_email($_POST['user_email']);
+        if (!is_email($user_email)) {
+            wp_die(__('Неверный email.'));
+        }
+        wp_update_user([
+            'ID' => $user_id,
+            'user_email' => $user_email
+        ]);
+    }
+    
+    // --- Обновляем регион ---
+    if (isset($_POST['region'])) {
+        $region = sanitize_text_field($_POST['region']);
+        update_user_meta($user_id, 'region', $region);
+    }
+    
+    // --- Обработка аватара ---
+    if (isset($_FILES['avatar']) && !empty($_FILES['avatar']['name'])) {
+        require_once(ABSPATH . 'wp-admin/includes/file.php');
+        require_once(ABSPATH . 'wp-admin/includes/image.php');
+        require_once(ABSPATH . 'wp-admin/includes/media.php');
+    
+        $uploadedfile = $_FILES['avatar'];
+        $upload_overrides = ['test_form' => false];
+    
+        $movefile = wp_handle_upload($uploadedfile, $upload_overrides);
+    
+        if ($movefile && !isset($movefile['error'])) {
+            $filename = $movefile['file'];
+            $filetype = wp_check_filetype(basename($filename), null);
+        
+            $attachment = [
+                'guid'           => $movefile['url'],
+                'post_mime_type' => $filetype['type'],
+                'post_title'     => sanitize_file_name(basename($filename)),
+                'post_content'   => '',
+                'post_status'    => 'inherit'
+            ];
+        
+            $attach_id = wp_insert_attachment($attachment, $filename);
+            $attach_data = wp_generate_attachment_metadata($attach_id, $filename);
+            wp_update_attachment_metadata($attach_id, $attach_data);
+        
+            // Сохраняем ID аватара в user_meta
+            update_user_meta($user_id, 'profile_avatar', $attach_id);
+        } else {
+            wp_die(__('Ошибка загрузки файла: ') . $movefile['error']);
+        }
+    }
+    
+    // --- Фильтр для полного замещения Gravatar ---
+    add_filter('get_avatar', function ($avatar, $id_or_email, $size, $default, $alt) {
+        $user = false;
+    
+        if (is_numeric($id_or_email)) {
+            $user_id = (int) $id_or_email;
+            $user = get_user_by('id', $user_id);
+        } elseif (is_object($id_or_email) && !empty($id_or_email->user_id)) {
+            $user_id = (int) $id_or_email->user_id;
+            $user = get_user_by('id', $user_id);
+        } elseif (is_string($id_or_email)) {
+            $user = get_user_by('email', $id_or_email);
+        }
+    
+        if ($user) {
+            $avatar_id = get_user_meta($user->ID, 'profile_avatar', true);
+            if ($avatar_id) {
+                $avatar_url = wp_get_attachment_url($avatar_id);
+                return "<img alt='" . esc_attr($alt) . "' src='" . esc_url($avatar_url) . "' class='avatar avatar-{$size} photo' height='{$size}' width='{$size}' />";
+            }
+        }
+    
+        return $avatar; // Если нет кастомного аватара, используем стандартный
+    }, 10, 5);
+    
+    // После успешного сохранения редирект
+    wp_redirect(wp_get_referer() ? wp_get_referer() : home_url());
+    exit;
+});

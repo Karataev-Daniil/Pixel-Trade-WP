@@ -108,7 +108,13 @@
                   <?php
                     $user = wp_get_current_user();
                     $is_logged_in = is_user_logged_in();
-                    $avatar_url = $is_logged_in ? get_avatar_url($user->ID) : get_template_directory_uri() . '/assets/img/avatar-placeholder.png';
+
+                    if ($is_logged_in) {
+                        $avatar_id = get_user_meta($user->ID, 'profile_avatar', true);
+                        $avatar_url = $avatar_id ? wp_get_attachment_url($avatar_id) : get_avatar_url($user->ID);
+                    } else {
+                        $avatar_url = get_template_directory_uri() . '/assets/img/avatar-placeholder.png';
+                    }
                   ?>
                   <div class="user-menu">
                     <button class="user-avatar" id="user-avatar" aria-haspopup="true" aria-expanded="false" aria-label="<?= t('Меню пользователя', 'User menu', 'Meniu utilizator'); ?>">

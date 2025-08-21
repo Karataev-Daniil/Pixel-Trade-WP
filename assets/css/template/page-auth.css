@@ -1,0 +1,18 @@
+.auth__wrapper {
+    max-width: 600px; 
+    margin: 40px auto;
+}
+.auth__title {
+    margin: 0 0 28px;
+}
+
+.auth__field {
+    margin: 0 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.auth__note {
+    display: flex;
+    gap: 8px;
+}

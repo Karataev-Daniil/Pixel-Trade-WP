@@ -77,13 +77,31 @@ function custom_enqueue_assets() {
         ]);
     }
 
-   
+    if ( is_page( 'login' ) || is_page( 'register' ) ) {
         wp_enqueue_style(
-            'page-test-style',
-            $theme_dir . '/assets/css/template/page-test.css',
-            [],
-            filemtime( $theme_path . '/assets/css/template/page-test.css' )
+            'page-auth',
+            get_stylesheet_directory_uri() . '/assets/css/template/page-auth.css',
+            array(),
+            filemtime( get_stylesheet_directory() . '/assets/css/template/page-auth.css' )
         );
+    }
+
+    if ( is_page( 'user-settings' ) ) {
+        wp_enqueue_style(
+            'page-user-settings',
+            get_stylesheet_directory_uri() . '/assets/css/template/page-user-settings.css',
+            array(),
+            filemtime( get_stylesheet_directory() . '/assets/css/template/page-user-settings.css' )
+        );
+    }
+
+
+    wp_enqueue_style(
+        'page-test-style',
+        $theme_dir . '/assets/css/template/page-test.css',
+        [],
+        filemtime( $theme_path . '/assets/css/template/page-test.css' )
+    );
     
 
 
