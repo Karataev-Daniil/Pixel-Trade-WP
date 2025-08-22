@@ -1,7 +1,7 @@
 .product__wrapper {
     padding: 60px 0;
     background-color: var(--gray_6);
-    overflow: visible;
+    overflow: hidden;
 }
 .product__wrapper .container-medium {
     overflow: visible;

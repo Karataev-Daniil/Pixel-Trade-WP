@@ -5,13 +5,12 @@ get_header();
 <div class="main-wrapper">
   <div class="container-medium">
     <div class="content-columns">
-        
         <aside class="sidebar" style="width: 260px;">
-            <h2 class="title-medium">Категории</h2>
+            <h2 class="display-small"><?= t('Категории', 'Categories', 'Categorii'); ?></h2>
             <form id="filter-form">
                 <ul class="category-list" style="margin-top: 24px;">
                 <?php
-                function render_cat_tree($parent_id = 0) {
+                function render_cat_tree($parent_id = 0, $language = 'ru') {
                     $terms = get_terms([
                         'taxonomy'   => 'product_cat',
                         'hide_empty' => false,
@@ -21,6 +20,18 @@ get_header();
                     if (!empty($terms) && !is_wp_error($terms)) {
                         echo '<ul class="' . ($parent_id === 0 ? '' : 'sub-category') . '" style="' . ($parent_id === 0 ? '' : 'display:none;') . '">';
                         foreach ($terms as $term) {
+                        
+                            $translation_ro = get_term_meta($term->term_id, 'translation_ro', true);
+                            $translation_en = get_term_meta($term->term_id, 'translation_en', true);
+                        
+                            if ($language === 'en') {
+                                $term_name = $translation_en ?: $term->name;
+                            } elseif ($language === 'ro') {
+                                $term_name = $translation_ro ?: $term->name;
+                            } else {
+                                $term_name = $term->name;
+                            }
+                        
                             $children = get_terms([
                                 'taxonomy'   => 'product_cat',
                                 'hide_empty' => false,
@@ -29,10 +40,10 @@ get_header();
                             $has_children = !empty($children) && !is_wp_error($children);
                         
                             echo '<li data-id="' . esc_attr($term->term_id) . '">';
-                            echo '<label>' . esc_html($term->name) . '</label>';
+                            echo '<label class="label-medium">' . esc_html($term_name) . '</label>';
                         
                             if ($has_children) {
-                                render_cat_tree($term->term_id);
+                                render_cat_tree($term->term_id, $language);
                             }
                         
                             echo '</li>';
@@ -40,31 +51,31 @@ get_header();
                         echo '</ul>';
                     }
                 }
-
-                render_cat_tree();
+            
+                global $language;
+                render_cat_tree(0, $language);
                 ?>
                 </ul>
-
-
-                <h3 class="title-small" style="margin-top: 32px;">Цена</h3>
+            
+                <h3 class="title-small" style="margin-top: 32px;"><?= t('Цена', 'Price', 'Preț'); ?></h3>
                 <div id="price-slider" style="margin-top: 16px; margin-bottom: 16px;"></div>
                 <input type="hidden" name="price_min" id="price-min">
                 <input type="hidden" name="price_max" id="price-max">
                 <div style="display: flex; justify-content: space-between; font-size: 14px;">
-                    <span id="price-min-label"></span>
-                    <span id="price-max-label"></span>
+                    <span class="label-medium" id="price-min-label"></span>
+                    <span class="label-medium" id="price-max-label"></span>
                 </div>
-
-                <h3 class="title-small" style="margin-top: 32px;">Сортировка</h3>
-                <select name="sort" style="width:100%;margin-top:8px;">
-                    <option value="date_desc">Сначала новые</option>
-                    <option value="date_asc">Сначала старые</option>
-                    <option value="views_desc">Популярные</option>
-                    <option value="views_asc">Менее популярные</option>
+            
+                <h3 class="title-small" style="margin-top: 32px;"><?= t('Сортировка', 'Sort', 'Sortare'); ?></h3>
+                <select name="sort" class="input--primary">
+                    <option value="date_desc"><?= t('Сначала новые', 'Newest first', 'Cele mai noi'); ?></option>
+                    <option value="date_asc"><?= t('Сначала старые', 'Oldest first', 'Cele mai vechi'); ?></option>
+                    <option value="views_desc"><?= t('Популярные', 'Most popular', 'Cele mai populare'); ?></option>
+                    <option value="views_asc"><?= t('Менее популярные', 'Least popular', 'Mai puțin populare'); ?></option>
                 </select>
-
-                <button type="submit" class="primary-button-small" style="margin-top: 24px;">Применить</button>
-                <button type="button" id="reset-filters" class="secondary-button-small" style="margin-top: 12px;">Сбросить</button>
+            
+                <button type="submit" class="primary-button-small" style="margin-top: 24px;"><?= t('Применить', 'Apply', 'Aplică'); ?></button>
+                <button type="button" id="reset-filters" class="secondary-button-small" style="margin-top: 12px;"><?= t('Сбросить', 'Reset', 'Resetează'); ?></button>
             </form>
         </aside>
 

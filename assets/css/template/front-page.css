@@ -14,23 +14,11 @@ body {
 
 .sidebar {
   background-color: var(--gray_5);
+  border: 1px solid var(--gray_3);
   padding: 24px;
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-.sidebar label {
-  cursor: pointer;
-  color: var(--gray_-3);
-}
-.sidebar input[type="radio"] {
-  margin-right: 8px;
-}
-.sidebar select {
-  background-color: var(--gray_6);
-  border: 1px solid var(--gray_2);
-  padding: 8px 12px;
-  border-radius: 8px;
-  color: var(--gray_-4);
+  height: fit-content;
 }
 
 .pagination {
@@ -80,4 +68,54 @@ body {
   display: block;
   padding: 4px 0;
   transition: color 0.2s, font-weight 0.2s;
+}
+
+
+/* Обертка слайдера */
+#price-slider {
+  margin: 8px 0;
+  border: 1px solid var(--gray_0);
+  background-color: var(--gray_6);
+  border-radius: 6px;
+  padding: 0;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+#price-slider:hover {
+  border-color: var(--orange_-1);
+  background-color: var(--orange_5);
+}
+.noUi-target {
+  border: none;
+  background: transparent;
+}
+.noUi-base {
+  height: 8px;
+  border-radius: 4px;
+  background-color: var(--gray_4);
+}
+.noUi-horizontal .noUi-handle {
+  width: 30px;
+  height: 30px;
+}
+.noUi-connect {
+  background-color: var(--orange_0);
+  border-radius: 4px;
+}
+.noUi-handle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--orange_0);
+  border: 2px solid var(--orange_-1);
+  top: -6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+.noUi-handle:hover {
+  background-color: var(--orange_-1);
+  border-color: var(--orange_0);
+}
+.noUi-horizontal {
+  height: 8px;
 }

@@ -118,10 +118,8 @@ if (have_posts()) :
                             </fieldset>
                                 
                             <?php
-                            // Получаем Featured Image
                             $thumbnail_id = get_post_thumbnail_id($product_id);
 
-                            // Получаем галерею продукта
                             $gallery = get_field('product_gallery', $product_id);
                             $gallery_ids = [];
 
@@ -131,13 +129,12 @@ if (have_posts()) :
                                         if (is_array($image) && isset($image['ID'])) {
                                             $gallery_ids[] = $image['ID'];
                                         } elseif (is_numeric($image)) {
-                                            $gallery_ids[] = $image; // если ACF возвращает массив ID
+                                            $gallery_ids[] = $image;
                                         }
                                     }
                                 }
                             }
 
-                            // Если Featured Image есть и её нет в галерее, добавляем в начало
                             if ($thumbnail_id && !in_array($thumbnail_id, $gallery_ids)) {
                                 array_unshift($gallery_ids, $thumbnail_id);
                             }
@@ -148,14 +145,11 @@ if (have_posts()) :
                                     <?php echo t('Изображения (до 6 шт., первое — миниатюра)', 'Images (up to 6, first is thumbnail)', 'Imagini (până la 6, prima este miniatura)'); ?>
                                 </label>
 
-                                <!-- Загрузка новых изображений -->
                                 <input type="file" name="product_gallery_input[]" id="product_gallery_input" multiple accept="image/*" onchange="checkGalleryLimit(this)">
 
-                                <!-- Порядок и удалённые -->
                                 <input type="hidden" id="gallery_order_input" name="gallery_order_input" value="">
                                 <input type="hidden" id="remove_gallery_ids_input" name="remove_gallery_ids_input" value="">
 
-                                <!-- Превью галереи -->
                                 <div id="gallery_preview" class="gallery-preview">
                                     <?php foreach (array_filter($gallery_ids) as $index => $id): ?>
                                         <div class="gallery-item<?php echo ($index === 0) ? ' thumbnail' : ''; ?>" data-id="<?php echo esc_attr($id); ?>">
@@ -173,10 +167,8 @@ if (have_posts()) :
                                 <input type="number" step="0.01" name="product_price" value="<?php echo esc_attr($price); ?>" class="form-input body-medium-regular" required>
                             </div>
 
-                            <!-- ID продукта -->
                             <input type="hidden" name="product_id" value="<?php echo $product_id; ?>">
 
-                            <!-- Кнопка отправки -->
                             <div class="form-group">
                                 <input type="submit" name="submit_product" value="<?php echo t('Обновить', 'Update', 'Actualizează'); ?>" class="form-submit primary-button-large button-large">
                             </div>
@@ -267,17 +259,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
-</script>
-<script>
 document.addEventListener('DOMContentLoaded', function () {
     const gallery = document.getElementById('gallery_preview');
 
-    // Инициализируем Sortable
     new Sortable(gallery, {
-        animation: 150, // плавная анимация
+        animation: 150,
         ghostClass: 'sortable-ghost',
         onEnd: function () {
-            // После каждого перетаскивания обновляем порядок
             updateGalleryOrder();
         }
     });
