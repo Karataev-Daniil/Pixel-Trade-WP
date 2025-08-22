@@ -260,9 +260,6 @@
     grid-template-columns: 5fr 1fr;
     gap: 24px;
 }
-.form-progress-bar {
-
-}
 .product-create h3,
 .product-edit h3 {
     margin: 0 0 16px;

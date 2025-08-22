@@ -158,12 +158,12 @@
 
 @keyframes dotBounce {
   0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(10px); } /* вниз */
+  50%      { transform: translateY(10px); }
 }
 
 @keyframes lineCompress {
   0%, 100% { transform: scaleY(1); }
-  50%      { transform: scaleY(0.7); } /* внизу точка — линия сжата */
+  50%      { transform: scaleY(0.7); }
 }
 
 /* 4. Search Panel */

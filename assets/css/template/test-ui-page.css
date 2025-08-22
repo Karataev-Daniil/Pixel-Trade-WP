@@ -1,22 +1,18 @@
-/* Основной стиль для всего блока */
 .test-palette {
     padding: 40px;
     font-family: sans-serif;
 }
 
-/* Стили для групп цветов */
 .color-group {
     margin-bottom: 40px;
 }
 
-/* Стили для сетки цветов */
 .color-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 8px;
 }
 
-/* Блок с цветами */
 .color-box {
     padding: 16px;
     text-align: center;
@@ -27,7 +23,6 @@
     border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-/* Передний фон для блока с цветом */
 .color-box::before {
     content: '';
     display: block;
@@ -37,39 +32,29 @@
     background-color: inherit;
 }
 
-/* Блок для кнопок */
 .button-swatch {
     margin-top: 60px;
     padding-top: 30px;
     border-top: 2px dashed #ccc;
 }
 
-/* Таблица с кнопками */
 table.button-swatch {
     width: 100%;
     border-collapse: collapse;
     margin: 20px 0;
 }
 
-/* Заголовки и ячейки таблицы */
 table.button-swatch th, table.button-swatch td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: center;
 }
 
-table.button-swatch td {
-    
-}
-
-/* Стиль для заголовков таблицы */
 table.button-swatch th {
     background-color: #f4f4f4;
     font-weight: bold;
 }
 
-
-/* Исправление отступов и стили для таблицы, чтобы они не перекрывались */
 button, a, div {
     display: block;
 }

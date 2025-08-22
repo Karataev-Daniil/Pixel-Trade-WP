@@ -1,21 +1,21 @@
 .user-settings__wrapper {
-    max-width: 600px; 
-    margin: 40px auto;
+  max-width: 600px; 
+  margin: 40px auto;
 }
 .user-settings__title {
-    margin: 0 0 28px;
+  margin: 0 0 28px;
 }
 
 .user-settings__field {
-    margin: 0 0 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  margin: 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .user-settings__field img {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
 }
 .avatar-wrapper {
   position: relative;
@@ -32,11 +32,9 @@
   object-fit: cover;
   display: block;
 }
-
 .avatar-wrapper input[type="file"] {
-  display: none; /* скрываем кнопку */
+  display: none;
 }
-
 .avatar-wrapper .edit-icon {
   position: absolute;
   bottom: 8px;
@@ -49,7 +47,6 @@
   opacity: 0;
   transition: 0.3s;
 }
-
 .avatar-wrapper:hover .edit-icon {
-  opacity: 1; /* появляется карандаш */
+  opacity: 1;
 }

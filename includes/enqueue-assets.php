@@ -182,7 +182,8 @@ function favorites_enqueue_assets() {
         true
     );
     wp_localize_script('favorites-js', 'favorites_ajax', [
-        'url' => admin_url('admin-ajax.php'),
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce'    => wp_create_nonce('favorites_nonce')
     ]);
 }
 add_action('wp_enqueue_scripts', 'favorites_enqueue_assets');

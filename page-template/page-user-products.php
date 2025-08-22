@@ -34,7 +34,7 @@ if (!is_user_logged_in()) {
 
 $current_user_id = get_current_user_id();
 
-$count_all    = count_user_posts($current_user_id, 'product', true); // все (publish + draft)
+$count_all    = count_user_posts($current_user_id, 'product', true);
 $count_active = (new WP_Query([
     'post_type'      => 'product',
     'author'         => $current_user_id,
