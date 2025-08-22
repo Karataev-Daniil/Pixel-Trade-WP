@@ -190,18 +190,17 @@ function edit_product_cat_translations($term, $taxonomy) {
 
 
 
-// ---------- Счётчик просмотров ----------
+// Счётчик просмотров
 function increment_product_views($post_id) {
     if (!is_singular('product')) return;
+
+    $today = date('Y-m-d');
 
     if (is_user_logged_in()) {
         $user_id = get_current_user_id();
         $viewed_key = 'viewed_product_' . $post_id;
-
         if (get_user_meta($user_id, $viewed_key, true)) return;
-
         update_user_meta($user_id, $viewed_key, time());
-
     } else {
         $cookie_key = 'viewed_product_' . $post_id;
         if (isset($_COOKIE[$cookie_key])) return;
@@ -211,6 +210,20 @@ function increment_product_views($post_id) {
     $views = get_post_meta($post_id, 'product_views', true);
     $views = $views ? (int)$views : 0;
     update_post_meta($post_id, 'product_views', ++$views);
+
+    $daily_views = get_post_meta($post_id, '_product_views_daily', true);
+    if (!is_array($daily_views)) $daily_views = [];
+
+    if (!isset($daily_views[$today])) $daily_views[$today] = 0;
+    $daily_views[$today]++;
+
+    update_post_meta($post_id, '_product_views_daily', $daily_views);
+}
+
+function get_product_daily_views($post_id = null) {
+    if (!$post_id) $post_id = get_the_ID();
+    $daily_views = get_post_meta($post_id, '_product_views_daily', true);
+    return is_array($daily_views) ? $daily_views : [];
 }
 
 function track_product_views() {
@@ -247,7 +260,7 @@ function show_product_views_column($column, $post_id) {
 }
 add_action('manage_product_posts_custom_column', 'show_product_views_column', 10, 2);
 
-// ---------- Поле "Цена товара" ----------
+// Поле "Цена товара"
 function add_product_price_metabox() {
     add_meta_box(
         'product_price_metabox',

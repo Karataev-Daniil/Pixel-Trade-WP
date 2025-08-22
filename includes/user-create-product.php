@@ -1,6 +1,5 @@
 <?php
 function handle_create_product() {
-    // Проверка nonce и прав
     if (
         !isset($_POST['submit_product']) ||
         !isset($_POST['product_form_nonce']) ||
@@ -15,7 +14,6 @@ function handle_create_product() {
     $post_status   = sanitize_text_field($_POST['product_status'] ?? 'draft');
     $product_price = sanitize_text_field($_POST['product_price'] ?? '');
 
-    // Создание поста
     $post_id = wp_insert_post([
         'post_title'   => $post_title,
         'post_content' => $post_content,
@@ -28,16 +26,13 @@ function handle_create_product() {
         wp_die('Ошибка создания продукта');
     }
 
-    // Сохраняем цену
     update_post_meta($post_id, 'product_price', $product_price);
 
-    // Сохраняем категории
     if (!empty($_POST['product_categories']) && is_array($_POST['product_categories'])) {
         $category_ids = array_map('intval', $_POST['product_categories']);
         wp_set_post_terms($post_id, $category_ids, 'product_cat');
     }
 
-    // Подключаем функции работы с медиа
     if (!function_exists('media_handle_upload')) {
         require_once ABSPATH . 'wp-admin/includes/image.php';
         require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -65,13 +60,11 @@ function handle_create_product() {
         }
     }
 
-    // Сохраняем галерею и ставим миниатюру
     if (!empty($attachment_ids)) {
         update_post_meta($post_id, 'product_gallery', $attachment_ids);
         set_post_thumbnail($post_id, $attachment_ids[0]);
     }
 
-    // Редирект на страницу продукта
     wp_safe_redirect(get_permalink($post_id));
     exit;
 }

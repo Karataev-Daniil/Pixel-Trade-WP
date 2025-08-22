@@ -5,7 +5,6 @@
 
 get_header();
 
-// Проверка авторизации
 if (!is_user_logged_in()) {
     echo '<div class="container"><p>' . sprintf(
         __('Пожалуйста, <a href="%s">войдите</a>, чтобы управлять аккаунтом.', 'your-text-domain'),
@@ -103,14 +102,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const wrapper = document.querySelector(".avatar-wrapper");
 
   wrapper.addEventListener("click", () => {
-    fileInput.click(); // при клике на аватар открывается выбор файла
+    fileInput.click();
   });
 
   fileInput.addEventListener("change", function () {
     if (this.files && this.files[0]) {
       const reader = new FileReader();
       reader.onload = function (e) {
-        avatarPreview.src = e.target.result; // сразу меняем картинку
+        avatarPreview.src = e.target.result;
       };
       reader.readAsDataURL(this.files[0]);
     }

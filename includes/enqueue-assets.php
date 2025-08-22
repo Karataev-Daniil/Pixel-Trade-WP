@@ -33,6 +33,14 @@ function custom_enqueue_assets() {
             [],
             filemtime( $theme_path . '/assets/css/template/page-user-products.css' )
         );
+
+        wp_enqueue_script(
+            'chart-js',
+            'https://cdn.jsdelivr.net/npm/chart.js',
+            [],
+            null,
+            true
+        );
     }
 
     if ( is_front_page() || is_tax( 'product_cat' )) {

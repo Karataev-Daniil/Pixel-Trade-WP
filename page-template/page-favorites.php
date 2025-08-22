@@ -5,7 +5,6 @@ Template Name: Избранное
 
 get_header();
 
-// Проверяем авторизацию
 if (!is_user_logged_in()) {
     echo '<div class="favorites-page">';
     echo '<h2>Избранное</h2>';
@@ -15,7 +14,6 @@ if (!is_user_logged_in()) {
     exit;
 }
 
-// Получаем избранные товары
 $favorites = get_user_meta(get_current_user_id(), 'favorite_products', true);
 
 echo '<div class="favorites-page">';

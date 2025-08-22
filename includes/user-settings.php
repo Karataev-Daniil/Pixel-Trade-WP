@@ -3,7 +3,6 @@
  * Админские настройки пользователей (регионы и др.)
  */
 
-// === Регистрируем страницу ===
 add_action('admin_menu', function () {
     add_options_page(
         'Настройки пользователей',
@@ -14,7 +13,6 @@ add_action('admin_menu', function () {
     );
 });
 
-// === Дефолтные регионы ===
 function get_default_moldova_regions() {
     return [
         ['ru' => 'Кишинёв', 'en' => 'Chisinau', 'ro' => 'Chișinău', 'parent' => ''],
@@ -26,7 +24,6 @@ function get_default_moldova_regions() {
     ];
 }
 
-// === Получаем регионы из БД (или дефолтные) ===
 function get_moldova_regions() {
     $regions = get_option('available_regions_multi', []);
     if (empty($regions)) {
@@ -36,11 +33,9 @@ function get_moldova_regions() {
     return $regions;
 }
 
-// === Рендер страницы в админке ===
 function render_user_settings_page() {
     if (!current_user_can('manage_options')) return;
 
-    // Сохраняем регионы
     if (isset($_POST['regions_nonce']) && wp_verify_nonce($_POST['regions_nonce'], 'save_regions')) {
         $regions = [];
         if (!empty($_POST['regions'])) {
@@ -109,7 +104,6 @@ function render_user_settings_page() {
     <?php
 }
 
-// Обработка сохранения настроек аккаунта
 add_action('admin_post_save_user_settings', function() {
     if (!is_user_logged_in()) {
         wp_redirect(wp_login_url());
@@ -119,12 +113,10 @@ add_action('admin_post_save_user_settings', function() {
     $current_user = wp_get_current_user();
     $user_id = $current_user->ID;
     
-    // Проверяем nonce безопасности
     if (!isset($_POST['user_settings_nonce']) || !wp_verify_nonce($_POST['user_settings_nonce'], 'save_user_settings')) {
         wp_die(__('Ошибка проверки безопасности.'));
     }
     
-    // --- Обновляем display_name ---
     if (isset($_POST['display_name'])) {
         $display_name = sanitize_text_field($_POST['display_name']);
         wp_update_user([
@@ -133,7 +125,6 @@ add_action('admin_post_save_user_settings', function() {
         ]);
     }
     
-    // --- Обновляем email ---
     if (isset($_POST['user_email'])) {
         $user_email = sanitize_email($_POST['user_email']);
         if (!is_email($user_email)) {
@@ -145,13 +136,11 @@ add_action('admin_post_save_user_settings', function() {
         ]);
     }
     
-    // --- Обновляем регион ---
     if (isset($_POST['region'])) {
         $region = sanitize_text_field($_POST['region']);
         update_user_meta($user_id, 'region', $region);
     }
     
-    // --- Обработка аватара ---
     if (isset($_FILES['avatar']) && !empty($_FILES['avatar']['name'])) {
         require_once(ABSPATH . 'wp-admin/includes/file.php');
         require_once(ABSPATH . 'wp-admin/includes/image.php');
@@ -178,14 +167,12 @@ add_action('admin_post_save_user_settings', function() {
             $attach_data = wp_generate_attachment_metadata($attach_id, $filename);
             wp_update_attachment_metadata($attach_id, $attach_data);
         
-            // Сохраняем ID аватара в user_meta
             update_user_meta($user_id, 'profile_avatar', $attach_id);
         } else {
             wp_die(__('Ошибка загрузки файла: ') . $movefile['error']);
         }
     }
     
-    // --- Фильтр для полного замещения Gravatar ---
     add_filter('get_avatar', function ($avatar, $id_or_email, $size, $default, $alt) {
         $user = false;
     
@@ -207,10 +194,9 @@ add_action('admin_post_save_user_settings', function() {
             }
         }
     
-        return $avatar; // Если нет кастомного аватара, используем стандартный
+        return $avatar;
     }, 10, 5);
     
-    // После успешного сохранения редирект
     wp_redirect(wp_get_referer() ? wp_get_referer() : home_url());
     exit;
 });

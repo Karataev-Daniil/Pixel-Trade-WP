@@ -1,7 +1,6 @@
 <?php
 // includes/favorites.php
 
-// === Создание страницы "Избранное" при активации темы ===
 function create_favorites_page() {
     $page_check = get_page_by_path('favorites');
     if (!$page_check) {
@@ -16,7 +15,6 @@ function create_favorites_page() {
 }
 add_action('after_switch_theme', 'create_favorites_page');
 
-// === Добавление в избранное ===
 function add_to_favorites() {
     if (!is_user_logged_in()) {
         wp_send_json_error(['message' => 'Необходимо войти в систему']);
@@ -44,7 +42,6 @@ function add_to_favorites() {
 add_action('wp_ajax_add_to_favorites', 'add_to_favorites');
 add_action('wp_ajax_nopriv_add_to_favorites', 'add_to_favorites');
 
-// === Удаление из избранного ===
 function remove_from_favorites() {
     if (!is_user_logged_in()) {
         wp_send_json_error(['message' => 'Необходимо войти в систему']);
@@ -68,7 +65,6 @@ function remove_from_favorites() {
 add_action('wp_ajax_remove_from_favorites', 'remove_from_favorites');
 add_action('wp_ajax_nopriv_remove_from_favorites', 'remove_from_favorites');
 
-// === Получение избранных товаров ===
 function get_user_favorites($user_id = null) {
     if (!$user_id) {
         $user_id = get_current_user_id();
@@ -77,7 +73,6 @@ function get_user_favorites($user_id = null) {
     return is_array($favorites) ? $favorites : [];
 }
 
-// === Шорткод для вывода избранных товаров ===
 function favorites_shortcode() {
     if (!is_user_logged_in()) {
         return '<p>Войдите, чтобы видеть избранное.</p>';

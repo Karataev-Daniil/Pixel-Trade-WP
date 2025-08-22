@@ -1,7 +1,6 @@
 <?php
 // admin-approval.php
 
-// Добавление подменю "Ожидают подтверждения"
 add_action('admin_menu', function () {
     add_users_page(
         'Ожидают подтверждения',
@@ -12,7 +11,6 @@ add_action('admin_menu', function () {
     );
 });
 
-// Уведомление в админке, если есть пользователи с pending_role
 function kayo_pending_roles_admin_notice() {
     $args = [
         'meta_key' => 'pending_role',
@@ -26,7 +24,6 @@ function kayo_pending_roles_admin_notice() {
 }
 add_action('admin_notices', 'kayo_pending_roles_admin_notice');
 
-// Кнопка "Подтвердить роль" рядом с пользователем в общем списке
 function kayo_add_approve_button($actions, $user_object) {
     if (current_user_can('administrator') && get_user_meta($user_object->ID, 'pending_role', true)) {
         $approve_url = wp_nonce_url(
@@ -43,7 +40,6 @@ function kayo_add_approve_button($actions, $user_object) {
 }
 add_filter('user_row_actions', 'kayo_add_approve_button', 10, 2);
 
-// Обработка подтверждения роли
 function kayo_handle_approve_user_role() {
     if (
         isset($_GET['action'], $_GET['user_id']) &&
@@ -68,7 +64,6 @@ function kayo_handle_approve_user_role() {
 }
 add_action('admin_init', 'kayo_handle_approve_user_role');
 
-// Уведомление об успешном подтверждении
 function kayo_show_user_role_approved_notice() {
     if (isset($_GET['role_approved']) && $_GET['role_approved'] == 1) {
         echo '<div class="notice notice-success is-dismissible"><p>Роль пользователя успешно подтверждена.</p></div>';
@@ -76,7 +71,6 @@ function kayo_show_user_role_approved_notice() {
 }
 add_action('admin_notices', 'kayo_show_user_role_approved_notice');
 
-// Вывод страницы "Ожидают подтверждения"
 function kayo_render_pending_users_page() {
     if (!current_user_can('administrator')) {
         wp_die('У вас нет прав для доступа к этой странице.');

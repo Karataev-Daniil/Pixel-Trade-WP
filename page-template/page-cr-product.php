@@ -123,7 +123,6 @@ get_header();
                     </select>
                 </div>
 
-                <!-- Кнопка -->
                 <div class="form-group">
                     <input type="submit" name="submit_product" value="<?php echo t('Создать', 'Create', 'Creează'); ?>" class="form-submit primary-button-large button-large">
                 </div>
