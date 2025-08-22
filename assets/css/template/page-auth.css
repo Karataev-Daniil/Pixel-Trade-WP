@@ -16,3 +16,24 @@
     display: flex;
     gap: 8px;
 }
+
+.popup {
+    position: fixed;
+    inset: 0;
+    background: var(--gray_6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.popup__content {
+    background: var(--gray_6);
+    padding: 20px;
+    border-radius: 12px;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+#popup-close {
+    margin-top: 15px;
+}

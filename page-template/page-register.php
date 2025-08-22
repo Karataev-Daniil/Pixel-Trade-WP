@@ -10,6 +10,29 @@ get_header();
                 <?php echo t('Регистрация', 'Registration', 'Înregistrare'); ?>
             </h2>
 
+            <?php if (isset($_GET['register']) && $_GET['register'] === 'success') : ?>
+                <div id="register-popup" class="popup">
+                    <div class="popup__content">
+                        <p class="body-small-semibold" style="color: green;">
+                            <?php echo t(
+                                'Регистрация успешна! Ожидайте одобрения администрации. Вас одобрят в течение 2х часов.',
+                                'Registration successful! Please wait for admin approval. You will be approved within 2 hours.',
+                                'Înregistrarea a fost efectuată cu succes! Așteptați aprobarea administrației. Veți fi aprobat în termen de 2 ore.'
+                            ); ?>
+                        </p>
+                        <button id="popup-close" class="primary-button-medium">
+                            <?php echo t('Закрыть', 'Close', 'Închide'); ?>
+                        </button>
+                    </div>
+                </div>
+                        
+                <script>
+                    document.getElementById('popup-close').addEventListener('click', function() {
+                        window.location.href = "<?php echo esc_url(home_url('/')); ?>";
+                    });
+                </script>
+            <?php endif; ?>
+
             <?php if (isset($_GET['register']) && $_GET['register'] === 'exists') : ?>
                 <p class="body-small-semibold" style="color: red;">
                     <?php echo t('Пользователь с таким email уже существует.', 'A user with this email already exists.', 'Un utilizator cu acest email există deja.'); ?>

@@ -1,19 +1,4 @@
 <?php
-function kayo_custom_login_form() {
-    ?>
-    <form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
-        <label for="username">Имя пользователя или email</label>
-        <input type="text" name="username" required>
-
-        <label for="password">Пароль</label>
-        <input type="password" name="password" required>
-
-        <input type="submit" name="kayo_login" value="Войти">
-    </form>
-    <?php
-}
-add_shortcode('kayo_login_form', 'kayo_custom_login_form');
-
 function kayo_handle_login() {
     if (isset($_POST['kayo_login'])) {
         $username = sanitize_text_field($_POST['username']);
