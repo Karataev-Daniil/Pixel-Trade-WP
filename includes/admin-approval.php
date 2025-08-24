@@ -88,3 +88,17 @@ function render_pending_users_page() {
 
     echo '</div>';
 }
+
+function add_seller_caps_after_approval($user_id, $role) {
+    if ($role === 'seller') {
+        $user = new WP_User($user_id);
+
+        $user->add_cap('edit_products');
+        $user->add_cap('edit_published_products');
+        $user->add_cap('publish_products');
+        $user->add_cap('delete_products');
+        $user->add_cap('upload_files');
+    }
+}
+
+add_action('set_user_role', 'add_seller_caps_after_approval', 10, 2);

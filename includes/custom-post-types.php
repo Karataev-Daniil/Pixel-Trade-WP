@@ -102,6 +102,64 @@ function register_product_taxonomy() {
 }
 add_action('init', 'register_product_taxonomy');
 
+function product_cat_enqueue_scripts($hook) {
+    if ('edit-tags.php' === $hook || 'term.php' === $hook) {
+        wp_enqueue_media();
+        wp_enqueue_script(
+            'product-cat-media',
+            get_stylesheet_directory_uri() . '/assets/js/product-cat-media.js', // создаём файл JS
+            ['jquery'],
+            null,
+            true
+        );
+    }
+}
+add_action('admin_enqueue_scripts', 'product_cat_enqueue_scripts');
+
+function product_cat_image_field($term) {
+    $image_id = get_term_meta($term->term_id, 'category_image_id', true);
+    ?>
+    <tr class="form-field term-group-wrap">
+        <th scope="row"><label for="category_image">Изображение категории</label></th>
+        <td>
+            <input type="hidden" id="category_image" name="category_image" value="<?php echo esc_attr($image_id); ?>">
+            <div id="category-image-wrapper">
+                <?php if ($image_id) : ?>
+                    <?php echo wp_get_attachment_image($image_id, 'thumbnail'); ?>
+                <?php endif; ?>
+            </div>
+            <p>
+                <input type="button" class="button button-secondary" id="category_image_upload_button" value="Выбрать изображение">
+                <input type="button" class="button button-secondary" id="category_image_remove_button" value="Удалить изображение">
+            </p>
+        </td>
+    </tr>
+    <?php
+}
+add_action('product_cat_edit_form_fields', 'product_cat_image_field', 10, 2);
+
+add_action('product_cat_add_form_fields', function() { ?>
+    <div class="form-field term-group">
+        <label for="category_image">Изображение категории</label>
+        <input type="hidden" id="category_image" name="category_image" value="">
+        <div id="category-image-wrapper"></div>
+        <p>
+            <input type="button" class="button button-secondary" id="category_image_upload_button" value="Выбрать изображение">
+            <input type="button" class="button button-secondary" id="category_image_remove_button" value="Удалить изображение">
+        </p>
+    </div>
+<?php }, 10, 2);
+
+function save_product_cat_image($term_id) {
+    if (isset($_POST['category_image']) && '' !== $_POST['category_image']) {
+        update_term_meta($term_id, 'category_image_id', intval($_POST['category_image']));
+    } else {
+        delete_term_meta($term_id, 'category_image_id');
+    }
+}
+add_action('edited_product_cat', 'save_product_cat_image', 10, 2);
+add_action('created_product_cat', 'save_product_cat_image', 10, 2);
+
 add_action('product_cat_add_form_fields', 'add_product_cat_translations', 10);
 function add_product_cat_translations() {
     ?>
@@ -115,6 +173,7 @@ function add_product_cat_translations() {
     </div>
     <?php
 }
+
 add_action('product_cat_edit_form_fields', 'edit_product_cat_translations', 10, 2);
 function edit_product_cat_translations($term, $taxonomy) {
     $ro = get_term_meta($term->term_id, 'translation_ro', true);
@@ -130,6 +189,18 @@ function edit_product_cat_translations($term, $taxonomy) {
     </tr>
     <?php
 }
+
+function save_product_cat_translations($term_id) {
+    if (isset($_POST['translation_ro'])) {
+        update_term_meta($term_id, 'translation_ro', sanitize_text_field($_POST['translation_ro']));
+    }
+    if (isset($_POST['translation_en'])) {
+        update_term_meta($term_id, 'translation_en', sanitize_text_field($_POST['translation_en']));
+    }
+}
+add_action('edited_product_cat', 'save_product_cat_translations', 10, 2);
+add_action('created_product_cat', 'save_product_cat_translations', 10, 2);
+
 
 // function delete_all_product_categories() {
 //     $terms = get_terms(['taxonomy' => 'product_cat', 'hide_empty' => false]);
@@ -295,3 +366,4 @@ function save_product_price_metabox($post_id) {
     }
 }
 add_action('save_post_product', 'save_product_price_metabox');
+

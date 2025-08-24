@@ -4,7 +4,7 @@ function handle_create_product() {
         !isset($_POST['submit_product']) ||
         !isset($_POST['product_form_nonce']) ||
         !wp_verify_nonce($_POST['product_form_nonce'], 'create_product_form') ||
-        !current_user_can('edit_posts')
+        !(current_user_can('publish_products') || current_user_can('edit_products'))
     ) {
         wp_die('Ошибка безопасности или нет прав');
     }

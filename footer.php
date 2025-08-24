@@ -1,8 +1,4 @@
-    <div id="chat-popup" style="display:none; position:fixed; bottom:20px; right:20px; width:300px; background:#fff; border:1px solid #ccc; padding:10px;">
-        <div id="chat-messages" style="height:200px; overflow-y:auto; border-bottom:1px solid #ddd;"></div>
-        <input type="text" id="chat-input" placeholder="Введите сообщение">
-        <button id="send-chat">Отправить</button>
-    </div>
+
   </main>
 
     <footer class="footer" role="contentinfo">

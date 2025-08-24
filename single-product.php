@@ -404,14 +404,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <p><strong><?= t('Цена:', 'Price:', 'Preț:'); ?></strong> <?php echo format_price_mdl_with_conversions($price); ?></p>
                                 </section>
                                 <?php
-                                if (is_user_logged_in()) {
-                                    $author_id = get_the_author_meta('ID');
-                                    $current_user_id = get_current_user_id();
+                                echo do_shortcode('[dm_write_button user="'.get_the_author_meta("ID").'"]');
 
-                                    if ($current_user_id !== $author_id) {
-                                        echo '<button class="open-chat" data-receiver="' . esc_attr($author_id) . '">Написать автору</button>';
-                                    }
-                                }
                                 ?>
 
                             </article>
