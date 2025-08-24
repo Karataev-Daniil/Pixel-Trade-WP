@@ -7,7 +7,6 @@ function remove_custom_roles() {
 register_deactivation_hook(__FILE__, 'remove_custom_roles');
 
 function register_custom_roles() {
-    // Seller
     if (!get_role('seller')) {
         add_role('seller', 'Seller', [
             'read' => true,
