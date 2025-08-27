@@ -407,7 +407,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 echo do_shortcode('[dm_write_button user="'.get_the_author_meta("ID").'"]');
 
                                 ?>
-
                             </article>
                         </main>
                                     

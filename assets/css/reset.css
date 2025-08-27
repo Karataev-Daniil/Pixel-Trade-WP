@@ -46,3 +46,13 @@ table {
 	border-collapse: collapse;
 	border-spacing: 0;
 }
+button {
+    all: unset;           
+    display: inline-block;
+    cursor: pointer;      
+    text-align: center;
+    user-select: none;    
+    font-family: inherit; 
+    font-size: inherit;   
+    line-height: normal;  
+}

@@ -1,3 +1,5 @@
+  <div id="simple-dm-root" class="dm-root"></div>
+  <button id="dm-toggle-btn" class="dm-toggle-btn button-medium">Чат</button>
 
   </main>
 

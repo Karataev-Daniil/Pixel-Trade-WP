@@ -125,7 +125,6 @@
                         <li class="label-small"><a href="/my-products" class="title-smaller"><?= t('Мои товары', 'My Products', 'Produsele mele'); ?></a></li>
                         <li class="label-small"><a href="/account/settings" class="title-smaller"><?= t('Настройки аккаунта', 'Account Settings', 'Setări cont'); ?></a></li>
                         <li class="label-small"><a href="/account/favorites" class="title-smaller"><?= t('Избраное', 'Favorites', 'Favoritele'); ?></a></li>
-                        <li class="label-small"><a href="/account/messages" class="title-smaller"><?= t('Сообщения', 'Messenger', 'Favoritele'); ?></a></li>
                         <li class="label-small"><a href="<?= wp_logout_url(home_url()); ?>" class="title-smaller"><?= t('Выход', 'Logout', 'Ieșire'); ?></a></li>
                       <?php else: ?>
                         <li class="label-small"><a href="/account/login/" class="title-smaller"><?= t('Войти', 'Login', 'Autentificare'); ?></a></li>

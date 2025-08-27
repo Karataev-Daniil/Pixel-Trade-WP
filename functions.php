@@ -19,7 +19,8 @@ require_once get_template_directory() . '/includes/ajax/filter-products.php';
 
 require_once get_template_directory() . '/includes/admin-approval.php';
 
-require_once get_template_directory() . '/includes/openai-api.php';
+require_once get_template_directory() . '/includes/translation-product-ai.php';
+require_once get_template_directory() . '/includes/translation-messenger-ai.php';
 
 
 add_action('wp_ajax_get_subcategories', 'get_subcategories_ajax');

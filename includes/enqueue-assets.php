@@ -128,13 +128,13 @@ function custom_enqueue_assets() {
         ] );
 
         wp_enqueue_script(
-            'translation-generator',
-            $theme_dir . '/assets/js/translation-generator.js',
+            'translation-product',
+            $theme_dir . '/assets/js/translation-product.js',
             [],
-            filemtime( $theme_path . '/assets/js/translation-generator.js' ),
+            filemtime( $theme_path . '/assets/js/translation-product.js' ),
             true
         );
-        wp_localize_script( 'translation-generator', 'translationVars', [
+        wp_localize_script( 'translation-product', 'translationVars', [
             'ajaxUrl' => admin_url( 'admin-ajax.php' ),
             'nonce'   => wp_create_nonce( 'generate_translations_nonce' ),
         ] );
