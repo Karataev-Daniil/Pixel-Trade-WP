@@ -1,3 +1,4 @@
+/* Основной контейнер DM */
 .dm-root {
     display: none;
     position: fixed;
@@ -11,6 +12,7 @@
     box-shadow: -2px 0 8px rgba(0,0,0,0.2);
     animation: fadeIn 0.3s ease-in-out;
 }
+
 .dm-toggle-btn {
     position: fixed;
     right: 20px;
@@ -26,12 +28,15 @@
 .dm-toggle-btn:hover {
     background-color: var(--orange_1);
 }
+
+/* Sidebar (Список чатов) */
 .dm-wrap {
     display: flex;
     border-left: 1px solid var(--gray_-5);
     height: 100%;
     font-family: sans-serif;
 }
+
 .dm-sidebar {
     width: 220px;
     border-right: 1px solid var(--gray_-5);
@@ -39,11 +44,13 @@
     flex-direction: column;
     animation: slideIn 0.4s ease-out;
 }
+
 .dm-sidebar-header {
     padding: 10px;
     font-weight: bold;
     border-bottom: 1px solid var(--gray_-5);
 }
+
 .dm-thread {
     display: flex;
     align-items: center;
@@ -58,12 +65,14 @@
 .dm-thread:hover {
     background: var(--gray_5);
 }
+
 .dm-avatar {
     width: 30px;
     height: 30px;
     border-radius: 50%;
     margin-right: 8px;
 }
+
 .dm-thread-meta {
     flex: 1;
     font-size: 12px;
@@ -75,6 +84,8 @@
     color: var(--gray_-1);
     font-size: 11px;
 }
+
+/* Чат */
 .dm-chat {
     flex: 1;
     display: flex;
@@ -91,7 +102,10 @@
     background: var(--gray_5);
     animation: fadeIn 0.4s ease-in;
 }
+
+/* Сообщения */
 .dm-msg {
+    position: relative;
     margin: 6px 0;
     display: flex;
     flex-direction: column;
@@ -100,6 +114,7 @@
 .dm-msg.mine {
     align-items: flex-end;
 }
+
 .dm-bubble {
     max-width: 70%;
     padding: 6px 10px;
@@ -111,13 +126,13 @@
     word-break: break-word;
     white-space: normal;
 }
-
 .dm-msg.mine .dm-bubble {
     background: var(--orange_2);
 }
 .dm-bubble:hover {
     transform: scale(1.02);
 }
+
 .dm-ts {
     display: flex;
     justify-content: space-between;
@@ -126,6 +141,8 @@
     color: var(--gray_-1);
     margin-top: 2px;
 }
+
+/* Composer (Поле ввода) */
 .dm-composer {
     display: flex;
     border-top: 1px solid var(--gray_-5);
@@ -150,6 +167,7 @@
 .dm-send:hover {
     background: var(--orange_1);
 }
+
 .dm-write-btn {
     padding: 6px 12px;
     background: var(--orange_0);
@@ -162,32 +180,56 @@
 .dm-write-btn:hover {
     background: var(--orange_1);
 }
+
+/* Кнопки перевода */
 .dm-translate-btn {
   margin-left: 8px;
   background: none;
   border: none;
-  color: #0073aa;
+  color: var(--orange_-1);
   cursor: pointer;
   font-size: 12px;
 }
-
 .dm-translate-btn:hover {
   text-decoration: underline;
 }
-
 .dm-translate-toggle {
   padding: 8px;
   text-align: center;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid var(--gray_-2);
+}
+
+.dm-context-menu {
+  position: absolute;
+  background: var(--gray_3);
+  border: 1px solid var(--gray_-3);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  z-index: 1000;
+  min-width: 160px;
+  padding: 8px 4px;
+}
+.dm-context-item {
+    color: var(--gray_-5);
+    cursor: pointer;
+}
+.dm-context-below {
+  top: 100%;
+  left: 0;
+  margin-top: -14px;
+}
+.dm-context-above {
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 4px;
 }
 
 
-/* Animations */
+/* Анимации */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
 }
-
 @keyframes slideIn {
     from { transform: translateX(100%); }
     to { transform: translateX(0); }
