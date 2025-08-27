@@ -5,7 +5,7 @@
     right: 0;
     bottom: 0;
     top: 0;
-    width: 500px;
+    width: 40%;
     height: 100vh;
     z-index: 9999;
     background-color: var(--gray_4);
@@ -15,13 +15,13 @@
 
 .dm-toggle-btn {
     position: fixed;
-    right: 20px;
-    bottom: 540px;
+    right: 40px;
+    bottom: 40px;
     z-index: 9999;
     padding: 10px 20px;
     cursor: pointer;
     background-color: var(--orange_0);
-    color: var(--gray_6);
+    color: var(--gray_-5);
     border-radius: 6px;
     transition: background 0.4s;
 }
@@ -76,9 +76,6 @@
 .dm-thread-meta {
     flex: 1;
     font-size: 12px;
-}
-.dm-name {
-    font-weight: bold;
 }
 .dm-upd {
     color: var(--gray_-1);
@@ -158,7 +155,7 @@
 .dm-send {
     border: none;
     background: var(--orange_0);
-    color: var(--gray_6);
+    color: var(--gray_-5);
     padding: 0 15px;
     cursor: pointer;
     font-size: 16px;
@@ -224,6 +221,22 @@
   margin-bottom: 4px;
 }
 
+.dm-date-separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #888;
+  font-size: 12px;
+  margin: 16px 0;
+}
+
+.dm-date-separator::before,
+.dm-date-separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px dashed #ccc; /* или solid */
+  margin: 0 8px; /* расстояние от текста */
+}
 
 /* Анимации */
 @keyframes fadeIn {

@@ -1,10 +1,3 @@
-body {
-  background-color: var(--gray_6);
-  color: var(--gray_-5);
-  margin: 0;
-  padding: 0;
-}
-
 .content-columns {
   display: flex; 
   padding: 60px 0;

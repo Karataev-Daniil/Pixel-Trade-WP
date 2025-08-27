@@ -31,6 +31,16 @@
     ]);
   }
 
+  function formatDateTime(ts) {
+    const d = new Date(ts * 1000);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0'); 
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${day} ${month} ${year} ${hours}:${minutes}`;
+  }
+
   function ThreadItem({ thread, active, onSelect }) {
     return React.createElement('button', {
       className: 'dm-thread' + (active ? ' active' : ''),
@@ -45,7 +55,7 @@
       React.createElement('div', { key: 'meta', className: 'dm-thread-meta' }, [
         React.createElement('div', { key: 'name', className: 'dm-name title-small' }, thread.other_user.name),
         React.createElement('div', { key: 'time', className: 'dm-upd body-small-regular' },
-          new Intl.DateTimeFormat(navigator.language, { dateStyle: 'short', timeStyle: 'short' }).format(new Date(thread.updated*1000))
+          formatDateTime(thread.updated)
         )
       ])
     ]);

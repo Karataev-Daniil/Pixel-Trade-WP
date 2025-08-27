@@ -10,9 +10,6 @@
     </a>
 
     <div style="margin-top: 60px;">
-        <img src="<?php echo get_template_directory_uri(); ?>/images/o-kak-meme.png" 
-             alt="О как!" 
-             style="max-width: 100%; height: auto;">
     </div>
 </main>
 

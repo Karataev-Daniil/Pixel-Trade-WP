@@ -2,12 +2,14 @@
 Theme Name: PixelTrade
 Author: Daniil
 */
-
 body {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
   margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: var(--gray_6);
+  color: var(--gray_-5);
 }
 header {
   flex-shrink: 0;
