@@ -34,7 +34,7 @@
     ]);
   }
 
-  function ThreadItem({ thread, active, onSelect }){
+  function ThreadItem({ thread, active, onSelect }) {
     const otherUser = thread.other_user || {};
     return React.createElement('button', {
       className: 'dm-thread button-medium' + (active ? ' active' : ''),
@@ -64,20 +64,20 @@
     return `${day}/${month}/${year}`;
   }
 
-  function Message({ m, autoTranslate, onEdit, openMenuId, setOpenMenuId }){
+  function Message({ m, autoTranslate, onEdit, openMenuId, setOpenMenuId }) {
     const mine = m.author === SIMPLE_DM.currentUser.id;
-    const [translated, setTranslated] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [translated, setTranslated] = React.useState(null);
+    const [loading, setLoading] = React.useState(false);
     const visible = openMenuId === m.id;
-    const msgRef = useRef(null);
+    const msgRef = React.useRef(null);
 
-    const doTranslate = useCallback(async () => {
-      if(translationCache.has(m.id)){
+    const doTranslate = React.useCallback(async () => {
+      if (translationCache.has(m.id)) {
         setTranslated(translationCache.get(m.id));
         return;
       }
       setLoading(true);
-      try{
+      try {
         const res = await dmApi('translate_message', {
           method: 'POST',
           body: JSON.stringify({
@@ -86,50 +86,76 @@
             source_lang: m.lang || 'auto'
           })
         });
-        if(res.translated && res.translated !== '##SKIP##'){
+        if (res.translated && res.translated !== '##SKIP##') {
           translationCache.set(m.id, res.translated);
           setTranslated(res.translated);
         }
-      } catch(err){
+      } catch (err) {
         console.warn('Ошибка перевода:', err.message);
-      } finally{
+      } finally {
         setLoading(false);
       }
     }, [m]);
 
     const handleContextMenu = (e) => {
-      if(mine){
+      if (mine) {
         e.preventDefault();
         setOpenMenuId(m.id);
       }
     };
 
-    useEffect(() => {
-      if(!visible) return;
+    React.useEffect(() => {
+      if (!visible) return;
       const closeMenu = () => setOpenMenuId(null);
       document.addEventListener('click', closeMenu);
       return () => document.removeEventListener('click', closeMenu);
     }, [visible, setOpenMenuId]);
 
-    useEffect(() => {
-      if(autoTranslate && !mine && !translated) doTranslate();
-    }, [autoTranslate, mine, translated, doTranslate]);
+    React.useEffect(() => {
+      if (autoTranslate && !mine && !translated && !m.system) doTranslate();
+    }, [autoTranslate, mine, translated, doTranslate, m.system]);
 
-    return React.createElement('div', { className: 'dm-msg ' + (mine ? 'mine' : ''), onContextMenu: handleContextMenu, ref: msgRef }, [
-      React.createElement('div', { key: 'bubble', className: 'dm-bubble body-medium-regular' }, translated || m.content),
-      React.createElement('div', { key: 'meta', className: 'dm-ts body-small-regular' }, [
-        new Date(m.created*1000).toLocaleTimeString(),
-        m.edited && React.createElement('span', { key:'edited', className:'dm-edited' }, ' (отредактировано)'),
-        !mine && !autoTranslate && !translated && React.createElement('button', {
-          key: 'btn',
-          className: 'dm-translate-btn button-small',
-          onClick: doTranslate,
-          disabled: loading
-        }, loading ? 'Перевожу...' : 'Перевести')
-      ]),
-      visible && React.createElement('div', { key: 'menu', className: 'dm-context-menu dm-context-below' }, [
-        React.createElement('div', { key: 'edit', className: 'dm-context-item button-small link-button', onClick: () => { onEdit(m); setOpenMenuId(null); } }, 'Редактировать'),
-        React.createElement('div', { key: 'delete', className: 'dm-context-item button-small link-button', onClick: () => { alert('Удаление'); setOpenMenuId(null); } }, 'Удалить')
+    const bubbleContent = translated || m.content;
+    const timestamp = new Date(m.created * 1000).toLocaleTimeString();
+
+    return React.createElement('div', {
+      className: 'dm-msg ' + (mine ? 'mine' : ''),
+      onContextMenu: handleContextMenu,
+      ref: msgRef
+    }, [
+      React.createElement('div', {
+        key: 'bubble',
+        className: 'dm-bubble body-medium-regular'
+      }, bubbleContent),
+
+      React.createElement('div', {
+        key: 'meta',
+        className: 'dm-ts body-small-regular'
+      }, [timestamp,
+         m.edited && React.createElement('span', { key:'edited', className:'dm-edited' }, ' (отредактировано)'),
+         !mine && !autoTranslate && !translated && React.createElement('button', {
+           key: 'btn',
+           className: 'dm-translate-btn button-small',
+           onClick: doTranslate,
+           disabled: loading
+         }, loading ? 'Перевожу...' : 'Перевести')]
+      ),
+
+      visible && React.createElement('div', {
+        key: 'menu',
+        className: 'dm-context-menu dm-context-below'
+      }, [
+        React.createElement('div', {
+          key: 'edit',
+          className: 'dm-context-item button-small link-button',
+          onClick: () => { onEdit(m); setOpenMenuId(null); }
+        }, 'Редактировать'),
+
+        React.createElement('div', {
+          key: 'delete',
+          className: 'dm-context-item button-small link-button',
+          onClick: () => { alert('Удаление'); setOpenMenuId(null); }
+        }, 'Удалить')
       ])
     ]);
   }
@@ -177,40 +203,6 @@
     const [openMenuId, setOpenMenuId] = useState(null);
     const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
-    const blockUser = async (userId) => {
-      try {
-        const currentThread = threads.find(t => t.other_user?.id === Number(userId));
-        if (!currentThread) return;
-
-        const action = currentThread.other_user?.blocked ? 'unblock' : 'block';
-        const threadId = Number(currentThread.id);
-
-        const res = await dmApi(`threads/${threadId}/${action}`, { method: 'POST' });
-
-        setThreads(prev => prev.map(t => t.id === threadId ? {
-          ...t,
-          other_user: { ...t.other_user, blocked: !t.other_user.blocked }
-        } : t));
-      
-        if (res.success) {
-          if (currentThread.id === current) {
-            setMessages(prev => [...prev, {
-              id: 'sys-' + Date.now(),
-              system: true,
-              content: action === 'block' ?
-                'Вы заблокировали пользователя, он не может писать вам сообщения.' :
-                'Вы разблокировали пользователя.'
-            }]);
-          }
-        
-          alert(action === 'block' ? 'Пользователь заблокирован' : 'Пользователь разблокирован');
-        }
-      } catch (err) {
-        console.error('Ошибка блокировки:', err);
-        alert('Ошибка: ' + err.message);
-      }
-    };
-
     const loadThreads = useCallback(async () => {
       const data = await dmApi('threads');
       setThreads(data);
@@ -243,12 +235,6 @@
     const sendMessage = useCallback(async (content, editId=null)=>{
       if(!current) return;
 
-      const currentThreadObj = threads.find(t=>t.id===current);
-      if(currentThreadObj?.other_user?.blocked && currentThreadObj?.other_user?.id!==SIMPLE_DM.currentUser.id){
-        alert('Вы не можете отправлять сообщения этому пользователю, так как он вас заблокировал.');
-        return;
-      }
-
       if(editId){
         const res = await dmApi(`messages/${editId}/edit`, {
           method:'POST',
@@ -268,7 +254,7 @@
         scrollToBottom();
         await loadThreads();
       }
-    }, [current, loadMessages, since, scrollToBottom, loadThreads, threads]);
+    }, [current, loadMessages, since, scrollToBottom, loadThreads]);
 
     const startEditing = (message) => setEditingMessage(message);
     const cancelEditing = () => setEditingMessage(null);
@@ -347,8 +333,8 @@
                 React.createElement('div', { className:'dm-context-item', key:'delete-chat', onClick:deleteCurrentThread }, 'Удалить чат'),
                 React.createElement('div', { className:'dm-context-item', key:'block-user', onClick:()=>blockUser(otherUser.id) }, otherUser.blocked?'Разблокировать':'Заблокировать'),
                 React.createElement('div', { className:'dm-context-item', key:'profile', onClick:()=>openProfile(otherUser.id) }, 'Профиль')
-              ]),
-              React.createElement('button', { className:'dm-close-btn', onClick:()=>setCurrent(null), key:'close' }, '✕')
+            ]),
+            React.createElement('button', { className:'dm-close-btn', onClick:()=>setCurrent(null), key:'close' }, '✕')
             ])
           ]),
           React.createElement('div', { className:'dm-translate-toggle', key:'translate' }, [

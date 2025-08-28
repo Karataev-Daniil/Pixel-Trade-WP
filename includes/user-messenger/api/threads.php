@@ -41,7 +41,8 @@ add_action('rest_api_init', function(){
                     'other_user' => [
                         'id' => $other,
                         'name' => get_the_author_meta('display_name', $other),
-                        'avatar' => $avatar_url
+                        'avatar' => $avatar_url,
+                        'blocked' => get_post_meta($tid, '_dm_blocked_' . $other, true) ? true : false,
                     ],
                     'updated'      => (int)get_post_meta($tid,'_dm_last_ts',true),
                     'last_message' => $last_content
