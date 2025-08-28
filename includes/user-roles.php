@@ -66,3 +66,21 @@ function hide_admin_bar_for_sellers() {
     }
 }
 add_action('after_setup_theme', 'hide_admin_bar_for_sellers');
+
+add_action('admin_init', function() {
+    if ( current_user_can('seller') 
+        && ! ( defined('DOING_AJAX') && DOING_AJAX ) 
+        && ! ( defined('REST_REQUEST') && REST_REQUEST ) ) 
+    {
+        wp_redirect(home_url());
+        exit;
+    }
+});
+
+add_action('admin_menu', function() {
+    if(current_user_can('seller')) {
+        global $menu, $submenu;
+        $menu = [];
+        $submenu = [];
+    }
+}, 999);

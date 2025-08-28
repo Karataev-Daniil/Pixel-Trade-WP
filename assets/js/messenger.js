@@ -1,19 +1,22 @@
 (function(){
   const { useState, useEffect, useRef, useCallback } = React;
 
-  window.dmApi = async function(path, opts={}) {
-    try {
-      const res = await fetch(SIMPLE_DM.rest + path, {
-        headers: { 'X-WP-Nonce': SIMPLE_DM.nonce, 'Content-Type': 'application/json' },
+  window.dmApi = async function(path, opts={}){
+    try{
+      const fetchOpts = {
+        headers: { 'X-WP-Nonce': SIMPLE_DM.nonce },
         credentials: 'same-origin',
         ...opts
-      });
-      if (!res.ok) {
+      };
+      if(opts.body) fetchOpts.headers['Content-Type'] = 'application/json';
+
+      const res = await fetch(SIMPLE_DM.rest + path, fetchOpts);
+      if(!res.ok){
         const errText = await res.text();
         throw new Error(`HTTP ${res.status}: ${errText}`);
       }
       return res.json();
-    } catch(err) {
+    } catch(err){
       console.error('dmApi error:', err);
       throw err;
     }
@@ -22,7 +25,7 @@
   const translationCache = new Map();
   let globalOpenThread = null;
 
-  function ChatList({ threads, currentId, onSelect }) {
+  function ChatList({ threads, currentId, onSelect }){
     return React.createElement('div', { className: 'dm-sidebar' }, [
       React.createElement('div', { className: 'dm-sidebar-header title-medium', key: 'header' }, 'Чаты'),
       threads.length === 0
@@ -31,37 +34,37 @@
     ]);
   }
 
-  function formatDateTime(ts) {
-    const d = new Date(ts * 1000);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0'); 
-    const year = d.getFullYear();
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    return `${day} ${month} ${year} ${hours}:${minutes}`;
-  }
-
-  function ThreadItem({ thread, active, onSelect }) {
+  function ThreadItem({ thread, active, onSelect }){
+    const otherUser = thread.other_user || {};
     return React.createElement('button', {
-      className: 'dm-thread' + (active ? ' active' : ''),
+      className: 'dm-thread button-medium' + (active ? ' active' : ''),
       onClick: () => onSelect(thread.id)
     }, [
       React.createElement('img', {
         key: 'av',
-        src: thread.other_user.avatar || '/wp-content/uploads/default-avatar.png',
+        src: otherUser.avatar || '/wp-content/uploads/default-avatar.png',
         className: 'dm-avatar',
-        alt: thread.other_user.name
+        alt: otherUser.name || 'Удалённый пользователь'
       }),
       React.createElement('div', { key: 'meta', className: 'dm-thread-meta' }, [
-        React.createElement('div', { key: 'name', className: 'dm-name title-small' }, thread.other_user.name),
-        React.createElement('div', { key: 'time', className: 'dm-upd body-small-regular' },
-          formatDateTime(thread.updated)
+        React.createElement('div', { key: 'name', className: 'dm-name title-medium' }, otherUser.name || 'Удалённый пользователь'),
+        React.createElement('div', { key: 'last', className: 'dm-last body-small-regular' }, 
+          thread.last_message ? thread.last_message.slice(0,40)+'…' : 'Нет сообщений'
         )
-      ])
+      ]),
+      React.createElement('div', { key: 'time', className: 'dm-upd body-small-regular' }, formatDateTime(thread.updated))
     ]);
   }
 
-  function Message({ m, autoTranslate, onEdit, openMenuId, setOpenMenuId }) {
+  function formatDateTime(ts){
+    const d = new Date(ts*1000);
+    const day = String(d.getDate()).padStart(2,'0');
+    const month = String(d.getMonth()+1).padStart(2,'0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  function Message({ m, autoTranslate, onEdit, openMenuId, setOpenMenuId }){
     const mine = m.author === SIMPLE_DM.currentUser.id;
     const [translated, setTranslated] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -69,12 +72,12 @@
     const msgRef = useRef(null);
 
     const doTranslate = useCallback(async () => {
-      if (translationCache.has(m.id)) {
+      if(translationCache.has(m.id)){
         setTranslated(translationCache.get(m.id));
         return;
       }
       setLoading(true);
-      try {
+      try{
         const res = await dmApi('translate_message', {
           method: 'POST',
           body: JSON.stringify({
@@ -83,19 +86,19 @@
             source_lang: m.lang || 'auto'
           })
         });
-        if (res.translated && res.translated !== '##SKIP##') {
+        if(res.translated && res.translated !== '##SKIP##'){
           translationCache.set(m.id, res.translated);
           setTranslated(res.translated);
         }
-      } catch (err) {
+      } catch(err){
         console.warn('Ошибка перевода:', err.message);
-      } finally {
+      } finally{
         setLoading(false);
       }
     }, [m]);
 
     const handleContextMenu = (e) => {
-      if(mine) {
+      if(mine){
         e.preventDefault();
         setOpenMenuId(m.id);
       }
@@ -119,23 +122,26 @@
         m.edited && React.createElement('span', { key:'edited', className:'dm-edited' }, ' (отредактировано)'),
         !mine && !autoTranslate && !translated && React.createElement('button', {
           key: 'btn',
-          className: 'dm-translate-btn',
+          className: 'dm-translate-btn button-small',
           onClick: doTranslate,
           disabled: loading
         }, loading ? 'Перевожу...' : 'Перевести')
       ]),
       visible && React.createElement('div', { key: 'menu', className: 'dm-context-menu dm-context-below' }, [
-        React.createElement('div', { key: 'edit', className: 'dm-context-item', onClick: () => { onEdit(m); setOpenMenuId(null); } }, 'Редактировать'),
-        React.createElement('div', { key: 'delete', className: 'dm-context-item', onClick: () => { alert('Удаление'); setOpenMenuId(null); } }, 'Удалить')
+        React.createElement('div', { key: 'edit', className: 'dm-context-item button-small link-button', onClick: () => { onEdit(m); setOpenMenuId(null); } }, 'Редактировать'),
+        React.createElement('div', { key: 'delete', className: 'dm-context-item button-small link-button', onClick: () => { alert('Удаление'); setOpenMenuId(null); } }, 'Удалить')
       ])
     ]);
   }
 
-  function Composer({ onSend, editingMessage, onCancelEdit }) {
+  function Composer({ onSend, editingMessage, onCancelEdit }){
     const [value, setValue] = useState(editingMessage?.content || '');
     const textareaRef = useRef(null);
 
-    useEffect(() => { setValue(editingMessage?.content || ''); textareaRef.current?.focus(); }, [editingMessage]);
+    useEffect(() => { 
+      setValue(editingMessage?.content || ''); 
+      textareaRef.current?.focus(); 
+    }, [editingMessage]);
 
     const send = async () => {
       if(!value.trim()) return;
@@ -150,17 +156,17 @@
         value,
         onChange: e => setValue(e.target.value),
         placeholder:'Ваше сообщение…',
-        className:'body-medium-regular',
+        className:'body-medium-regular input--primary',
         onKeyDown: e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); } }
       }),
       React.createElement('div', { key:'btns', className:'dm-composer-btns' }, [
-        React.createElement('button', { key:'send', onClick:send, className:'dm-send button-medium' }, '➤'),
-        editingMessage && React.createElement('button', { key:'cancel', onClick:onCancelEdit, className:'dm-cancel button-medium' }, 'x')
+        React.createElement('button', { key:'send', onClick:send, className:'dm-send button-medium primary-button-larger' }, '➤'),
+        editingMessage && React.createElement('button', { key:'cancel', onClick:onCancelEdit, className:'dm-cancel button-medium secondary-button-small' }, 'x')
       ])
     ]);
   }
 
-  function App() {
+  function App(){
     const [threads, setThreads] = useState([]);
     const [current, setCurrent] = useState(null);
     const [messages, setMessages] = useState([]);
@@ -169,13 +175,48 @@
     const [editingMessage, setEditingMessage] = useState(null);
     const [initialLoaded, setInitialLoaded] = useState(false);
     const [openMenuId, setOpenMenuId] = useState(null);
-    
+    const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+
+    const blockUser = async (userId) => {
+      try {
+        const currentThread = threads.find(t => t.other_user?.id === Number(userId));
+        if (!currentThread) return;
+
+        const action = currentThread.other_user?.blocked ? 'unblock' : 'block';
+        const threadId = Number(currentThread.id);
+
+        const res = await dmApi(`threads/${threadId}/${action}`, { method: 'POST' });
+
+        setThreads(prev => prev.map(t => t.id === threadId ? {
+          ...t,
+          other_user: { ...t.other_user, blocked: !t.other_user.blocked }
+        } : t));
+      
+        if (res.success) {
+          if (currentThread.id === current) {
+            setMessages(prev => [...prev, {
+              id: 'sys-' + Date.now(),
+              system: true,
+              content: action === 'block' ?
+                'Вы заблокировали пользователя, он не может писать вам сообщения.' :
+                'Вы разблокировали пользователя.'
+            }]);
+          }
+        
+          alert(action === 'block' ? 'Пользователь заблокирован' : 'Пользователь разблокирован');
+        }
+      } catch (err) {
+        console.error('Ошибка блокировки:', err);
+        alert('Ошибка: ' + err.message);
+      }
+    };
+
     const loadThreads = useCallback(async () => {
       const data = await dmApi('threads');
       setThreads(data);
     }, []);
 
-    const loadMessages = useCallback(async (tid, sinceTs = 0) => {
+    const loadMessages = useCallback(async (tid, sinceTs=0) => {
       return dmApi(`threads/${tid}/messages` + (sinceTs ? `?since=${sinceTs}` : ''));
     }, []);
 
@@ -191,113 +232,160 @@
       setEditingMessage(null);
       setInitialLoaded(false);
 
-      const ms = await loadMessages(tid, 0);
-      const mapped = ms.map(m => ({ ...m, lang: m.lang || 'auto' }));
+      const ms = await loadMessages(tid,0);
+      const mapped = ms.map(m=>({...m, lang:m.lang||'auto'}));
       setMessages(mapped);
       if(ms.length) setSince(Math.floor(ms[ms.length-1].created));
       setInitialLoaded(true);
       setTimeout(scrollToBottom, 0);
     }, [loadMessages, scrollToBottom]);
 
-    const sendMessage = useCallback(async (content, editId = null) => {
+    const sendMessage = useCallback(async (content, editId=null)=>{
       if(!current) return;
-      if(editId) {
-        const res = await dmApi(`messages/${editId}/edit`, { method: 'POST', body: JSON.stringify({ text: content }) });
-        if(res.success) {
-          setMessages(prev => prev.map(m => m.id === editId ? { ...m, content, edited: true } : m));
+
+      const currentThreadObj = threads.find(t=>t.id===current);
+      if(currentThreadObj?.other_user?.blocked && currentThreadObj?.other_user?.id!==SIMPLE_DM.currentUser.id){
+        alert('Вы не можете отправлять сообщения этому пользователю, так как он вас заблокировал.');
+        return;
+      }
+
+      if(editId){
+        const res = await dmApi(`messages/${editId}/edit`, {
+          method:'POST',
+          body: JSON.stringify({ text: content })
+        });
+        if(res.success){
+          setMessages(prev => prev.map(m => m.id===editId ? {...m, content, edited:true} : m));
           setEditingMessage(null);
           scrollToBottom();
         }
       } else {
-        await dmApi(`threads/${current}/messages`, { method: 'POST', body: JSON.stringify({ content }) });
+        await dmApi(`threads/${current}/messages`, { method:'POST', body: JSON.stringify({ content }) });
         const ms = await loadMessages(current, since);
-        const mapped = ms.map(m => ({ ...m, lang: m.lang || 'auto' }));
+        const mapped = ms.map(m => ({ ...m, lang: m.lang||'auto' }));
         setMessages(prev => [...prev, ...mapped]);
         if(ms.length) setSince(Math.floor(ms[ms.length-1].created));
         scrollToBottom();
+        await loadThreads();
       }
-    }, [current, loadMessages, since, scrollToBottom]);
+    }, [current, loadMessages, since, scrollToBottom, loadThreads, threads]);
 
     const startEditing = (message) => setEditingMessage(message);
     const cancelEditing = () => setEditingMessage(null);
 
-    useEffect(() => { loadThreads(); }, [loadThreads]);
+    useEffect(()=>{ loadThreads(); }, [loadThreads]);
 
-    useEffect(() => {
+    useEffect(()=>{
       const params = new URLSearchParams(window.location.search);
       const tid = params.get('thread');
       if(tid && threads.length) openThread(parseInt(tid));
     }, [threads, openThread]);
 
-    useEffect(() => {
+    useEffect(()=>{
       if(!current || !initialLoaded) return;
-      const interval = setInterval(async () => {
+      const interval = setInterval(async ()=>{
         if(since===0) return;
         const ms = await loadMessages(current, since);
-        if(ms.length) {
-          setMessages(prev => [...prev, ...ms.map(m => ({ ...m, lang: m.lang || 'auto' }))]);
+        if(ms.length){
+          setMessages(prev => [...prev, ...ms.map(m=>({...m, lang:m.lang||'auto'}))]);
           setSince(Math.floor(ms[ms.length-1].created));
           scrollToBottom();
         }
       }, 3000);
-      return () => clearInterval(interval);
+      return ()=>clearInterval(interval);
     }, [current, since, loadMessages, scrollToBottom, initialLoaded]);
 
-    useEffect(() => { globalOpenThread = openThread; return () => { globalOpenThread = null; }; }, [openThread]);
+    useEffect(()=>{ globalOpenThread = openThread; return ()=>{ globalOpenThread=null; } }, [openThread]);
 
     const messagesWithDates = [];
     let lastDate = null;
-    messages.forEach(m => {
-      const msgDate = new Date(m.created * 1000);
+    messages.forEach(m=>{
+      const msgDate = new Date(m.created*1000);
       const dateStr = msgDate.toLocaleDateString();
-      if(dateStr !== lastDate) {
-        messagesWithDates.push({ type:'date', date: dateStr, id:'date-'+msgDate.getTime() });
+      if(dateStr!==lastDate){
+        messagesWithDates.push({ type:'date', date:dateStr, id:'date-'+msgDate.getTime() });
         lastDate = dateStr;
       }
       messagesWithDates.push(m);
     });
 
-    return React.createElement('div', { className: 'dm-wrap' }, [
-      React.createElement(ChatList, { key: 'list', threads, currentId: current, onSelect: openThread }),
-      React.createElement('div', { key: 'chat', className: 'dm-chat' }, [
-        !current && React.createElement('div', { className: 'dm-placeholder body-medium-regular', key: 'placeholder' }, 'Выберите чат'),
-        current && React.createElement('div', { className: 'dm-messages', key: 'messages' },
-          messagesWithDates.map(m => m.type==='date'
+    const currentThread = threads.find(t=>t.id===current);
+    const otherUser = currentThread?.other_user || {};
+
+    const deleteCurrentThread = async ()=>{
+      if(!current) return;
+      if(!confirm('Вы уверены, что хотите удалить чат и все его сообщения?')) return;
+      try{
+        const res = await dmApi(`threads/${current}`, { method:'DELETE' });
+        setThreads(prev => prev.filter(t=>t.id!==current));
+        setCurrent(null);
+        setMessages([]);
+        setSince(0);
+        setEditingMessage(null);
+        setMoreMenuOpen(false);
+        alert('Чат успешно удалён');
+      } catch(err){
+        console.error('Ошибка при удалении чата:', err);
+        alert('Ошибка при удалении чата: ' + err.message);
+      }
+    };
+
+    return React.createElement('div', { className:'dm-wrap' }, [
+      React.createElement(ChatList, { key:'list', threads, currentId:current, onSelect: openThread }),
+      React.createElement('div', { key:'chat', className:'dm-chat' }, [
+        !current && React.createElement('div', { className:'dm-placeholder body-medium-regular', key:'placeholder' }, 'Выберите чат'),
+        current && React.createElement('div', { key:'chat-header-wrapper' }, [
+          React.createElement('div', { key:'chat-header', className:'dm-chat-header' }, [
+            React.createElement('img', { key:'av', src:otherUser.avatar||'/wp-content/uploads/default-avatar.png', className:'dm-avatar-large', alt:otherUser.name||'Удалённый пользователь' }),
+            React.createElement('div', { key:'info', className:'dm-chat-info' }, [
+              React.createElement('div', { className:'dm-name title-medium', key:'name' }, otherUser.name||'Удалённый пользователь'),
+              React.createElement('div', { className:'dm-start body-small-regular', key:'start' }, 'Начало переписки: '+(messages[0]?new Date(messages[0].created*1000).toLocaleDateString():'-'))
+            ]),
+            React.createElement('div', { className:'dm-chat-actions', key:'actions' }, [
+              React.createElement('button', { className:'dm-more-btn', onClick:()=>setMoreMenuOpen(!moreMenuOpen), key:'btn' }, '⋮'),
+              React.createElement('div', { className:'dm-more-menu' + (moreMenuOpen?' active':''), key:'menu' }, [
+                React.createElement('div', { className:'dm-context-item', key:'delete-chat', onClick:deleteCurrentThread }, 'Удалить чат'),
+                React.createElement('div', { className:'dm-context-item', key:'block-user', onClick:()=>blockUser(otherUser.id) }, otherUser.blocked?'Разблокировать':'Заблокировать'),
+                React.createElement('div', { className:'dm-context-item', key:'profile', onClick:()=>openProfile(otherUser.id) }, 'Профиль')
+              ]),
+              React.createElement('button', { className:'dm-close-btn', onClick:()=>setCurrent(null), key:'close' }, '✕')
+            ])
+          ]),
+          React.createElement('div', { className:'dm-translate-toggle', key:'translate' }, [
+            React.createElement('button', { onClick:()=>setAutoTranslate(!autoTranslate), className:'button-medium', key:'toggle' }, autoTranslate?'Убрать авто перевод':'Включить авто перевод')
+          ])
+        ]),
+        current && React.createElement('div', { className:'dm-messages', key:'messages' },
+          messagesWithDates.map(m=>m.type==='date'
             ? React.createElement('div', { key:m.id, className:'dm-date-separator body-small-regular' }, m.date)
             : React.createElement(Message, { key:m.id, m, autoTranslate, onEdit:startEditing, openMenuId, setOpenMenuId })
           )
         ),
-        current && React.createElement(Composer, { key: 'composer', onSend: sendMessage, editingMessage, onCancelEdit: cancelEditing }),
-        current && React.createElement('div', { key: 'translate-toggle', className: 'dm-translate-toggle' }, [
-          React.createElement('button', {
-            onClick: () => setAutoTranslate(!autoTranslate),
-            className: 'button-medium'
-          }, autoTranslate ? 'Убрать перевод' : 'Включить перевод')
-        ])
+        current && React.createElement(Composer, { key:'composer', onSend:sendMessage, editingMessage, onCancelEdit:cancelEditing })
       ])
     ]);
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', ()=>{
     const root = document.getElementById('simple-dm-root');
     const toggleBtn = document.getElementById('dm-toggle-btn');
     if(!root || !toggleBtn) return;
-    toggleBtn.addEventListener('click', () => { root.style.display = (root.style.display==='none') ? 'block' : 'none'; });
+    toggleBtn.addEventListener('click', ()=>{ root.style.display = (root.style.display==='none')?'block':'none'; });
     ReactDOM.createRoot(root).render(React.createElement(App));
   });
 
   window.openDmWithUser = async function(userId){
-    try {
-      const res = await dmApi('threads', { method:'POST', body:JSON.stringify({user_id: userId}) });
+    try{
+      const res = await dmApi('threads', { method:'POST', body:JSON.stringify({ user_id: userId }) });
       if(globalOpenThread) globalOpenThread(res.thread_id);
       const root = document.getElementById('simple-dm-root');
-      if(root) root.style.display = 'block';
+      if(root) root.style.display='block';
     } catch(err){
-      alert('Ошибка: ' + err.message);
+      alert('Ошибка: '+err.message);
     }
   };
 
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', (e)=>{
     if(e.target && e.target.classList.contains('dm-write-btn')){
       const uid = e.target.getAttribute('data-user');
       if(uid) window.openDmWithUser(uid);
