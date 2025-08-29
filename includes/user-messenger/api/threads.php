@@ -46,7 +46,8 @@ add_action('rest_api_init', function(){
                     'updated'      => (int)get_post_meta($tid,'_dm_last_ts',true),
                     'last_message' => $last_content,
                     'blocked'      => get_post_meta($tid,'_dm_blocked',true) ? true : false,
-                    'blocked_by'   => get_post_meta($tid,'_dm_blocked_by',true) ?: null
+                    'blocked_by'   => get_post_meta($tid,'_dm_blocked_by',true) ?: null,
+                    'unread_count' => dm_get_unread_count($tid, $uid)
                 ];
             }
             return $data;

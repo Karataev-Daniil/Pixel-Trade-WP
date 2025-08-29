@@ -104,33 +104,31 @@
                     <span class="icon-moon"><?php echo file_get_contents(get_template_directory() . '/images/moon.svg'); ?></span>
                   </button>
               
-                  <!-- Пользователь -->
                   <?php
-                    $user = wp_get_current_user();
-                    $is_logged_in = is_user_logged_in();
+                  $user = wp_get_current_user();
+                  $is_logged_in = is_user_logged_in();
+                  ?>
 
-                    if ($is_logged_in) {
+                  <div class="user-menu">
+                    <?php if ($is_logged_in): ?>
+                      <?php
                         $avatar_id = get_user_meta($user->ID, 'profile_avatar', true);
                         $avatar_url = $avatar_id ? wp_get_attachment_url($avatar_id) : get_avatar_url($user->ID);
-                    } else {
-                        $avatar_url = get_template_directory_uri() . '/assets/img/avatar-placeholder.png';
-                    }
-                  ?>
-                  <div class="user-menu">
-                    <button class="user-avatar" id="user-avatar" aria-haspopup="true" aria-expanded="false" aria-label="<?= t('Меню пользователя', 'User menu', 'Meniu utilizator'); ?>">
-                      <img src="<?= esc_url($avatar_url); ?>" alt="User Avatar">
-                    </button>
-                    <ul class="user-dropdown" id="user-dropdown">
-                      <?php if ($is_logged_in): ?>
+                      ?>
+                      <button class="user-avatar" id="user-avatar" aria-haspopup="true" aria-expanded="false" aria-label="<?= t('Меню пользователя', 'User menu', 'Meniu utilizator'); ?>">
+                        <img src="<?= esc_url($avatar_url); ?>" alt="User Avatar">
+                      </button>
+                      <ul class="user-dropdown" id="user-dropdown">
                         <li class="label-small"><a href="/my-products" class="title-smaller"><?= t('Мои товары', 'My Products', 'Produsele mele'); ?></a></li>
                         <li class="label-small"><a href="/account/settings" class="title-smaller"><?= t('Настройки аккаунта', 'Account Settings', 'Setări cont'); ?></a></li>
                         <li class="label-small"><a href="/account/favorites" class="title-smaller"><?= t('Избраное', 'Favorites', 'Favoritele'); ?></a></li>
                         <li class="label-small"><a href="<?= wp_logout_url(home_url()); ?>" class="title-smaller"><?= t('Выход', 'Logout', 'Ieșire'); ?></a></li>
-                      <?php else: ?>
-                        <li class="label-small"><a href="/account/login/" class="title-smaller"><?= t('Войти', 'Login', 'Autentificare'); ?></a></li>
-                      <?php endif; ?>
-                    </ul>
+                      </ul>
+                    <?php else: ?>
+                      <a href="/account/login/" class="accent-button-small button-small"><?= t('Войти', 'Login', 'Autentificare'); ?></a>
+                    <?php endif; ?>
                   </div>
+
                 </div>
               </div>
             </div>

@@ -15,16 +15,26 @@ function create_favorites_page() {
 add_action('after_switch_theme', 'create_favorites_page');
 
 function user_can_manage_favorites($user_id = null) {
-    if (!$user_id) $user_id = get_current_user_id();
+    if (!$user_id) {
+        $user_id = get_current_user_id();
+    }
     $user = get_userdata($user_id);
     if (!$user) return false;
-    return in_array('buyer', (array) $user->roles) || in_array('administrator', (array) $user->roles);
+
+    return true;
 }
 
 function add_to_favorites() {
     check_ajax_referer('favorites_nonce', 'nonce');
 
-    if (!is_user_logged_in() || !user_can_manage_favorites()) {
+    if (!is_user_logged_in()) {
+        wp_send_json_error([
+            'message' => 'Чтобы добавить товар в избранное, войдите в аккаунт.',
+            'login_button' => '<a href="/account/login/" class="btn-login">Войти</a>'
+        ]);
+    }
+
+    if (!user_can_manage_favorites()) {
         wp_send_json_error(['message' => 'У вас нет прав для добавления в избранное']);
     }
 
@@ -44,12 +54,18 @@ function add_to_favorites() {
 
     wp_send_json_success(['message' => 'Товар добавлен в избранное']);
 }
-add_action('wp_ajax_add_to_favorites', 'add_to_favorites');
 
 function remove_from_favorites() {
     check_ajax_referer('favorites_nonce', 'nonce');
 
-    if (!is_user_logged_in() || !user_can_manage_favorites()) {
+    if (!is_user_logged_in()) {
+        wp_send_json_error([
+            'message' => 'Чтобы удалить товар из избранного, войдите в аккаунт.',
+            'login_button' => '<a href="/account/login/" class="btn-login">Войти</a>'
+        ]);
+    }
+
+    if (!user_can_manage_favorites()) {
         wp_send_json_error(['message' => 'У вас нет прав для удаления из избранного']);
     }
 
@@ -66,7 +82,6 @@ function remove_from_favorites() {
 
     wp_send_json_success(['message' => 'Товар удален из избранного']);
 }
-add_action('wp_ajax_remove_from_favorites', 'remove_from_favorites');
 
 function get_user_favorites($user_id = null) {
     if (!$user_id) $user_id = get_current_user_id();
@@ -99,7 +114,7 @@ function favorites_shortcode() {
             $price = get_post_meta(get_the_ID(), 'product_price', true);
             $thumbnail = get_the_post_thumbnail_url(get_the_ID(), 'medium');
             if (!$thumbnail) {
-                $thumbnail = get_template_directory_uri() . '/images/default-product.png';
+                $thumbnail = get_template_directory_uri() . '/images/product-placeholder.png';
             }
             ?>
             
@@ -114,12 +129,22 @@ function favorites_shortcode() {
 add_shortcode('user_favorites', 'favorites_shortcode');
 
 function favorites_scripts() {
-    if (is_page('favorites')) {
-        wp_enqueue_script('favorites-js', get_template_directory_uri() . '/js/favorites.js', ['jquery'], null, true);
-        wp_localize_script('favorites-js', 'favorites_ajax', [
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('favorites_nonce')
-        ]);
-    }
+    wp_enqueue_script(
+        'favorites-js',
+        get_template_directory_uri() . '/assets/js/favorites.js',
+        ['jquery'],
+        null,
+        true
+    );
+    wp_localize_script('favorites-js', 'favorites_ajax', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce'    => wp_create_nonce('favorites_nonce')
+    ]);
 }
 add_action('wp_enqueue_scripts', 'favorites_scripts');
+add_action('wp_ajax_add_to_favorites', 'add_to_favorites');
+add_action('wp_ajax_nopriv_add_to_favorites', 'add_to_favorites');
+add_action('wp_ajax_remove_from_favorites', 'remove_from_favorites');
+add_action('wp_ajax_nopriv_remove_from_favorites', 'remove_from_favorites');
+
+

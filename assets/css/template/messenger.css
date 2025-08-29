@@ -13,6 +13,16 @@
     box-shadow: -2px 0 8px rgba(0,0,0,0.2);
     animation: fadeIn 0.3s ease-in-out;
 }
+.dm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5); /* затемнение */
+  z-index: 999; /* поверх всего */
+}
+
 
 .dm-toggle-btn {
     position: fixed;
@@ -75,10 +85,14 @@
 }
 .dm-last {
     color: var(--gray_-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dm-thread-meta {
     flex: 1;
+    max-width: 58%;
     text-align: left;
 }
 .dm-upd {
@@ -179,6 +193,19 @@
     border: none;
     padding: 8px;
     font-size: 14px;
+}
+.dm-composer textarea::-webkit-scrollbar {
+    width: 8px;
+}
+.dm-composer textarea::-webkit-scrollbar-track {
+    background: transparent;
+}
+.dm-composer textarea::-webkit-scrollbar-thumb {
+    background-color: var(--gray_3);
+    border-radius: 4px;
+}
+.dm-composer textarea::-webkit-scrollbar-thumb:hover {
+    background-color: var(--gray_2);
 }
 .dm-composer textarea:hover,
 .dm-composer textarea:focus {

@@ -12,7 +12,7 @@ $is_favorite = is_array($favorites) && in_array(get_the_ID(), $favorites);
             if ($thumbnail) {
                 echo '<img src="' . esc_url($thumbnail) . '" class="product-card__image" alt="' . esc_attr(get_the_title()) . '">';
             } else {
-                $default_img = get_template_directory_uri() . '/images/default-product.png';
+                $default_img = get_template_directory_uri() . '/images/product-placeholder.png';
                 echo '<img src="' . esc_url($default_img) . '" class="product-card__image" alt="' . esc_attr(get_the_title()) . '">';
             }
             ?>
@@ -26,7 +26,6 @@ $is_favorite = is_array($favorites) && in_array(get_the_ID(), $favorites);
     <?php if (is_user_logged_in()): ?>
         <button class="toggle-favorite" data-id="<?php the_ID(); ?>">
             <?php if ($is_favorite): ?>
-                <!-- Состояние: уже в избранном -->
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="red" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 
                              4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
@@ -34,7 +33,6 @@ $is_favorite = is_array($favorites) && in_array(get_the_ID(), $favorites);
                              22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
             <?php else: ?>
-                <!-- Состояние: не в избранном -->
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 
                              4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
@@ -44,19 +42,17 @@ $is_favorite = is_array($favorites) && in_array(get_the_ID(), $favorites);
             <?php endif; ?>
         </button>
     <?php else: ?>
-        <a href="<?php echo wp_login_url(get_permalink()); ?>" class="login-to-favorites">Войдите, чтобы добавить в избранное</a>
     <?php endif; ?>
 </div>
 <script>
 jQuery(document).ready(function($){
-    if(typeof favorites_ajax === 'undefined') return; // защита на случай, если объект не передан
+    if(typeof favorites_ajax === 'undefined') return;
 
     $(document).on('click', '.toggle-favorite', function(e){
         e.preventDefault();
         let button = $(this);
         let product_id = button.data('id');
 
-        // Определяем действие
         let action = button.find('svg[fill="red"]').length ? 'remove_from_favorites' : 'add_to_favorites';
 
         $.post(favorites_ajax.ajax_url, {
@@ -65,7 +61,6 @@ jQuery(document).ready(function($){
             nonce: favorites_ajax.nonce
         }, function(response){
             if(response.success){
-                // Меняем SVG на лету
                 if(action === 'add_to_favorites'){
                     button.html('<svg width="24" height="24" viewBox="0 0 24 24" fill="red" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>');
                 } else {

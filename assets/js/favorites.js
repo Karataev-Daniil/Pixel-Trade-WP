@@ -11,7 +11,12 @@ jQuery(document).ready(function($){
             if(response.success){
                 alert(response.data.message);
             } else {
-                alert(response.data.message);
+                if(response.data.login_button){
+                    // Если не авторизован → выводим сообщение с кнопкой
+                    showFavoritesMessage(response.data.message, response.data.login_button);
+                } else {
+                    alert(response.data.message);
+                }
             }
         });
     });
@@ -30,8 +35,26 @@ jQuery(document).ready(function($){
                 alert(response.data.message);
                 button.closest('.product-card').fadeOut();
             } else {
-                alert(response.data.message);
+                if(response.data.login_button){
+                    showFavoritesMessage(response.data.message, response.data.login_button);
+                } else {
+                    alert(response.data.message);
+                }
             }
         });
     });
+
+    // Функция показа сообщения с кнопкой
+    function showFavoritesMessage(message, buttonHtml){
+        let container = $('#favorites-message');
+        if(container.length === 0){
+            $('body').append('<div id="favorites-message" class="favorites-alert"></div>');
+            container = $('#favorites-message');
+        }
+        container.html('<p>'+message+'</p>'+buttonHtml).fadeIn();
+
+        setTimeout(function(){
+            container.fadeOut();
+        }, 5000);
+    }
 });

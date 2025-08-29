@@ -53,7 +53,7 @@
         )
       ]),
       React.createElement('div', { key: 'time', className: 'dm-upd body-small-regular' }, formatDateTime(thread.updated)),
-      thread.unread > 0 && React.createElement('span', { key: 'unread', className:'dm-unread-badge' }, thread.unread)
+      thread.unread_count > 0 && React.createElement('span', { key: 'unread', className:'dm-unread-badge' }, thread.unread_count)
     ]);
   }
 
@@ -229,17 +229,18 @@
       setSince(0);
       setEditingMessage(null);
       setInitialLoaded(false);
+    
+      setThreads(prev => prev.map(t => t.id === tid ? {...t, unread_count:0} : t));
 
-      setThreads(prev => prev?.map(t => t.id === tid ? {...t, unread:0} : t));
-
-      const ms = await loadMessages(tid,0);
-      const mapped = ms.map(m=>({...m, lang:m.lang||'auto'}));
+      await dmApi(`threads/${tid}/read`, { method: 'POST' });
+    
+      const ms = await loadMessages(tid, 0);
+      const mapped = ms.map(m => ({...m, lang: m.lang||'auto'}));
       setMessages(mapped);
       if(ms.length) setSince(Math.floor(ms[ms.length-1].created));
       setInitialLoaded(true);
       setTimeout(scrollToBottom, 0);
     }, [loadMessages, scrollToBottom]);
-
 
     const sendMessage = useCallback(async (content, editId=null)=>{
       if(!current) return;
@@ -452,11 +453,41 @@
     ]);
   }
 
-  document.addEventListener('DOMContentLoaded', ()=>{
+  document.addEventListener('DOMContentLoaded', () => {
     const root = document.getElementById('simple-dm-root');
     const toggleBtn = document.getElementById('dm-toggle-btn');
-    if(!root || !toggleBtn) return;
-    toggleBtn.addEventListener('click', ()=>{ root.style.display = (root.style.display==='none')?'block':'none'; });
+
+    const overlay = document.createElement('div');
+    overlay.className = 'dm-overlay';
+    overlay.style.display = 'none';
+    document.body.appendChild(overlay);
+
+    if (!root || !toggleBtn) return;
+
+    toggleBtn.addEventListener('click', () => {
+      const isOpening = root.style.display === 'none' || root.style.display === '';
+
+      if (isOpening) {
+        const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+        document.body.style.overflow = 'hidden';
+        document.body.style.paddingRight = scrollBarWidth + 'px';
+        root.style.display = 'block';
+        overlay.style.display = 'block';
+      } else {
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+        root.style.display = 'none';
+        overlay.style.display = 'none';
+      }
+    });
+
+    overlay.addEventListener('click', () => {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+      root.style.display = 'none';
+      overlay.style.display = 'none';
+    });
+
     ReactDOM.createRoot(root).render(React.createElement(App));
   });
 
