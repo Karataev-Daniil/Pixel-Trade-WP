@@ -10,7 +10,6 @@
     height: 100vh;
     z-index: 9999;
     background-color: var(--gray_4);
-    box-shadow: -2px 0 8px rgba(0,0,0,0.2);
     animation: fadeIn 0.3s ease-in-out;
 }
 .dm-overlay {
@@ -19,10 +18,9 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0,0,0,0.5); /* затемнение */
-  z-index: 999; /* поверх всего */
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
 }
-
 
 .dm-toggle-btn {
     position: fixed;
@@ -47,7 +45,6 @@
     height: 100%;
     font-family: sans-serif;
 }
-
 .dm-sidebar {
     width: 300px;
     border-right: 2px solid var(--gray_1);
@@ -56,7 +53,6 @@
     animation: slideIn 0.4s ease-out;
     background-color: var(--gray_3);
 }
-
 .dm-sidebar-header {
     padding: 10px;
     font-weight: bold;
@@ -78,10 +74,32 @@
     background: var(--gray_5);
 }
 
+.dm-avatar-wrapper {
+    position: relative;
+    /* border: 1px solid var(--gray_1);
+    border-radius: 50%;
+    height: 40px;
+    width: 40px; */
+}
 .dm-avatar {
     width: 40px;
     height: 40px;
+    object-fit: cover;
     border-radius: 50%;
+}
+.dm-unread-badge {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 12px;
+    background-color: var(--orange_0);
+    color: var(--gray_-6);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
 }
 .dm-last {
     color: var(--gray_-2);
@@ -317,7 +335,8 @@
 }
 .dm-avatar-large { 
     width: 40px; 
-    height: 40px; 
+    height: 40px;
+    object-fit: cover;
     border-radius: 50%; 
     margin-right:10px; 
 }

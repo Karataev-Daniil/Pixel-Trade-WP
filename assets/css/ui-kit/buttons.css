@@ -16,7 +16,7 @@
     padding-bottom: 8px;
 }
 
-/* 🔴 PRIMARY — главный акцент */
+/* PRIMARY — главный акцент */
 .primary-button-larger {
     min-height: 64px;
     padding: 8px 32px;
@@ -101,7 +101,7 @@ html[data-theme="dark"] .primary-button-small:focus-visible {
     box-shadow: 0 0 0 3px var(--orange_2) !important;
 }
 
-/* 🟠 SECONDARY — нейтральный тёмный */
+/* SECONDARY — нейтральный тёмный */
 .secondary-button-larger,
 .secondary-button-small {
     background-color: var(--gray_5);
@@ -138,7 +138,7 @@ html[data-theme="dark"] .primary-button-small:focus-visible {
     box-shadow: 0 0 0 3px var(--gray_1);
 }
 
-/* 🟡 TERTIARY — прозрачный фон, только текст */
+/* TERTIARY — прозрачный фон, только текст */
 .tertiary-button-small {
     min-height: 40px;
     padding: 8px 20px;
@@ -160,7 +160,7 @@ html[data-theme="dark"] .primary-button-small:focus-visible {
     box-shadow: 0 0 0 3px var(--gray_1);
 }
 
-/* 🟣 ACCENT — светлый фон с акцентной рамкой */
+/* ACCENT — светлый фон с акцентной рамкой */
 .accent-button-small {
     min-height: 40px;
     padding: 8px 20px;
@@ -183,7 +183,7 @@ html[data-theme="dark"] .primary-button-small:focus-visible {
     box-shadow: 0 0 0 3px var(--orange_-2);
 }
 
-/* 🖼️ Icon-only кнопки */
+/* Icon-only кнопки */
 .icon-button-small,
 .icon-button-medium {
     cursor: pointer;
@@ -212,7 +212,7 @@ html[data-theme="dark"] .primary-button-small:focus-visible {
     background-color: var(--orange_2);
 }
 
-/* 🛑 Disabled */
+/* Disabled */
 button:disabled,
 div:disabled,
 a:disabled {
@@ -221,7 +221,7 @@ a:disabled {
     background-color: var(--gray_2);
 }
 
-/* 🖋️ Link-style кнопки */
+/* Link-style кнопки */
 .link-button {
     font-family: 'Inter', 'IBM Plex Sans', sans-serif;
     cursor: pointer;

@@ -27,18 +27,16 @@ function simple_dm_block_thread(WP_REST_Request $req) {
         return new WP_Error('forbidden', 'Нет доступа к этому чату', ['status' => 403]);
     }
 
-    // Сохраняем глобальную блокировку потока
     update_post_meta($thread_id, '_dm_blocked', 1);
     update_post_meta($thread_id, '_dm_blocked_by', $user_id);
 
-    // Добавляем системное сообщение
     $msg_id = wp_insert_post([
         'post_type'   => 'dm_message',
         'post_status' => 'publish',
         'post_parent' => $thread_id,
         'post_author' => $user_id,
         'post_title'  => '',
-        'post_content'=> sprintf('Пользователь %s заблокировал чат.', wp_get_current_user()->display_name),
+        'post_content'=> sprintf('Пользователь %s заблокировал чат', wp_get_current_user()->display_name),
         'meta_input'  => [
             '_system' => 1,
             '_event'  => 'blocked'
@@ -53,7 +51,7 @@ function simple_dm_block_thread(WP_REST_Request $req) {
         'system_message' => [
             'id'      => $msg_id,
             'date'    => current_time('mysql'),
-            'content' => 'Вы заблокировали этого пользователя — переписка остановлена.',
+            'content' => 'Вы заблокировали этого пользователя — переписка остановлена',
             'system'  => true,
             'event'   => 'blocked',
         ]
@@ -78,11 +76,9 @@ function simple_dm_unblock_thread(WP_REST_Request $req) {
         return new WP_Error('forbidden', 'Чат не заблокирован вами', ['status' => 403]);
     }
 
-    // Убираем блокировку
     delete_post_meta($thread_id, '_dm_blocked');
     delete_post_meta($thread_id, '_dm_blocked_by');
 
-    // Системное сообщение о разблокировке
     $msg_id = wp_insert_post([
         'post_type'   => 'dm_message',
         'post_status' => 'publish',

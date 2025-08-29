@@ -68,12 +68,14 @@ function hide_admin_bar_for_sellers() {
 add_action('after_setup_theme', 'hide_admin_bar_for_sellers');
 
 add_action('admin_init', function() {
-    if ( current_user_can('seller') 
-        && ! ( defined('DOING_AJAX') && DOING_AJAX ) 
-        && ! ( defined('REST_REQUEST') && REST_REQUEST ) ) 
-    {
-        wp_redirect(home_url());
-        exit;
+    if (current_user_can('seller') || current_user_can('buyer')) {
+        if ( ! ( defined('DOING_AJAX') && DOING_AJAX ) 
+            && ! ( defined('REST_REQUEST') && REST_REQUEST ) 
+            && ! ( isset($_SERVER['PHP_SELF']) && strpos($_SERVER['PHP_SELF'], 'admin-post.php') !== false )
+        ) {
+            wp_redirect(home_url());
+            exit;
+        }
     }
 });
 

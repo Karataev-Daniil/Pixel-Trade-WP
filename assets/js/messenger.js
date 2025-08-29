@@ -40,20 +40,15 @@
       className: 'dm-thread button-medium' + (active ? ' active' : ''),
       onClick: () => onSelect(thread.id)
     }, [
-      React.createElement('img', {
-        key: 'av',
-        src: otherUser.avatar || '/wp-content/uploads/default-avatar.png',
-        className: 'dm-avatar',
-        alt: otherUser.name || 'Удалённый пользователь'
-      }),
+      React.createElement('div', { key: 'avatar-wrapper', className: 'dm-avatar-wrapper', style: { position: 'relative' } }, [
+        React.createElement('img', { key: 'av', src: otherUser.avatar || '/wp-content/uploads/default-avatar.png', className: 'dm-avatar', alt: otherUser.name || 'Удалённый пользователь' }),
+        thread.unread_count > 0 && React.createElement('span', { key: 'unread', className: 'dm-unread-badge'}, thread.unread_count)
+      ]),
       React.createElement('div', { key: 'meta', className: 'dm-thread-meta' }, [
         React.createElement('div', { key: 'name', className: 'dm-name title-medium' }, otherUser.name || 'Удалённый пользователь'),
-        React.createElement('div', { key: 'last', className: 'dm-last body-small-regular' }, 
-          thread.last_message ? thread.last_message.slice(0,40)+'…' : 'Нет сообщений'
-        )
+        React.createElement('div', { key: 'last', className: 'dm-last body-small-regular' }, thread.last_message ? thread.last_message.slice(0,40)+'…' : 'Нет сообщений')
       ]),
-      React.createElement('div', { key: 'time', className: 'dm-upd body-small-regular' }, formatDateTime(thread.updated)),
-      thread.unread_count > 0 && React.createElement('span', { key: 'unread', className:'dm-unread-badge' }, thread.unread_count)
+      React.createElement('div', { key: 'time', className: 'dm-upd body-small-regular' }, formatDateTime(thread.updated))
     ]);
   }
 
@@ -214,8 +209,29 @@
       setThreads(data);
     }, []);
 
-    const loadMessages = useCallback(async (tid, sinceTs=0) => {
-      return dmApi(`threads/${tid}/messages` + (sinceTs ? `?since=${sinceTs}` : ''));
+    const loadMessages = useCallback(async (tid, sinceTs = 0) => {
+      const ms = await dmApi(`threads/${tid}/messages` + (sinceTs ? `?since=${sinceTs}` : ''));
+    
+    const mapped = ms.map(m => {
+      const sys = m.meta?._system === 1 || m.meta?._system === '1';
+      const evt = m.meta?._event || null;
+      const created = m.created || Math.floor(new Date(m.date || Date.now()).getTime() / 1000);
+    
+      const msg = {
+        ...m,
+        system: sys,
+        event: evt,
+        created
+      };
+    
+      if(msg.system) console.log('Системное сообщение:', msg);
+    
+      return msg;
+    });
+
+
+
+      return mapped;
     }, []);
 
     const scrollToBottom = useCallback(() => {
@@ -242,34 +258,45 @@
       setTimeout(scrollToBottom, 0);
     }, [loadMessages, scrollToBottom]);
 
-    const sendMessage = useCallback(async (content, editId=null)=>{
-      if(!current) return;
+    const sendMessage = useCallback(async (content, editId=null) => {
+      if (!current) return;
 
-      const currentThread = threads.find(t=>t.id===current);
-      if(!currentThread) return;
+      const currentThread = threads.find(t => t.id === current);
+      if (!currentThread) return;
 
-      if(editId){
+      if (editId) {
         const res = await dmApi(`messages/${editId}/edit`, {
           method:'POST',
           body: JSON.stringify({ text: content })
         });
-        if(res.success){
-          setMessages(prev => prev.map(m => m.id===editId ? {...m, content, edited:true} : m));
+        if (res.success) {
+          setMessages(prev => prev.map(m => 
+            m.id === editId ? { ...m, content, edited:true } : m
+          ));
           setEditingMessage(null);
           scrollToBottom();
         }
       } else {
-        // Prevent sending if you are blocked by the other participant
-        if(currentThread.blocked && currentThread.blocked_by !== SIMPLE_DM.currentUser.id){
+        if (currentThread.blocked && currentThread.blocked_by !== SIMPLE_DM.currentUser.id) {
           alert('Вы заблокированы — вы не можете отправлять сообщения в этом чате.');
           return;
         }
+      
+        await dmApi(`threads/${current}/messages`, { 
+          method:'POST', 
+          body: JSON.stringify({ content }) 
+        });
 
-        await dmApi(`threads/${current}/messages`, { method:'POST', body: JSON.stringify({ content }) });
         const ms = await loadMessages(current, since);
-        const mapped = ms.map(m => ({ ...m, lang: m.lang||'auto' }));
+        const mapped = ms.map(m => ({
+          ...m,
+          lang: m.lang || 'auto',
+          system: m.meta?._system === 1 || m.meta?._system === "1",
+          event: m.meta?._event || null
+        }));
+      
         setMessages(prev => [...prev, ...mapped]);
-        if(ms.length) setSince(Math.floor(ms[ms.length-1].created));
+        if (ms.length) setSince(Math.floor(ms[ms.length-1].created));
         scrollToBottom();
         await loadThreads();
       }
@@ -312,29 +339,6 @@
     }, [current, since, loadMessages, scrollToBottom, initialLoaded]);
 
     useEffect(()=>{ globalOpenThread = openThread; return ()=>{ globalOpenThread=null; } }, [openThread]);
-
-    const pushSystemMessage = useCallback((action, by, customText=null) => {
-      const currentOther = threads.find(t=>t.id===current)?.other_user || {};
-      const text = customText || (action==='blocked'
-        ? (by===SIMPLE_DM.currentUser.id
-            ? 'Вы заблокировали этого пользователя — переписка остановлена.'
-            : `Пользователь ${currentOther.name || 'пользователь'} заблокировал вас — вы не можете отправлять сообщения.`)
-        : (action==='unblocked'
-            ? (by===SIMPLE_DM.currentUser.id ? 'Вы разблокировали этого пользователя.' : `Пользователь ${currentOther.name || 'пользователь'} разблокировал вас.`)
-            : customText || '' ) );
-
-      const sys = {
-        id: 'sys-' + action + '-' + Date.now(),
-        system: true,
-        action,
-        blocked_by: by,
-        content: text,
-        created: Math.floor(Date.now()/1000)
-      };
-      setMessages(prev => [...prev, sys]);
-      setSince(Math.floor(sys.created));
-      setTimeout(scrollToBottom, 0);
-    }, [threads, current, scrollToBottom]);
 
     const blockUser = useCallback(async () => {
       if (!current) return;
@@ -433,19 +437,23 @@
           ])
         ]),
         current && React.createElement('div', { className:'dm-messages', key:'messages' },
-          messagesWithDates.map(m=>{
-            if(m.type==='date') return React.createElement('div', { key:m.id, className:'dm-date-separator body-small-regular' }, m.date);
-            if(m.system){
-              return React.createElement('div', { key:m.id, className:'dm-date-separator dm-block-separator body-small-regular' }, [
-                React.createElement('div', { key:'txt' }, m.content),
-                m.action === 'blocked' && m.blocked_by === SIMPLE_DM.currentUser.id && React.createElement('button', {
-                  key:'unblock',
-                  className:'dm-unblock-button button-small',
-                  onClick: blockUser
-                }, 'Разблокировать')
-              ]);
-            }
-            return React.createElement(Message, { key:m.id, m, autoTranslate, onEdit:startEditing, openMenuId, setOpenMenuId });
+          messagesWithDates.map(m => {
+            if (m.type === 'date') 
+              return React.createElement('div', { key: m.id, className: 'dm-date-separator body-small-regular' }, m.date);
+          
+              if (m.system) {
+                return React.createElement('div', {
+                  key: m.id,
+                  className: 'dm-message dm-system-message',
+                  'data-system': true
+                }, [
+                  React.createElement('div', { key: 'txt', className: 'dm-message-content' }, m.content),
+                  React.createElement('div', { key: 'sig', className: 'dm-system-signature' }, 
+                    `${new Date(m.created*1000).toLocaleTimeString()} - ${m.event === 'blocked' ? 'системное сообщение: заблокирован' : 'системное сообщение: разблокирован'}`)
+                ]);
+              }
+
+            return React.createElement(Message, { key: m.id, m, autoTranslate, onEdit:startEditing, openMenuId, setOpenMenuId });
           })
         ),
         current && React.createElement(Composer, { key:'composer', onSend:sendMessage, editingMessage, onCancelEdit:cancelEditing, blocked:isBlocked, blockedByMe:iAmBlocker })

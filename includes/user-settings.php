@@ -1,8 +1,4 @@
 <?php
-/**
- * Админские настройки пользователей (регионы и др.)
- */
-
 add_action('admin_menu', function () {
     add_options_page(
         'Настройки пользователей',
@@ -145,31 +141,47 @@ add_action('admin_post_save_user_settings', function() {
         require_once(ABSPATH . 'wp-admin/includes/file.php');
         require_once(ABSPATH . 'wp-admin/includes/image.php');
         require_once(ABSPATH . 'wp-admin/includes/media.php');
-    
+
         $uploadedfile = $_FILES['avatar'];
-        $upload_overrides = ['test_form' => false];
-    
-        $movefile = wp_handle_upload($uploadedfile, $upload_overrides);
-    
-        if ($movefile && !isset($movefile['error'])) {
-            $filename = $movefile['file'];
-            $filetype = wp_check_filetype(basename($filename), null);
-        
-            $attachment = [
-                'guid'           => $movefile['url'],
-                'post_mime_type' => $filetype['type'],
-                'post_title'     => sanitize_file_name(basename($filename)),
-                'post_content'   => '',
-                'post_status'    => 'inherit'
-            ];
-        
-            $attach_id = wp_insert_attachment($attachment, $filename);
-            $attach_data = wp_generate_attachment_metadata($attach_id, $filename);
-            wp_update_attachment_metadata($attach_id, $attach_data);
-        
-            update_user_meta($user_id, 'profile_avatar', $attach_id);
+
+        $user_info = get_userdata($user_id);
+        $username_en = preg_replace('/[^a-z0-9_-]/i', '_', $user_info->user_login);
+
+        $ext = pathinfo($uploadedfile['name'], PATHINFO_EXTENSION);
+        $new_filename = "avatar-{$user_id}-{$username_en}.{$ext}";
+
+        global $wpdb;
+        $existing_attachment_id = $wpdb->get_var($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_title = %s LIMIT 1",
+            pathinfo($new_filename, PATHINFO_FILENAME)
+        ));
+
+        if ($existing_attachment_id) {
+            update_user_meta($user_id, 'profile_avatar', $existing_attachment_id);
         } else {
-            wp_die(__('Ошибка загрузки файла: ') . $movefile['error']);
+            $uploadedfile['name'] = $new_filename;
+            $upload_overrides = ['test_form' => false];
+            $movefile = wp_handle_upload($uploadedfile, $upload_overrides);
+
+            if ($movefile && !isset($movefile['error'])) {
+                $filetype = wp_check_filetype(basename($movefile['file']), null);
+
+                $attachment = [
+                    'guid'           => $movefile['url'],
+                    'post_mime_type' => $filetype['type'],
+                    'post_title'     => pathinfo($new_filename, PATHINFO_FILENAME),
+                    'post_content'   => '',
+                    'post_status'    => 'inherit'
+                ];
+
+                $attach_id = wp_insert_attachment($attachment, $movefile['file']);
+                $attach_data = wp_generate_attachment_metadata($attach_id, $movefile['file']);
+                wp_update_attachment_metadata($attach_id, $attach_data);
+
+                update_user_meta($user_id, 'profile_avatar', $attach_id);
+            } else {
+                wp_die(__('Ошибка загрузки файла: ') . $movefile['error']);
+            }
         }
     }
     
