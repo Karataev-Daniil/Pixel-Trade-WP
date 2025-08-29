@@ -52,7 +52,8 @@
           thread.last_message ? thread.last_message.slice(0,40)+'…' : 'Нет сообщений'
         )
       ]),
-      React.createElement('div', { key: 'time', className: 'dm-upd body-small-regular' }, formatDateTime(thread.updated))
+      React.createElement('div', { key: 'time', className: 'dm-upd body-small-regular' }, formatDateTime(thread.updated)),
+      thread.unread > 0 && React.createElement('span', { key: 'unread', className:'dm-unread-badge' }, thread.unread)
     ]);
   }
 
@@ -160,7 +161,7 @@
     ]);
   }
 
-  function Composer({ onSend, editingMessage, onCancelEdit }){
+  function Composer({ onSend, editingMessage, onCancelEdit, blocked, blockedByMe }){
     const [value, setValue] = useState(editingMessage?.content || '');
     const textareaRef = useRef(null);
 
@@ -171,6 +172,10 @@
 
     const send = async () => {
       if(!value.trim()) return;
+      if(blocked && !blockedByMe){
+        alert('Вы не можете отправлять сообщения — чат заблокирован.');
+        return;
+      }
       await onSend(value, editingMessage?.id);
       setValue('');
     };
@@ -181,12 +186,13 @@
         ref: textareaRef,
         value,
         onChange: e => setValue(e.target.value),
-        placeholder:'Ваше сообщение…',
+        placeholder: blocked && !blockedByMe ? 'Вы заблокированы — отправка сообщений недоступна.' : 'Ваше сообщение…',
         className:'body-medium-regular input--primary',
-        onKeyDown: e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); } }
+        onKeyDown: e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); } },
+        disabled: blocked && !blockedByMe
       }),
       React.createElement('div', { key:'btns', className:'dm-composer-btns' }, [
-        React.createElement('button', { key:'send', onClick:send, className:'dm-send button-medium primary-button-larger' }, '➤'),
+        React.createElement('button', { key:'send', onClick:send, className:'dm-send button-medium primary-button-larger', disabled: blocked && !blockedByMe }, '➤'),
         editingMessage && React.createElement('button', { key:'cancel', onClick:onCancelEdit, className:'dm-cancel button-medium secondary-button-small' }, 'x')
       ])
     ]);
@@ -224,6 +230,8 @@
       setEditingMessage(null);
       setInitialLoaded(false);
 
+      setThreads(prev => prev?.map(t => t.id === tid ? {...t, unread:0} : t));
+
       const ms = await loadMessages(tid,0);
       const mapped = ms.map(m=>({...m, lang:m.lang||'auto'}));
       setMessages(mapped);
@@ -232,8 +240,12 @@
       setTimeout(scrollToBottom, 0);
     }, [loadMessages, scrollToBottom]);
 
+
     const sendMessage = useCallback(async (content, editId=null)=>{
       if(!current) return;
+
+      const currentThread = threads.find(t=>t.id===current);
+      if(!currentThread) return;
 
       if(editId){
         const res = await dmApi(`messages/${editId}/edit`, {
@@ -246,6 +258,12 @@
           scrollToBottom();
         }
       } else {
+        // Prevent sending if you are blocked by the other participant
+        if(currentThread.blocked && currentThread.blocked_by !== SIMPLE_DM.currentUser.id){
+          alert('Вы заблокированы — вы не можете отправлять сообщения в этом чате.');
+          return;
+        }
+
         await dmApi(`threads/${current}/messages`, { method:'POST', body: JSON.stringify({ content }) });
         const ms = await loadMessages(current, since);
         const mapped = ms.map(m => ({ ...m, lang: m.lang||'auto' }));
@@ -254,7 +272,7 @@
         scrollToBottom();
         await loadThreads();
       }
-    }, [current, loadMessages, since, scrollToBottom, loadThreads]);
+    }, [current, threads, loadMessages, since, scrollToBottom, loadThreads]);
 
     const startEditing = (message) => setEditingMessage(message);
     const cancelEditing = () => setEditingMessage(null);
@@ -266,6 +284,17 @@
       const tid = params.get('thread');
       if(tid && threads.length) openThread(parseInt(tid));
     }, [threads, openThread]);
+    useEffect(() => {
+      const interval = setInterval(async () => {
+        try {
+          await loadThreads();
+        } catch (err) {
+          console.warn('Ошибка при обновлении списка чатов:', err);
+        }
+      }, 2500);
+    
+      return () => clearInterval(interval);
+    }, [loadThreads]);
 
     useEffect(()=>{
       if(!current || !initialLoaded) return;
@@ -282,6 +311,64 @@
     }, [current, since, loadMessages, scrollToBottom, initialLoaded]);
 
     useEffect(()=>{ globalOpenThread = openThread; return ()=>{ globalOpenThread=null; } }, [openThread]);
+
+    const pushSystemMessage = useCallback((action, by, customText=null) => {
+      const currentOther = threads.find(t=>t.id===current)?.other_user || {};
+      const text = customText || (action==='blocked'
+        ? (by===SIMPLE_DM.currentUser.id
+            ? 'Вы заблокировали этого пользователя — переписка остановлена.'
+            : `Пользователь ${currentOther.name || 'пользователь'} заблокировал вас — вы не можете отправлять сообщения.`)
+        : (action==='unblocked'
+            ? (by===SIMPLE_DM.currentUser.id ? 'Вы разблокировали этого пользователя.' : `Пользователь ${currentOther.name || 'пользователь'} разблокировал вас.`)
+            : customText || '' ) );
+
+      const sys = {
+        id: 'sys-' + action + '-' + Date.now(),
+        system: true,
+        action,
+        blocked_by: by,
+        content: text,
+        created: Math.floor(Date.now()/1000)
+      };
+      setMessages(prev => [...prev, sys]);
+      setSince(Math.floor(sys.created));
+      setTimeout(scrollToBottom, 0);
+    }, [threads, current, scrollToBottom]);
+
+    const blockUser = useCallback(async () => {
+      if (!current) return;
+      const currentThread = threads?.find(t => t.id === current);
+      if (!currentThread) return;
+
+      const isBlocked = !!currentThread.blocked;
+      const iAmBlocker = Number(currentThread.blocked_by) === Number(SIMPLE_DM.currentUser.id);
+
+      if (isBlocked) {
+        if (!iAmBlocker) {
+          alert('Вы не можете разблокировать — чат заблокирован другим пользователем.');
+          return;
+        }
+        if (!confirm('Разблокировать чат?')) return;
+      
+        try {
+          await dmApi(`threads/${current}/block`, { method: 'DELETE' });
+          await loadThreads(); 
+        } catch (err) {
+          console.error('Ошибка при разблокировке:', err);
+          alert('Ошибка при разблокировке: ' + err.message);
+        }
+      } else {
+        if (!confirm('Вы уверены, что хотите заблокировать пользователя?')) return;
+      
+        try {
+          await dmApi(`threads/${current}/block`, { method: 'POST' });
+          await loadThreads();
+        } catch (err) {
+          console.error('Ошибка при блокировке:', err);
+          alert('Ошибка при блокировке: ' + err.message);
+        }
+      }
+    }, [current, threads, loadThreads]);
 
     const messagesWithDates = [];
     let lastDate = null;
@@ -316,6 +403,9 @@
       }
     };
 
+    const isBlocked = !!currentThread?.blocked;
+    const iAmBlocker = Number(currentThread?.blocked_by) === Number(SIMPLE_DM.currentUser.id);
+
     return React.createElement('div', { className:'dm-wrap' }, [
       React.createElement(ChatList, { key:'list', threads, currentId:current, onSelect: openThread }),
       React.createElement('div', { key:'chat', className:'dm-chat' }, [
@@ -331,10 +421,10 @@
               React.createElement('button', { className:'dm-more-btn', onClick:()=>setMoreMenuOpen(!moreMenuOpen), key:'btn' }, '⋮'),
               React.createElement('div', { className:'dm-more-menu' + (moreMenuOpen?' active':''), key:'menu' }, [
                 React.createElement('div', { className:'dm-context-item', key:'delete-chat', onClick:deleteCurrentThread }, 'Удалить чат'),
-                React.createElement('div', { className:'dm-context-item', key:'block-user', onClick:()=>blockUser(otherUser.id) }, otherUser.blocked?'Разблокировать':'Заблокировать'),
+                React.createElement('div', { className:'dm-context-item', key:'block-chat', onClick:async()=>await blockUser() }, iAmBlocker ? 'Разблокировать' : isBlocked ? 'Заблокирован' : 'Заблокировать'),
                 React.createElement('div', { className:'dm-context-item', key:'profile', onClick:()=>openProfile(otherUser.id) }, 'Профиль')
-            ]),
-            React.createElement('button', { className:'dm-close-btn', onClick:()=>setCurrent(null), key:'close' }, '✕')
+              ]),
+              React.createElement('button', { className:'dm-close-btn', onClick:()=>setCurrent(null), key:'close' }, '✕')
             ])
           ]),
           React.createElement('div', { className:'dm-translate-toggle', key:'translate' }, [
@@ -342,12 +432,22 @@
           ])
         ]),
         current && React.createElement('div', { className:'dm-messages', key:'messages' },
-          messagesWithDates.map(m=>m.type==='date'
-            ? React.createElement('div', { key:m.id, className:'dm-date-separator body-small-regular' }, m.date)
-            : React.createElement(Message, { key:m.id, m, autoTranslate, onEdit:startEditing, openMenuId, setOpenMenuId })
-          )
+          messagesWithDates.map(m=>{
+            if(m.type==='date') return React.createElement('div', { key:m.id, className:'dm-date-separator body-small-regular' }, m.date);
+            if(m.system){
+              return React.createElement('div', { key:m.id, className:'dm-date-separator dm-block-separator body-small-regular' }, [
+                React.createElement('div', { key:'txt' }, m.content),
+                m.action === 'blocked' && m.blocked_by === SIMPLE_DM.currentUser.id && React.createElement('button', {
+                  key:'unblock',
+                  className:'dm-unblock-button button-small',
+                  onClick: blockUser
+                }, 'Разблокировать')
+              ]);
+            }
+            return React.createElement(Message, { key:m.id, m, autoTranslate, onEdit:startEditing, openMenuId, setOpenMenuId });
+          })
         ),
-        current && React.createElement(Composer, { key:'composer', onSend:sendMessage, editingMessage, onCancelEdit:cancelEditing })
+        current && React.createElement(Composer, { key:'composer', onSend:sendMessage, editingMessage, onCancelEdit:cancelEditing, blocked:isBlocked, blockedByMe:iAmBlocker })
       ])
     ]);
   }

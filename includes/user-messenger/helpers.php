@@ -76,13 +76,13 @@ if(!function_exists('translate_text')){
                 'role' => 'user',
                 'content' => "You are a professional translator. Follow these rules strictly:
             
-1. Evaluate the text:
-   - If readable, translate normally from {$source_name} to {$target_name} preserving meaning and tone.
-   - If completely random or gibberish, return in double quotes, followed by dash and phrase in {$target_name} meaning 'text is unreadable'.
-2. Do NOT add extra punctuation or explanation.
-
-Text to evaluate and translate:
-\"".trim($text)."\""
+                1. Evaluate the text:
+                   - If readable, translate normally from {$source_name} to {$target_name} preserving meaning and tone.
+                   - If completely random or gibberish, return in double quotes, followed by dash and phrase in {$target_name} meaning 'text is unreadable'.
+                2. Do NOT add extra punctuation or explanation.
+                            
+                Text to evaluate and translate:
+                \"".trim($text)."\""
             ]
         ];
 

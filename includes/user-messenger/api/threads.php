@@ -41,11 +41,12 @@ add_action('rest_api_init', function(){
                     'other_user' => [
                         'id' => $other,
                         'name' => get_the_author_meta('display_name', $other),
-                        'avatar' => $avatar_url,
-                        'blocked' => get_post_meta($tid, '_dm_blocked_' . $other, true) ? true : false,
+                        'avatar' => $avatar_url
                     ],
                     'updated'      => (int)get_post_meta($tid,'_dm_last_ts',true),
-                    'last_message' => $last_content
+                    'last_message' => $last_content,
+                    'blocked'      => get_post_meta($tid,'_dm_blocked',true) ? true : false,
+                    'blocked_by'   => get_post_meta($tid,'_dm_blocked_by',true) ?: null
                 ];
             }
             return $data;
