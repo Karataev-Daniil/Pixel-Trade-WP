@@ -204,33 +204,28 @@
     const [openMenuId, setOpenMenuId] = useState(null);
     const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
+    // expose setters globally to stop updates when chat closed
+    window.appSetCurrent = setCurrent;
+    window.appSetMessages = setMessages;
+    window.appSetSince = setSince;
+    window.appSetEditingMessage = setEditingMessage;
+
     const loadThreads = useCallback(async () => {
       const data = await dmApi('threads');
       setThreads(data);
     }, []);
 
     const loadMessages = useCallback(async (tid, sinceTs = 0) => {
-      const ms = await dmApi(`threads/${tid}/messages` + (sinceTs ? `?since=${sinceTs}` : ''));
-    
-    const mapped = ms.map(m => {
-      const sys = m.meta?._system === 1 || m.meta?._system === '1';
-      const evt = m.meta?._event || null;
-      const created = m.created || Math.floor(new Date(m.date || Date.now()).getTime() / 1000);
-    
-      const msg = {
-        ...m,
-        system: sys,
-        event: evt,
-        created
-      };
-    
-      if(msg.system) console.log('Системное сообщение:', msg);
-    
-      return msg;
-    });
+      const ms = await dmApi(`threads/${tid}/messages${sinceTs ? `?since=${sinceTs}` : ''}`);
 
-
-
+      const mapped = ms.map(m => {
+        const sys = m.system || false;
+        const evt = m.event_type || null;
+        const created = m.created || Math.floor(new Date().getTime()/1000);
+      
+        return { ...m, system: sys, event: evt, created };
+      });
+    
       return mapped;
     }, []);
 
@@ -245,18 +240,19 @@
       setSince(0);
       setEditingMessage(null);
       setInitialLoaded(false);
-    
-      setThreads(prev => prev.map(t => t.id === tid ? {...t, unread_count:0} : t));
 
       await dmApi(`threads/${tid}/read`, { method: 'POST' });
-    
+      await loadThreads();
+
+      setThreads(prev => prev.map(t => t.id === tid ? {...t, unread_count:0} : t));
+
       const ms = await loadMessages(tid, 0);
-      const mapped = ms.map(m => ({...m, lang: m.lang||'auto'}));
+      const mapped = ms.map(m => ({ ...m, lang: m.lang || 'auto' }));
       setMessages(mapped);
       if(ms.length) setSince(Math.floor(ms[ms.length-1].created));
       setInitialLoaded(true);
       setTimeout(scrollToBottom, 0);
-    }, [loadMessages, scrollToBottom]);
+    }, [loadMessages, scrollToBottom, loadThreads]);
 
     const sendMessage = useCallback(async (content, editId=null) => {
       if (!current) return;
@@ -312,30 +308,36 @@
       const tid = params.get('thread');
       if(tid && threads.length) openThread(parseInt(tid));
     }, [threads, openThread]);
+
     useEffect(() => {
       const interval = setInterval(async () => {
-        try {
-          await loadThreads();
-        } catch (err) {
-          console.warn('Ошибка при обновлении списка чатов:', err);
-        }
-      }, 2500);
-    
+        try { await loadThreads(); }
+        catch(err){ console.warn(err); }
+      }, 10000);
       return () => clearInterval(interval);
     }, [loadThreads]);
 
-    useEffect(()=>{
-      if(!current || !initialLoaded) return;
-      const interval = setInterval(async ()=>{
-        if(since===0) return;
-        const ms = await loadMessages(current, since);
-        if(ms.length){
-          setMessages(prev => [...prev, ...ms.map(m=>({...m, lang:m.lang||'auto'}))]);
-          setSince(Math.floor(ms[ms.length-1].created));
-          scrollToBottom();
+    useEffect(() => {
+      if (!current || !initialLoaded) return;
+    
+      const interval = setInterval(async () => {
+        try {
+          const ms = await loadMessages(current, since || 0);
+          if (ms.length) {
+            setMessages(prev => [...prev, ...ms.map(m => ({ ...m, lang: m.lang || 'auto' }))]);
+            setSince(Math.floor(ms[ms.length - 1].created));
+          
+            const updatedThreads = await dmApi('threads');
+            setThreads(updatedThreads);
+          
+            scrollToBottom();
+          }
+        } catch (err) {
+          console.warn('Ошибка при обновлении сообщений:', err);
         }
       }, 3000);
-      return ()=>clearInterval(interval);
+    
+      return () => clearInterval(interval);
     }, [current, since, loadMessages, scrollToBottom, initialLoaded]);
 
     useEffect(()=>{ globalOpenThread = openThread; return ()=>{ globalOpenThread=null; } }, [openThread]);
@@ -474,18 +476,22 @@
 
     toggleBtn.addEventListener('click', () => {
       const isOpening = root.style.display === 'none' || root.style.display === '';
-
       if (isOpening) {
-        const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
-        document.body.style.overflow = 'hidden';
-        document.body.style.paddingRight = scrollBarWidth + 'px';
-        root.style.display = 'block';
-        overlay.style.display = 'block';
+          const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+          document.body.style.overflow = 'hidden';
+          document.body.style.paddingRight = scrollBarWidth + 'px';
+          root.style.display = 'block';
+          overlay.style.display = 'block';
       } else {
-        document.body.style.overflow = '';
-        document.body.style.paddingRight = '';
-        root.style.display = 'none';
-        overlay.style.display = 'none';
+          document.body.style.overflow = '';
+          document.body.style.paddingRight = '';
+          root.style.display = 'none';
+          overlay.style.display = 'none';
+
+          appSetCurrent(null);
+          appSetMessages([]);
+          appSetSince(0);
+          appSetEditingMessage(null);
       }
     });
 
@@ -494,6 +500,11 @@
       document.body.style.paddingRight = '';
       root.style.display = 'none';
       overlay.style.display = 'none';
+  
+      appSetCurrent(null);
+      appSetMessages([]);
+      appSetSince(0);
+      appSetEditingMessage(null);
     });
 
     ReactDOM.createRoot(root).render(React.createElement(App));

@@ -3,8 +3,6 @@ require_once __DIR__ . '/helpers.php';
 
 require_once __DIR__ . '/enqueue.php';
 
-require_once __DIR__ . '/shortcodes.php';
-
 require_once __DIR__ . '/api/threads.php';
 require_once __DIR__ . '/api/messages.php';
 require_once __DIR__ . '/api/send.php';

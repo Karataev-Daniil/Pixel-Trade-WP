@@ -9,7 +9,8 @@ add_action('rest_api_init', function(){
             $tid = intval($r['id']);
 
             $last_msg = $wpdb->get_row($wpdb->prepare(
-                "SELECT created_at FROM {$wpdb->prefix}dm_messages WHERE thread_id=%d ORDER BY created_at DESC LIMIT 1",$tid
+                "SELECT created_at FROM {$wpdb->prefix}dm_messages WHERE thread_id=%d ORDER BY created_at DESC LIMIT 1",
+                $tid
             ));
             if($last_msg) update_user_meta($uid,'_dm_last_read_'.$tid,$last_msg->created_at);
             return ['success'=>true];

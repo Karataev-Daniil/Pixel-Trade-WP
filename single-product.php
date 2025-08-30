@@ -403,9 +403,19 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <section class="price title-medium" aria-label="<?= t('Цена', 'Price', 'Preț'); ?>">
                                     <p><strong><?= t('Цена:', 'Price:', 'Preț:'); ?></strong> <?php echo format_price_mdl_with_conversions($price); ?></p>
                                 </section>
-                                <?php
-                                echo do_shortcode('[dm_write_button user="'.get_the_author_meta("ID").'"]');
-
+                                <?php 
+                                if (is_user_logged_in()) {
+                                    $author_id = get_the_author_meta('ID');
+                                    $current_user = get_current_user_id();
+                                    if ($author_id && $author_id != $current_user) {
+                                        $author_name = get_the_author_meta('display_name', $author_id);
+                                        ?>
+                                        <button class="dm-write-btn" data-user="<?php echo esc_attr($author_id); ?>">
+                                            Написать <?php echo esc_html($author_name); ?>
+                                        </button>
+                                        <?php
+                                    }
+                                }
                                 ?>
                             </article>
                         </main>
