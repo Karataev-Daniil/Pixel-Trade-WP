@@ -6,6 +6,7 @@ require_once get_template_directory() . '/includes/enqueue-assets.php';
 
 require_once get_template_directory() . '/includes/custom-post-types.php';
 require_once get_template_directory() . '/includes/user-roles.php';
+require_once get_template_directory() . '/includes/product-helpers.php';
 
 require_once get_template_directory() . '/includes/user-registration.php';
 require_once get_template_directory() . '/includes/user-login.php';
@@ -48,31 +49,4 @@ function get_subcategories_ajax() {
     }
 
     wp_send_json($result);
-}
-
-
-function sort_categories_by_hierarchy($categories) {
-    if (empty($categories)) return [];
-
-    $categories_by_id = [];
-    foreach ($categories as $term) {
-        $categories_by_id[$term->term_id] = $term;
-    }
-
-    $sorted = [];
-
-    $leaf = null;
-    foreach ($categories as $term) {
-        if (!array_filter($categories, fn($t) => $t->parent === $term->term_id)) {
-            $leaf = $term;
-            break;
-        }
-    }
-
-    while ($leaf) {
-        $sorted[] = $leaf->term_id;
-        $leaf = isset($categories_by_id[$leaf->parent]) ? $categories_by_id[$leaf->parent] : null;
-    }
-
-    return array_reverse($sorted);
 }

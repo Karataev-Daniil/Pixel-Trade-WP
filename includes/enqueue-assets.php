@@ -52,13 +52,36 @@ function custom_enqueue_assets() {
         );
     }
 
-    if ( is_singular( 'product' ) || is_page( 'add-product' )) {
+    if (is_singular('product') || is_page('add-product')) {
+        $theme_dir  = get_template_directory_uri();
+        $theme_path = get_template_directory();
+
         wp_enqueue_style(
             'single-product-style',
             $theme_dir . '/assets/css/template/single-product.css',
             [],
-            filemtime( $theme_path . '/assets/css/template/single-product.css' )
+            filemtime($theme_path . '/assets/css/template/single-product.css')
         );
+
+        wp_enqueue_script(
+            'single-product-scripts',
+            $theme_dir . '/assets/js/single-product.js',
+            ['jquery'],
+            filemtime($theme_path . '/assets/js/single-product.js'),
+            true
+        );
+
+        global $language;
+
+        wp_localize_script('single-product-scripts', 'singleProductData', [
+            'translations' => [
+                'selectCategory' => t('Выберите категорию', 'Select category', 'Selectați categoria'),
+                'labelLevel0'    => t('Категория', 'Category', 'Categorie'),
+                'labelLevel1'    => t('Подкатегория', 'Subcategory', 'Subcategorie'),
+                'labelLevel2'    => t('Под-подкатегория', 'Sub-subcategory', 'Sub-subcategorie'),
+            ],
+            'language' => $language ?? 'ru',
+        ]);
     }
 
     wp_enqueue_script( 'jquery' );
