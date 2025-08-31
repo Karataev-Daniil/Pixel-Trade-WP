@@ -3,7 +3,7 @@
 get_header();
 ?>
 
-<div class="auth__wrapper">
+<div class="auth__wrapper content-main">
     <div class="container-xxsmall">
         <div class="register-form">
             <h2 class="auth__title display-small">

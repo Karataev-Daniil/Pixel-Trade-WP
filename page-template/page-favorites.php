@@ -18,7 +18,7 @@ endif;
 $favorites = get_user_meta(get_current_user_id(), 'favorite_products', true);
 ?>
 
-<div class="favorites-products__wrapper">
+<div class="favorites-products__wrapper content-main">
     <div class="container-medium">
         <div class="favorites-products">
             <h2 class="display-small">Избранное</h2>

@@ -2,15 +2,32 @@
 $price = get_post_meta(get_the_ID(), 'product_price', true);
 $favorites = get_user_meta(get_current_user_id(), 'favorite_products', true);
 $is_favorite = is_array($favorites) && in_array(get_the_ID(), $favorites);
+
+$user_region = get_user_meta(get_current_user_id(), 'region', true);
+$regions = get_option('available_regions_multi', []);
+$region_name = '';
+
+if ($user_region && !empty($regions)) {
+    foreach ($regions as $region) {
+        if ($region['ru'] === $user_region || $region['en'] === $user_region || $region['ro'] === $user_region) {
+            $region_name = $region['ru']; 
+            break;
+        }
+    }
+}
 ?>
 
 <div class="product-card">
     <a href="<?php the_permalink(); ?>" class="product-card__link">
         <div class="product-card__image-wrapper">
-            <?php 
-            $thumbnail = get_the_post_thumbnail_url(get_the_ID(), 'medium');
-            if ($thumbnail) {
-                echo '<img src="' . esc_url($thumbnail) . '" class="product-card__image" alt="' . esc_attr(get_the_title()) . '">';
+            <?php
+            $thumb_id = get_post_thumbnail_id(get_the_ID());
+
+            if ($thumb_id) {
+                echo wp_get_attachment_image($thumb_id, 'medium-thumb', false, [
+                    'class' => 'product-card__image',
+                    'alt'   => get_the_title()
+                ]);
             } else {
                 $default_img = get_template_directory_uri() . '/images/product-placeholder.png';
                 echo '<img src="' . esc_url($default_img) . '" class="product-card__image" alt="' . esc_attr(get_the_title()) . '">';
@@ -19,7 +36,11 @@ $is_favorite = is_array($favorites) && in_array(get_the_ID(), $favorites);
         </div>
         <h3 class="product-card__title body-small-regular"><?php the_title(); ?></h3>
         <?php if ($price): ?>
-            <div class="product-card__price uppercase-small"><?php echo esc_html($price); ?> ₽</div>
+            <div class="product-card__price uppercase-small"><?php echo esc_html($price); ?> MDL</div>
+        <?php endif; ?>
+        
+        <?php if ($region_name): ?>
+            <div class="product-card__region body-small-regular">Регион: <span><?php echo esc_html($region_name); ?></sapn></div>
         <?php endif; ?>
     </a>
 
@@ -41,7 +62,6 @@ $is_favorite = is_array($favorites) && in_array(get_the_ID(), $favorites);
                 </svg>
             <?php endif; ?>
         </button>
-    <?php else: ?>
     <?php endif; ?>
 </div>
 <script>

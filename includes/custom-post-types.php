@@ -1,4 +1,5 @@
 <?php
+global $wpdb;
 add_theme_support('post-thumbnails');
 
 function register_product_post_type() {
@@ -73,7 +74,6 @@ add_action('save_post', function ($post_id) {
     }
 });
 
-
 function register_product_taxonomy() {
     register_taxonomy('product_cat', 'product', [
         'labels' => [
@@ -91,7 +91,11 @@ function register_product_taxonomy() {
         'public' => true,
         'show_in_rest' => true,
         'show_admin_column' => true,
-        'rewrite' => ['slug' => 'product-category'],
+        'rewrite' => [
+            'slug' => 'product',
+            'with_front' => false,
+            'hierarchical' => true,
+        ],
         'capabilities' => [
             'manage_terms' => 'manage_product_categories',
             'edit_terms'   => 'manage_product_categories',
@@ -265,36 +269,46 @@ add_action('created_product_cat', 'save_product_cat_translations', 10, 2);
 function increment_product_views($post_id) {
     if (!is_singular('product')) return;
 
+    $user_id = is_user_logged_in() ? get_current_user_id() : null;
+    $ip = $_SERVER['REMOTE_ADDR'];
     $today = date('Y-m-d');
 
-    if (is_user_logged_in()) {
-        $user_id = get_current_user_id();
-        $viewed_key = 'viewed_product_' . $post_id;
-        if (get_user_meta($user_id, $viewed_key, true)) return;
-        update_user_meta($user_id, $viewed_key, time());
-    } else {
-        $cookie_key = 'viewed_product_' . $post_id;
-        if (isset($_COOKIE[$cookie_key])) return;
-        setcookie($cookie_key, '1', time() + 3600, "/");
-    }
+    $cookie_key = 'viewed_product_' . $post_id;
+    if (!$user_id && isset($_COOKIE[$cookie_key])) return;
+    if (!$user_id) setcookie($cookie_key, '1', time() + 3600, "/");
 
-    $views = get_post_meta($post_id, 'product_views', true);
-    $views = $views ? (int)$views : 0;
-    update_post_meta($post_id, 'product_views', ++$views);
+    global $wpdb;
+    $wpdb->insert(
+        $wpdb->prefix . 'product_views',
+        [
+            'product_id' => $post_id,
+            'user_id'    => $user_id,
+            'ip_address' => $ip,
+            'viewed_at'  => current_time('mysql')
+        ],
+        ['%d','%d','%s','%s']
+    );
 
-    $daily_views = get_post_meta($post_id, '_product_views_daily', true);
-    if (!is_array($daily_views)) $daily_views = [];
-
-    if (!isset($daily_views[$today])) $daily_views[$today] = 0;
-    $daily_views[$today]++;
-
-    update_post_meta($post_id, '_product_views_daily', $daily_views);
+    $table = $wpdb->prefix . 'product_daily_views';
+    $wpdb->query(
+        $wpdb->prepare(
+            "INSERT INTO $table (product_id, view_date, views) VALUES (%d, %s, 1)
+             ON DUPLICATE KEY UPDATE views = views + 1",
+            $post_id, $today
+        )
+    );
 }
 
 function get_product_daily_views($post_id = null) {
+    global $wpdb;
     if (!$post_id) $post_id = get_the_ID();
-    $daily_views = get_post_meta($post_id, '_product_views_daily', true);
-    return is_array($daily_views) ? $daily_views : [];
+    return $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT view_date, views FROM {$wpdb->prefix}product_daily_views WHERE product_id = %d ORDER BY view_date ASC",
+            $post_id
+        ),
+        ARRAY_A
+    );
 }
 
 function track_product_views() {
@@ -308,9 +322,11 @@ function track_product_views() {
 add_action('wp', 'track_product_views');
 
 function get_product_views($post_id = null) {
+    global $wpdb;
     if (!$post_id) $post_id = get_the_ID();
-    $views = get_post_meta($post_id, 'product_views', true);
-    return $views ? (int)$views : 0;
+    return (int)$wpdb->get_var(
+        $wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}product_views WHERE product_id = %d", $post_id)
+    );
 }
 
 function add_product_views_column($columns) {
@@ -322,7 +338,7 @@ add_filter('manage_product_posts_columns', 'add_product_views_column');
 
 function show_product_views_column($column, $post_id) {
     if ($column == 'product_views') {
-        echo get_product_views($post_id);
+        echo (int) get_product_views($post_id);
     }
     if ($column == 'product_price') {
         $price = get_post_meta($post_id, 'product_price', true);

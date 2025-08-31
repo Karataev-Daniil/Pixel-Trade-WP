@@ -224,4 +224,3 @@
           </section>
         </div>
       </header>
-  <main>

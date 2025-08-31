@@ -2,95 +2,97 @@
 get_header(); 
 ?>
 
-<div class="main-wrapper">
-  <div class="container-medium">
-    <div class="content-columns">
-        <aside class="sidebar" style="width: 260px;">
-            <h2 class="display-small"><?= t('Категории', 'Categories', 'Categorii'); ?></h2>
-            <form id="filter-form">
-                <ul class="category-list" style="margin-top: 24px;">
-                <?php
-                function render_cat_tree($parent_id = 0, $language = 'ru') {
-                    $terms = get_terms([
-                        'taxonomy'   => 'product_cat',
-                        'hide_empty' => false,
-                        'parent'     => $parent_id
-                    ]);
-                
-                    if (!empty($terms) && !is_wp_error($terms)) {
-                        echo '<ul class="' . ($parent_id === 0 ? '' : 'sub-category') . '" style="' . ($parent_id === 0 ? '' : 'display:none;') . '">';
-                        foreach ($terms as $term) {
-                        
-                            $translation_ro = get_term_meta($term->term_id, 'translation_ro', true);
-                            $translation_en = get_term_meta($term->term_id, 'translation_en', true);
-                        
-                            if ($language === 'en') {
-                                $term_name = $translation_en ?: $term->name;
-                            } elseif ($language === 'ro') {
-                                $term_name = $translation_ro ?: $term->name;
-                            } else {
-                                $term_name = $term->name;
-                            }
-                        
-                            $children = get_terms([
+<div class="main__wrapper content-main">
+    <div class="container-medium">
+        <main>
+            <div class="content-columns">
+                <aside class="sidebar" style="width: 260px;">
+                    <h2 class="display-small"><?= t('Категории', 'Categories', 'Categorii'); ?></h2>
+                    <form id="filter-form">
+                        <ul class="category-list" style="margin-top: 24px;">
+                        <?php
+                        function render_cat_tree($parent_id = 0, $language = 'ru') {
+                            $terms = get_terms([
                                 'taxonomy'   => 'product_cat',
                                 'hide_empty' => false,
-                                'parent'     => $term->term_id
+                                'parent'     => $parent_id
                             ]);
-                            $has_children = !empty($children) && !is_wp_error($children);
                         
-                            echo '<li data-id="' . esc_attr($term->term_id) . '">';
-                            echo '<label class="label-medium">' . esc_html($term_name) . '</label>';
-                        
-                            if ($has_children) {
-                                render_cat_tree($term->term_id, $language);
-                            }
-                        
-                            echo '</li>';
-                        }
-                        echo '</ul>';
-                    }
-                }
-            
-                global $language;
-                render_cat_tree(0, $language);
-                ?>
-                </ul>
-            
-                <h3 class="title-small" style="margin-top: 32px;"><?= t('Цена', 'Price', 'Preț'); ?></h3>
-                <div id="price-slider" style="margin-top: 16px; margin-bottom: 16px;"></div>
-                <input type="hidden" name="price_min" id="price-min">
-                <input type="hidden" name="price_max" id="price-max">
-                <div style="display: flex; justify-content: space-between; font-size: 14px;">
-                    <span class="label-medium" id="price-min-label"></span>
-                    <span class="label-medium" id="price-max-label"></span>
-                </div>
-            
-                <h3 class="title-small" style="margin-top: 32px;"><?= t('Сортировка', 'Sort', 'Sortare'); ?></h3>
-                <select name="sort" class="input--primary">
-                    <option value="date_desc"><?= t('Сначала новые', 'Newest first', 'Cele mai noi'); ?></option>
-                    <option value="date_asc"><?= t('Сначала старые', 'Oldest first', 'Cele mai vechi'); ?></option>
-                    <option value="views_desc"><?= t('Популярные', 'Most popular', 'Cele mai populare'); ?></option>
-                    <option value="views_asc"><?= t('Менее популярные', 'Least popular', 'Mai puțin populare'); ?></option>
-                </select>
-            
-                <button type="submit" class="primary-button-small" style="margin-top: 24px;"><?= t('Применить', 'Apply', 'Aplică'); ?></button>
-                <button type="button" id="reset-filters" class="secondary-button-small" style="margin-top: 12px;"><?= t('Сбросить', 'Reset', 'Resetează'); ?></button>
-            </form>
-        </aside>
+                            if (!empty($terms) && !is_wp_error($terms)) {
+                                echo '<ul class="' . ($parent_id === 0 ? '' : 'sub-category') . '" style="' . ($parent_id === 0 ? '' : 'display:none;') . '">';
+                                foreach ($terms as $term) {
 
-        <main class="product-grid" style="flex:1;">
-            <div id="products-container">
-                <div class="loader">
-                    <div class="spinner">
-                        <div class="dot"></div>
+                                    $translation_ro = get_term_meta($term->term_id, 'translation_ro', true);
+                                    $translation_en = get_term_meta($term->term_id, 'translation_en', true);
+
+                                    if ($language === 'en') {
+                                        $term_name = $translation_en ?: $term->name;
+                                    } elseif ($language === 'ro') {
+                                        $term_name = $translation_ro ?: $term->name;
+                                    } else {
+                                        $term_name = $term->name;
+                                    }
+                                
+                                    $children = get_terms([
+                                        'taxonomy'   => 'product_cat',
+                                        'hide_empty' => false,
+                                        'parent'     => $term->term_id
+                                    ]);
+                                    $has_children = !empty($children) && !is_wp_error($children);
+                                
+                                    echo '<li data-id="' . esc_attr($term->term_id) . '">';
+                                    echo '<label class="label-medium">' . esc_html($term_name) . '</label>';
+                                
+                                    if ($has_children) {
+                                        render_cat_tree($term->term_id, $language);
+                                    }
+                                
+                                    echo '</li>';
+                                }
+                                echo '</ul>';
+                            }
+                        }
+                    
+                        global $language;
+                        render_cat_tree(0, $language);
+                        ?>
+                        </ul>
+                    
+                        <h3 class="title-small" style="margin-top: 32px;"><?= t('Цена', 'Price', 'Preț'); ?></h3>
+                        <div id="price-slider" style="margin-top: 16px; margin-bottom: 16px;"></div>
+                        <input type="hidden" name="price_min" id="price-min">
+                        <input type="hidden" name="price_max" id="price-max">
+                        <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                            <span class="label-medium" id="price-min-label"></span>
+                            <span class="label-medium" id="price-max-label"></span>
+                        </div>
+                    
+                        <h3 class="title-small" style="margin-top: 32px;"><?= t('Сортировка', 'Sort', 'Sortare'); ?></h3>
+                        <select name="sort" class="input--primary">
+                            <option value="date_desc"><?= t('Сначала новые', 'Newest first', 'Cele mai noi'); ?></option>
+                            <option value="date_asc"><?= t('Сначала старые', 'Oldest first', 'Cele mai vechi'); ?></option>
+                            <option value="views_desc"><?= t('Популярные', 'Most popular', 'Cele mai populare'); ?></option>
+                            <option value="views_asc"><?= t('Менее популярные', 'Least popular', 'Mai puțin populare'); ?></option>
+                        </select>
+                    
+                        <button type="submit" class="primary-button-small" style="margin-top: 24px;"><?= t('Применить', 'Apply', 'Aplică'); ?></button>
+                        <button type="button" id="reset-filters" class="secondary-button-small" style="margin-top: 12px;"><?= t('Сбросить', 'Reset', 'Resetează'); ?></button>
+                    </form>
+                </aside>
+                    
+                <div class="product-grid" style="flex:1;">
+                    <div id="products-container">
+                        <div class="loader">
+                            <div class="spinner">
+                                <div class="dot"></div>
+                            </div>
+                        </div>
+                        <div id="products-list"></div>
                     </div>
-                </div>
-                <div id="products-list"></div>
+                <div>
             </div>
         </main>
     </div>
-  </div>
 </div>
 
 <script>

@@ -19,7 +19,7 @@
 
 .dashboard__product-list {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
     padding: 0;
     list-style: none;
@@ -27,9 +27,12 @@
 .dashboard__product-list .product-card {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+    align-content: space-between;
     gap: 12px;
     border: 1px solid var(--gray_1);
     padding: 12px;
+    height: 100%;
+    box-sizing: border-box;
     border-radius: 20px;
     background: var(--gray_5);
 }
@@ -39,6 +42,7 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    min-height: 49px;
     overflow: hidden;
     text-overflow: ellipsis;
     word-break: break-word;
@@ -54,6 +58,7 @@
     text-overflow: ellipsis;
     word-break: break-word;
     color: var(--gray_-4);
+    min-height: 102px;
 }
 .product-card__thumbnail {
     width: 100%;
@@ -82,6 +87,8 @@
     color: var(--gray_-2);
 }
 .product-card__chart-wrapper {
+    height: 156px;
+    box-sizing: border-box;
     grid-column: span 6;
     background-color: var(--gray_5);
     color: var(--gray_-2);
@@ -94,4 +101,53 @@
     align-items: flex-end;
     justify-content: flex-end;
     gap: 8px;
+}
+
+.dashboard__pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin: 20px 0;
+    font-size: 0.9rem;
+    color: var(--gray_-6);
+}
+.dashboard__pagination a,
+.dashboard__pagination span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid var(--gray_1);
+    border-radius: 8px;
+    background-color: var(--gray_5);
+    color: var(--gray_-6);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.dashboard__pagination a:hover {
+    background-color: var(--orange_0);
+    color: #fff;
+    border-color: var(--orange_0);
+}
+.dashboard__pagination .current {
+    background-color: var(--orange_0);
+    color: #fff;
+    border-color: var(--orange_0);
+    pointer-events: none;
+}
+.dashboard__pagination .prev,
+.dashboard__pagination .next {
+    font-weight: bold;
+}
+.dashboard__pagination .prev.disabled,
+.dashboard__pagination .next.disabled,
+.dashboard__pagination a.prev.disabled,
+.dashboard__pagination a.next.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: default;
 }

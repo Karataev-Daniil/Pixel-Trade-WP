@@ -21,7 +21,6 @@ require_once get_template_directory() . '/includes/ajax/filter-products.php';
 require_once get_template_directory() . '/includes/admin-approval.php';
 
 require_once get_template_directory() . '/includes/translation-product-ai.php';
-require_once get_template_directory() . '/includes/translation-messenger-ai.php';
 
 
 add_action('wp_ajax_get_subcategories', 'get_subcategories_ajax');
@@ -50,3 +49,75 @@ function get_subcategories_ajax() {
 
     wp_send_json($result);
 }
+
+
+function sort_categories_by_hierarchy($categories) {
+    if (empty($categories)) return [];
+
+    $categories_by_id = [];
+    foreach ($categories as $term) {
+        $categories_by_id[$term->term_id] = $term;
+    }
+
+    $sorted = [];
+
+    $leaf = null;
+    foreach ($categories as $term) {
+        if (!array_filter($categories, fn($t) => $t->parent === $term->term_id)) {
+            $leaf = $term;
+            break;
+        }
+    }
+
+    while ($leaf) {
+        $sorted[] = $leaf->term_id;
+        $leaf = isset($categories_by_id[$leaf->parent]) ? $categories_by_id[$leaf->parent] : null;
+    }
+
+    return array_reverse($sorted);
+}
+
+add_action('wp_ajax_load_more_products', 'load_more_products_ajax');
+add_action('wp_ajax_nopriv_load_more_products', 'load_more_products_ajax');
+
+function load_more_products_ajax() {
+    $paged = isset($_GET['paged']) ? intval($_GET['paged']) : 1;
+    $cat_id = isset($_GET['cat_id']) ? intval($_GET['cat_id']) : 0;
+
+    $args = [
+        'post_type' => 'product',
+        'posts_per_page' => 24,
+        'paged' => $paged,
+        'tax_query' => [
+            [
+                'taxonomy' => 'product_cat',
+                'field' => 'term_id',
+                'terms' => $cat_id,
+            ]
+        ]
+    ];
+
+    $products_query = new WP_Query($args);
+
+    if ($products_query->have_posts()) :
+        while ($products_query->have_posts()) : $products_query->the_post();
+            get_template_part('template-parts/product/card');
+        endwhile;
+    endif;
+    wp_reset_postdata();
+    wp_die();
+}
+
+function resize_image_url($image, $width = 150, $height = 150) {
+    if (is_numeric($image)) {
+        $image = wp_get_attachment_url($image);
+    }
+
+    if (!$image) return '';
+
+    $path_parts = pathinfo($image);
+    return $path_parts['dirname'] . '/' . $path_parts['filename'] . '-' . $width . 'x' . $height . '.' . $path_parts['extension'];
+}
+
+add_image_size('small-thumb', 50, 50, true);
+add_image_size('medium-thumb', 270, 200, true);

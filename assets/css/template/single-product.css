@@ -1,21 +1,9 @@
 .product__wrapper {
-    padding: 60px 0;
     background-color: var(--gray_6);
     overflow: hidden;
 }
 .product__wrapper .container-medium {
     overflow: visible;
-}
-
-.breadcrumbs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    color: var(--gray_-6);
-    margin: 0 0 24px;
-}
-.breadcrumbs a {
-    color: var(--gray_-6);
 }
 
 /* Основной контейнер карточки товара */

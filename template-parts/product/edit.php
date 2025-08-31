@@ -26,7 +26,7 @@ $sorted_term_ids = function_exists('sort_categories_by_hierarchy') ? sort_catego
 $language = $GLOBALS['language'] ?? 'ru';
 ?>
 
-<div class="product__wrapper edit">
+<div class="product__wrapper edit content-main">
     <div class="container-medium">
         <section class="product-edit">
             <form method="post" enctype="multipart/form-data">

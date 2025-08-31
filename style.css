@@ -2,6 +2,11 @@
 Theme Name: PixelTrade
 Author: Daniil
 */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
 body {
   display: flex;
   flex-direction: column;
@@ -15,11 +20,25 @@ header {
   flex-shrink: 0;
 }
 main {
-  flex: 1;
   background: var(--gray_6);
+  padding: 60px 0;
+}
+.content-main {
+  flex: 1;
 }
 footer {
   flex-shrink: 0;
+}
+
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--gray_-6);
+  margin: 0 0 24px;
+}
+.breadcrumbs a {
+  color: var(--gray_-6);
 }
 
 /* Base container styles */
@@ -117,6 +136,7 @@ p {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
+  min-height: 36px;
   text-overflow: ellipsis;
   word-break: break-word;
   color: var(--gray_-5);
@@ -125,8 +145,16 @@ p {
 }
 #products-list .product-card__price,
 .products-list .product-card__price {
-  color: var(--gray_-4);
+  color: var(--orange_0);
   margin-bottom: 8px;
+}
+#products-list .product-card__region,
+.products-list .product-card__region {
+  color: var(--gray_-4);
+}
+#products-list .product-card__region span,
+.products-list .product-card__region span {
+  color: var(--orange_0);
 }
 #products-list .toggle-favorite,
 .products-list .toggle-favorite {

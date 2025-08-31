@@ -70,7 +70,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-  </main>
 
     <footer class="footer" role="contentinfo">
       <div class="footer__wrapper">

@@ -1,6 +1,5 @@
 .content-columns {
   display: flex; 
-  padding: 60px 0;
   gap: 16px; 
   flex-wrap: wrap;
 }

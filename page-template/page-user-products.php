@@ -1,6 +1,46 @@
 <?php
 /* Template Name: Мои Товары */
 
+get_header();
+
+if (!is_user_logged_in()) {
+    echo '<div class="container my-products-wrapper"><p class="body-medium-regular">Пожалуйста, <a href="' . wp_login_url() . '" class="link-medium-underline">войдите</a>, чтобы просмотреть свои товары.</p></div>';
+    get_footer();
+    exit;
+}
+
+$current_user_id = get_current_user_id();
+
+$filter = $_GET['filter'] ?? 'active';
+$paged = max(1, get_query_var('paged', 1));
+
+$args = [
+    'post_type'      => 'product',
+    'posts_per_page' => 6,
+    'author'         => $current_user_id,
+    'post_status'    => ($filter === 'active' ? ['publish'] : ($filter === 'hidden' ? ['draft'] : ['publish','draft','pending'])),
+    'paged'          => $paged
+];
+
+$products = new WP_Query($args);
+
+$count_all = count_user_posts($current_user_id, 'product', true);
+$count_active = (new WP_Query([
+    'post_type' => 'product',
+    'author' => $current_user_id,
+    'post_status' => 'publish',
+    'fields' => 'ids',
+    'posts_per_page' => -1,
+]))->found_posts;
+
+$count_hidden = (new WP_Query([
+    'post_type' => 'product',
+    'author' => $current_user_id,
+    'post_status' => 'draft',
+    'fields' => 'ids',
+    'posts_per_page' => -1,
+]))->found_posts;
+
 if (isset($_GET['delete_product'])) {
     $product_id = intval($_GET['delete_product']);
     if (current_user_can('edit_post', $product_id)) {
@@ -14,54 +54,13 @@ if (isset($_GET['toggle_hidden'])) {
     $product_id = intval($_GET['toggle_hidden']);
     if (current_user_can('edit_post', $product_id)) {
         $post_status = get_post_status($product_id);
-        if ($post_status === 'publish') {
-            wp_update_post(['ID' => $product_id, 'post_status' => 'draft']);
-        } elseif ($post_status === 'draft') {
-            wp_update_post(['ID' => $product_id, 'post_status' => 'publish']);
-        }
+        wp_update_post(['ID' => $product_id, 'post_status' => $post_status === 'publish' ? 'draft' : 'publish']);
         wp_redirect(remove_query_arg(['toggle_hidden']));
         exit;
     }
 }
-
-get_header();
-
-if (!is_user_logged_in()) {
-    echo '<div class="container my-products-wrapper"><p class="body-medium-regular">Пожалуйста, <a href="' . wp_login_url() . '" class="link-medium-underline">войдите</a>, чтобы просмотреть свои товары.</p></div>';
-    get_footer();
-    exit;
-}
-
-$current_user_id = get_current_user_id();
-
-$count_all    = count_user_posts($current_user_id, 'product', true);
-$count_active = (new WP_Query([
-    'post_type'      => 'product',
-    'author'         => $current_user_id,
-    'post_status'    => 'publish',
-    'fields'         => 'ids',
-    'posts_per_page' => -1,
-]))->found_posts;
-
-$count_hidden = (new WP_Query([
-    'post_type'      => 'product',
-    'author'         => $current_user_id,
-    'post_status'    => 'draft',
-    'fields'         => 'ids',
-    'posts_per_page' => -1,
-]))->found_posts;
-
-$filter = $_GET['filter'] ?? 'all';
-
-$args = [
-    'post_type'      => 'product',
-    'posts_per_page' => -1,
-    'author'         => $current_user_id,
-    'post_status'    => ($filter === 'active' ? ['publish'] : ($filter === 'hidden' ? ['draft'] : ['publish','draft','pending'])),
-];
-$products = new WP_Query($args);
 ?>
-<div class="dashboard__wrapper">
+<div class="dashboard__wrapper content-main">
     <div class="container-medium">
         <div class="dashboard__header">
             <h2 class="dashboard__title display-small">
@@ -89,8 +88,15 @@ $products = new WP_Query($args);
                 <?php while ($products->have_posts()): $products->the_post(); ?>
                     <?php 
                     $post_status = get_post_status(get_the_ID());
-                    $daily_views = get_post_meta(get_the_ID(), '_product_views_daily', true);
-                    if (!is_array($daily_views)) $daily_views = [];
+
+                    $total_views = get_product_views(get_the_ID());
+
+                    $daily_views_data = get_product_daily_views(get_the_ID());
+                    $daily_views = [];
+                    foreach ($daily_views_data as $item) {
+                        $daily_views[$item['view_date']] = (int)$item['views'];
+                    }
+
                     $dates = json_encode(array_keys($daily_views));
                     $views = json_encode(array_values($daily_views));
                     ?>
@@ -101,11 +107,15 @@ $products = new WP_Query($args);
                             <div class="product-card__description body-medium-regular"><?php the_content(); ?></div>
                         
                             <div class="product-card__thumbnail">
-                                <?php if (has_post_thumbnail()) {
-                                    the_post_thumbnail('medium');
+                                <?php 
+                                $thumbnail = get_the_post_thumbnail_url(get_the_ID(), 'medium');
+                                if ($thumbnail) {
+                                    echo '<img src="' . esc_url($thumbnail) . '" class="product-card__image" alt="' . esc_attr(get_the_title()) . '">';
                                 } else {
-                                    echo '<div class="product-card__no-thumbnail body-small-regular">Нет изображения</div>';
-                                } ?>
+                                    $default_img = get_template_directory_uri() . '/images/product-placeholder.png';
+                                    echo '<img src="' . esc_url($default_img) . '" class="product-card__image" alt="' . esc_attr(get_the_title()) . '">';
+                                }
+                                ?>
                             </div>
                             
                             <div class="product-card__meta body-small-regular">
@@ -115,11 +125,10 @@ $products = new WP_Query($args);
                                     <?php if ($price): ?>
                                         <div class="product-card__meta-item product-card__meta-price">
                                             <span class="product-card__meta-label"><strong><?= t('Цена', 'Price', 'Preț'); ?>:</strong></span>
-                                            <span class="product-card__meta-value"><?= esc_html($price); ?> ₽</span>
+                                            <span class="product-card__meta-value"><?= esc_html($price); ?> MDL</span>
                                         </div>
                                     <?php endif; ?>
                                     
-                                    <?php $total_views = (int) get_post_meta(get_the_ID(), 'product_views', true); ?>
                                     <div class="product-card__meta-item product-card__meta-views">
                                         <span class="product-card__meta-label"><strong><?= t('Просмотров', 'Views', 'Vizualizări'); ?>:</strong></span>
                                         <span class="product-card__meta-value"><?= $total_views; ?></span>
@@ -170,15 +179,14 @@ $products = new WP_Query($args);
                                                         
                                 var rootStyles = getComputedStyle(document.documentElement);
                                                         
-                                // Цвета из переменных
-                                var lineColor = rootStyles.getPropertyValue('--orange_0').trim();        // линия графика
-                                var fillColor = rootStyles.getPropertyValue('--orange_3').trim();        // заливка под линией
-                                var xTitleColor = rootStyles.getPropertyValue('--gray_-6').trim();     // заголовок оси X
-                                var yTitleColor = rootStyles.getPropertyValue('--gray_-6').trim();     // заголовок оси Y
-                                var xTicksColor = rootStyles.getPropertyValue('--gray_-6').trim();      // подписи оси X
-                                var yTicksColor = rootStyles.getPropertyValue('--gray_-5').trim();      // подписи оси Y
-                                var gridColor = rootStyles.getPropertyValue('--gray_0').trim();        // цвет сетки
-                                var legendColor = rootStyles.getPropertyValue('--gray_-2').trim();     // цвет текста легенды
+                                var lineColor = rootStyles.getPropertyValue('--orange_0').trim();
+                                var fillColor = rootStyles.getPropertyValue('--orange_3').trim();
+                                var xTitleColor = rootStyles.getPropertyValue('--gray_-6').trim();
+                                var yTitleColor = rootStyles.getPropertyValue('--gray_-6').trim();
+                                var xTicksColor = rootStyles.getPropertyValue('--gray_-6').trim();
+                                var yTicksColor = rootStyles.getPropertyValue('--gray_-5').trim();
+                                var gridColor = rootStyles.getPropertyValue('--gray_0').trim();
+                                var legendColor = rootStyles.getPropertyValue('--gray_-2').trim();
                                                         
                                 var ctx = canvas.getContext('2d');
                                                         
@@ -237,6 +245,19 @@ $products = new WP_Query($args);
                     </li>
                 <?php endwhile; ?>
             </ul>
+
+            <div class="dashboard__pagination body-medium-regular">
+                <?php
+                    echo paginate_links([
+                        'total'   => $products->max_num_pages,
+                        'current' => $paged,
+                        'format'  => '?paged=%#%&filter=' . $filter,
+                        'add_args' => false,
+                        'prev_text' => '«',
+                        'next_text' => '»'
+                    ]);
+                ?>
+            </div>
         <?php else: ?>
             <p class="dashboard__no-products body-medium-regular">
                 <?php echo t('У вас пока нет товаров.', 'You don’t have any products yet.', 'Nu ai încă produse.'); ?>

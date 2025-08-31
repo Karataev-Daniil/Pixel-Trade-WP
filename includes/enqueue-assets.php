@@ -2,6 +2,7 @@
 function custom_enqueue_assets() {
     $theme_dir  = get_stylesheet_directory_uri();
     $theme_path = get_stylesheet_directory();
+    $lang       = $GLOBALS['language'] ?? 'ru';
 
     $styles = [
         'style'            => '/style.css',
@@ -26,12 +27,29 @@ function custom_enqueue_assets() {
         );
     }
 
-    if ( is_page( 'my-products' ) ) {
+    wp_enqueue_script( 'jquery' );
+    wp_enqueue_script(
+        'scripts',
+        $theme_dir . '/assets/js/scripts.js',
+        [ 'jquery' ],
+        filemtime( $theme_path . '/assets/js/scripts.js' ),
+        true
+    );
+
+    wp_enqueue_script(
+        'slick-js',
+        $theme_dir . '/includes/slick/slick.min.js',
+        [ 'jquery' ],
+        filemtime( $theme_path . '/includes/slick/slick.min.js' ),
+        true
+    );
+
+    if ( is_page('my-products') ) {
         wp_enqueue_style(
             'page-user-products-style',
             $theme_dir . '/assets/css/template/page-user-products.css',
             [],
-            filemtime( $theme_path . '/assets/css/template/page-user-products.css' )
+            filemtime($theme_path . '/assets/css/template/page-user-products.css')
         );
 
         wp_enqueue_script(
@@ -43,19 +61,25 @@ function custom_enqueue_assets() {
         );
     }
 
-    if ( is_front_page() || is_tax( 'product_cat' )) {
+    if ( is_front_page() ) {
         wp_enqueue_style(
             'front-page-style',
             $theme_dir . '/assets/css/template/front-page.css',
             [],
-            filemtime( $theme_path . '/assets/css/template/front-page.css' )
+            filemtime($theme_path . '/assets/css/template/front-page.css')
         );
     }
 
-    if (is_singular('product') || is_page('add-product')) {
-        $theme_dir  = get_template_directory_uri();
-        $theme_path = get_template_directory();
+    if ( is_tax('product_cat') ) {
+        wp_enqueue_style(
+            'taxonomy-product-cat-style',
+            $theme_dir . '/assets/css/template/taxonomy-product-cat.css',
+            [],
+            filemtime($theme_path . '/assets/css/template/taxonomy-product-cat.css')
+        );
+    }
 
+    if ( is_singular('product') || is_page('add-product') ) {
         wp_enqueue_style(
             'single-product-style',
             $theme_dir . '/assets/css/template/single-product.css',
@@ -71,96 +95,31 @@ function custom_enqueue_assets() {
             true
         );
 
-        global $language;
-
-        wp_localize_script('single-product-scripts', 'singleProductData', [
-            'translations' => [
-                'selectCategory' => t('Выберите категорию', 'Select category', 'Selectați categoria'),
-                'labelLevel0'    => t('Категория', 'Category', 'Categorie'),
-                'labelLevel1'    => t('Подкатегория', 'Subcategory', 'Subcategorie'),
-                'labelLevel2'    => t('Под-подкатегория', 'Sub-subcategory', 'Sub-subcategorie'),
-            ],
-            'language' => $language ?? 'ru',
-        ]);
-    }
-
-    wp_enqueue_script( 'jquery' );
-
-    wp_enqueue_script(
-        'scripts',
-        $theme_dir . '/assets/js/scripts.js',
-        [ 'jquery' ],
-        filemtime( $theme_path . '/assets/js/scripts.js' ),
-        true
-    );
-
-    if ( is_front_page() ) {
-        wp_enqueue_script(
-            'ajax-filter-script',
-            $theme_dir . '/assets/js/ajax-filter.js',
-            ['jquery'],
-            filemtime( $theme_path . '/assets/js/ajax-filter.js' ),
-            true
-        );
-
-        wp_localize_script( 'ajax-filter-script', 'ajaxFilterData', [
-            'ajaxurl' => admin_url( 'admin-ajax.php' ),
-        ]);
-    }
-
-    if ( is_page( 'login' ) || is_page( 'register' ) ) {
-        wp_enqueue_style(
-            'page-auth',
-            get_stylesheet_directory_uri() . '/assets/css/template/page-auth.css',
-            array(),
-            filemtime( get_stylesheet_directory() . '/assets/css/template/page-auth.css' )
-        );
-    }
-
-    if ( is_page( 'user-settings' ) ) {
-        wp_enqueue_style(
-            'page-user-settings',
-            get_stylesheet_directory_uri() . '/assets/css/template/page-user-settings.css',
-            array(),
-            filemtime( get_stylesheet_directory() . '/assets/css/template/page-user-settings.css' )
-        );
-    }
-
-
-    wp_enqueue_style(
-        'page-test-style',
-        $theme_dir . '/assets/css/template/page-test.css',
-        [],
-        filemtime( $theme_path . '/assets/css/template/page-test.css' )
-    );
-    
-
-
-    if ( is_singular( 'product' ) || is_page( 'add-product' ) ) {
-        global $language;
         wp_enqueue_script(
             'category-selector',
             $theme_dir . '/assets/js/category-selector.js',
             [],
-            filemtime( $theme_path . '/assets/js/category-selector.js' ),
+            filemtime($theme_path . '/assets/js/category-selector.js'),
             true
         );
-        wp_localize_script( 'category-selector', 'categorySelectorVars', [
-            'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-            'language' => $language,
-        ] );
+
+        wp_localize_script('category-selector', 'categorySelectorVars', [
+            'ajaxUrl'  => admin_url('admin-ajax.php'),
+            'language' => $lang,
+        ]);
 
         wp_enqueue_script(
             'translation-product',
             $theme_dir . '/assets/js/translation-product.js',
             [],
-            filemtime( $theme_path . '/assets/js/translation-product.js' ),
+            filemtime($theme_path . '/assets/js/translation-product.js'),
             true
         );
-        wp_localize_script( 'translation-product', 'translationVars', [
-            'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-            'nonce'   => wp_create_nonce( 'generate_translations_nonce' ),
-        ] );
+
+        wp_localize_script('translation-product', 'translationVars', [
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce'   => wp_create_nonce('generate_translations_nonce'),
+        ]);
 
         wp_enqueue_script(
             'sortablejs',
@@ -173,28 +132,45 @@ function custom_enqueue_assets() {
         wp_enqueue_script(
             'gallery-manager',
             $theme_dir . '/assets/js/gallery-manager.js',
-            [ 'sortablejs' ],
-            filemtime( $theme_path . '/assets/js/gallery-manager.js' ),
+            ['sortablejs'],
+            filemtime($theme_path . '/assets/js/gallery-manager.js'),
             true
+        );
+
+        wp_localize_script('single-product-scripts', 'singleProductData', [
+            'translations' => [
+                'selectCategory' => t('Выберите категорию', 'Select category', 'Selectați categoria'),
+                'labelLevel0'    => t('Категория', 'Category', 'Categorie'),
+                'labelLevel1'    => t('Подкатегория', 'Subcategory', 'Subcategorie'),
+                'labelLevel2'    => t('Под-подкатегория', 'Sub-subcategory', 'Sub-subcategorie'),
+            ],
+            'language' => $lang,
+        ]);
+    }
+
+    if ( is_page('login') || is_page('register') ) {
+        wp_enqueue_style(
+            'page-auth',
+            $theme_dir . '/assets/css/template/page-auth.css',
+            [],
+            filemtime($theme_path . '/assets/css/template/page-auth.css')
         );
     }
 
-    function enqueue_chat_assets() {
-        wp_enqueue_script('chat-js', get_template_directory_uri() . '/assets/js/chat.js', ['jquery'], null, true);
-        wp_localize_script('chat-js', 'ajaxurl', admin_url('admin-ajax.php'));
+    if ( is_page('user-settings') ) {
+        wp_enqueue_style(
+            'page-user-settings',
+            $theme_dir . '/assets/css/template/page-user-settings.css',
+            [],
+            filemtime($theme_path . '/assets/css/template/page-user-settings.css')
+        );
     }
-    add_action('wp_enqueue_scripts', 'enqueue_chat_assets');
 
+    wp_enqueue_script('chat-js', $theme_dir . '/assets/js/chat.js', ['jquery'], null, true);
+    wp_localize_script('chat-js', 'ajaxurl', admin_url('admin-ajax.php'));
 
-    wp_enqueue_script(
-        'slick-js',
-        $theme_dir . '/includes/slick/slick.min.js',
-        [ 'jquery' ],
-        filemtime( $theme_path . '/includes/slick/slick.min.js' ),
-        true
-    );
 }
-add_action( 'wp_enqueue_scripts', 'custom_enqueue_assets' );
+add_action('wp_enqueue_scripts', 'custom_enqueue_assets');
 
 function favorites_enqueue_assets() {
     wp_enqueue_script(
@@ -210,4 +186,3 @@ function favorites_enqueue_assets() {
     ]);
 }
 add_action('wp_enqueue_scripts', 'favorites_enqueue_assets');
-
