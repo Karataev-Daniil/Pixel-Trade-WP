@@ -2,13 +2,6 @@
 get_header();
 $lang = $GLOBALS['language'] ?? 'ru';
 
-if (!function_exists('get_category_name_translated')) {
-    function get_category_name_translated($term, $lang) {
-        if ($lang==='en') return get_term_meta($term->term_id,'translation_en',true) ?: $term->name;
-        if ($lang==='ro') return get_term_meta($term->term_id,'translation_ro',true) ?: $term->name;
-        return $term->name;
-    }
-}
 $current_cat = get_queried_object();
 ?>
 
@@ -79,7 +72,7 @@ $current_cat = get_queried_object();
                         $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
                                             
                         $args = [
-                            'post_type' => 'product',
+                            'post_type' => 'products',
                             'posts_per_page' => 24,
                             'paged' => $paged,
                             'tax_query' => [

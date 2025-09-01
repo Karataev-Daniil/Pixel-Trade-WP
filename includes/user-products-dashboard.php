@@ -14,7 +14,7 @@ function kayo_handle_product_submission() {
         'post_title'   => $title,
         'post_content' => $content,
         'post_status'  => 'pending',
-        'post_type'    => 'product',
+        'post_type'    => 'products',
         'post_author'  => $current_user_id,
     ];
 

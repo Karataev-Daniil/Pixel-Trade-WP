@@ -1,4 +1,5 @@
 <?php
+
 require_once get_template_directory() . '/includes/global/settings.php';
 require_once get_template_directory() . '/includes/helpers.php';
 

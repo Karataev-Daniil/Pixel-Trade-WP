@@ -79,7 +79,7 @@ function custom_enqueue_assets() {
         );
     }
 
-    if ( is_singular('product') || is_page('add-product') ) {
+    if ( is_singular('products') || is_page('add-product') ) {
         wp_enqueue_style(
             'single-product-style',
             $theme_dir . '/assets/css/template/single-product.css',
@@ -186,3 +186,16 @@ function favorites_enqueue_assets() {
     ]);
 }
 add_action('wp_enqueue_scripts', 'favorites_enqueue_assets');
+function product_cat_enqueue_scripts($hook) {
+    if ('edit-tags.php' === $hook || 'term.php' === $hook) {
+        wp_enqueue_media();
+        wp_enqueue_script(
+            'product-cat-media',
+            get_stylesheet_directory_uri() . '/assets/js/product-cat-media.js',
+            ['jquery'],
+            null,
+            true
+        );
+    }
+}
+add_action('admin_enqueue_scripts', 'product_cat_enqueue_scripts');

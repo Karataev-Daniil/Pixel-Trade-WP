@@ -3,13 +3,19 @@ $price = get_post_meta(get_the_ID(), 'product_price', true);
 $favorites = get_user_meta(get_current_user_id(), 'favorite_products', true);
 $is_favorite = is_array($favorites) && in_array(get_the_ID(), $favorites);
 
-$user_region = get_user_meta(get_current_user_id(), 'region', true);
+$author_id = get_post_field('post_author', get_the_ID());
+
+$author_region = get_user_meta($author_id, 'region', true);
 $regions = get_option('available_regions_multi', []);
 $region_name = '';
 
-if ($user_region && !empty($regions)) {
+if ($author_region && !empty($regions)) {
     foreach ($regions as $region) {
-        if ($region['ru'] === $user_region || $region['en'] === $user_region || $region['ro'] === $user_region) {
+        if (
+            $region['ru'] === $author_region || 
+            $region['en'] === $author_region || 
+            $region['ro'] === $author_region
+        ) {
             $region_name = $region['ru']; 
             break;
         }

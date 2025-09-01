@@ -8,7 +8,7 @@ if (have_posts()) :
         $is_editing = isset($_GET['edit']) && $_GET['edit'] == 1 && $current_user_id === $post_author_id;
 
         $product_id = get_the_ID();
-        if ($is_editing && $product_id && get_post_type($product_id) === 'product') {
+        if ($is_editing && $product_id && get_post_type($product_id) === 'products') {
             get_template_part('template-parts/product/edit', null, ['product_id' => $product_id]);
         } else {
             get_template_part('template-parts/product/view', null, ['product_id' => $product_id]);

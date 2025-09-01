@@ -1,4 +1,9 @@
 <?php
+add_filter('wp_handle_upload_prefilter', function($file) {
+    $file['name'] = generate_random_filename($file['name']);
+    return $file;
+});
+
 function handle_create_product() {
     if (
         !isset($_POST['submit_product']) ||
@@ -18,12 +23,13 @@ function handle_create_product() {
         'post_title'   => $post_title,
         'post_content' => $post_content,
         'post_status'  => $post_status,
-        'post_type'    => 'product',
+        'post_type'    => 'products',
         'post_author'  => get_current_user_id(),
+        'post_name'    => generate_product_slug(),
     ]);
 
     if (is_wp_error($post_id)) {
-        wp_die('Ошибка создания продукта');
+        wp_die('Ошибка создания товара');
     }
 
     update_post_meta($post_id, 'product_price', $product_price);

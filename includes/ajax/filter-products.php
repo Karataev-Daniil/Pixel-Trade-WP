@@ -9,7 +9,7 @@ function filter_products() {
     $sort = isset($_POST['sort']) ? sanitize_text_field($_POST['sort']) : 'date_desc';
 
     $args = [
-        'post_type' => 'product',
+        'post_type' => 'products',
         'posts_per_page' => -1,
         'post_status' => 'publish',
         'meta_query' => [

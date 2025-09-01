@@ -240,3 +240,21 @@ a:disabled {
     color: var(--orange_2);
 }
 
+/* Link-style серые кнопки */
+.link-button-gray {
+    font-family: 'Inter', 'IBM Plex Sans', sans-serif;
+    cursor: pointer;
+    background-color: transparent;
+    color: var(--gray_-6);
+    padding: 0;
+    font-size: 15px;
+    border: none;
+    text-decoration: underline;
+    transition: 0.3s;
+}
+.link-button-gray:hover {
+    color: var(--gray_-3);
+}
+.link-button-gray:active {
+    color: var(--gray_-1);
+}

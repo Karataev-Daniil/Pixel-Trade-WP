@@ -15,7 +15,7 @@ $filter = $_GET['filter'] ?? 'active';
 $paged = max(1, get_query_var('paged', 1));
 
 $args = [
-    'post_type'      => 'product',
+    'post_type'      => 'products',
     'posts_per_page' => 6,
     'author'         => $current_user_id,
     'post_status'    => ($filter === 'active' ? ['publish'] : ($filter === 'hidden' ? ['draft'] : ['publish','draft','pending'])),
@@ -24,26 +24,27 @@ $args = [
 
 $products = new WP_Query($args);
 
-$count_all = count_user_posts($current_user_id, 'product', true);
+$count_all = count_user_posts($current_user_id, 'products', true);
+
 $count_active = (new WP_Query([
-    'post_type' => 'product',
-    'author' => $current_user_id,
-    'post_status' => 'publish',
-    'fields' => 'ids',
+    'post_type'      => 'products',
+    'author'         => $current_user_id,
+    'post_status'    => 'publish',
+    'fields'         => 'ids',
     'posts_per_page' => -1,
 ]))->found_posts;
 
 $count_hidden = (new WP_Query([
-    'post_type' => 'product',
-    'author' => $current_user_id,
-    'post_status' => 'draft',
-    'fields' => 'ids',
+    'post_type'      => 'products',
+    'author'         => $current_user_id,
+    'post_status'    => 'draft',
+    'fields'         => 'ids',
     'posts_per_page' => -1,
 ]))->found_posts;
 
 if (isset($_GET['delete_product'])) {
     $product_id = intval($_GET['delete_product']);
-    if (current_user_can('edit_post', $product_id)) {
+    if (current_user_can('edit_products', $product_id)) {
         wp_trash_post($product_id);
         wp_redirect(remove_query_arg(['delete_product']));
         exit;
@@ -52,9 +53,12 @@ if (isset($_GET['delete_product'])) {
 
 if (isset($_GET['toggle_hidden'])) {
     $product_id = intval($_GET['toggle_hidden']);
-    if (current_user_can('edit_post', $product_id)) {
+    if (current_user_can('edit_products', $product_id)) {
         $post_status = get_post_status($product_id);
-        wp_update_post(['ID' => $product_id, 'post_status' => $post_status === 'publish' ? 'draft' : 'publish']);
+        wp_update_post([
+            'ID' => $product_id,
+            'post_status' => $post_status === 'publish' ? 'draft' : 'publish'
+        ]);
         wp_redirect(remove_query_arg(['toggle_hidden']));
         exit;
     }

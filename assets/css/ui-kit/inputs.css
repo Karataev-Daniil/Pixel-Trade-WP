@@ -98,10 +98,10 @@
     background-color: var(--orange_5);
 }
 .input-secondary + label {
-    position: absolute;
-    top: 29px;
-    left: 19px;
-    transform: translateY(-50%);
+    /* position: absolute; */
+    /* top: 29px; */
+    /* left: 19px; */
+    /* transform: translateY(-50%); */
     color: var(--text_ter);
     transition: 0.3s;
     pointer-events: none;

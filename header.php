@@ -7,22 +7,78 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
         <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
         <script>
-        document.addEventListener('click', e => {
-          const btn = e.target.closest('#catalogToggle');
-          if (btn) {
-            const list = document.querySelector('#catalogDropdown');
-            const isOpen = list.classList.toggle('is-open');
-            btn.setAttribute('aria-expanded', isOpen);
-          }
-        
-          const toggle = e.target.closest('.submenu-toggle');
-          if (toggle) {
-            const submenu = toggle.parentElement.querySelector('.submenu');
-            const isOpen = submenu.classList.toggle('is-open');
-            toggle.setAttribute('aria-expanded', isOpen);
-          }
-        });
+        document.addEventListener("DOMContentLoaded", () => {
+            const toggleBtn = document.querySelector("#catalogToggle");
+            const dropdown = document.querySelector("#catalogDropdown");
+            const overlay = document.querySelector(".catalog-overlay");
+            const mainItems = dropdown.querySelectorAll(".catalog-main__item");
+            const subcategories = dropdown.querySelectorAll(".catalog-subcategories__item");
 
+            const resetActive = () => {
+                mainItems.forEach(item => item.classList.remove("is-active"));
+                subcategories.forEach(sub => sub.classList.remove("is-active"));
+            };
+          
+            toggleBtn.addEventListener("click", e => {
+                e.stopPropagation();
+                const isOpen = dropdown.classList.toggle("is-open");
+                toggleBtn.setAttribute("aria-expanded", isOpen);
+                overlay.classList.toggle("is-active", isOpen);
+            
+                if (isOpen) {
+                    resetActive();
+                    if (mainItems[0] && subcategories[0]) {
+                        mainItems[0].classList.add("is-active");
+                        subcategories[0].classList.add("is-active");
+                    }
+                }
+            });
+          
+            document.addEventListener("click", e => {
+                if (!e.target.closest(".catalog-wrapper")) {
+                    dropdown.classList.remove("is-open");
+                    toggleBtn.setAttribute("aria-expanded", "false");
+                    overlay.classList.remove("is-active");
+                    resetActive();
+                }
+            });
+          
+            overlay.addEventListener("click", () => {
+                dropdown.classList.remove("is-open");
+                toggleBtn.setAttribute("aria-expanded", "false");
+                overlay.classList.remove("is-active");
+                resetActive();
+            });
+          
+            mainItems.forEach(item => {
+                item.addEventListener("mouseover", () => {
+                    const id = item.dataset.category;
+                    mainItems.forEach(i => i.classList.toggle("is-active", i === item));
+                    subcategories.forEach(sub => {
+                        sub.classList.toggle("is-active", sub.dataset.category === id);
+                    });
+                });
+            });
+          
+            const submenuToggles = dropdown.querySelectorAll(".submenu-title a");
+            submenuToggles.forEach(toggle => {
+                toggle.addEventListener("click", e => {
+                    const parent = toggle.closest(".submenu-block");
+                    const grandchildren = parent.querySelector(".submenu-grandchildren");
+                    if (grandchildren) {
+                        e.preventDefault();
+                        grandchildren.classList.toggle("is-open");
+                        toggle.parentElement.classList.toggle("open");
+                    }
+                });
+            });
+          
+            const allSubLinks = dropdown.querySelectorAll(".submenu-grandchildren li a");
+            allSubLinks.forEach(link => {
+                link.addEventListener("mouseover", () => link.classList.add("is-hovered"));
+                link.addEventListener("mouseout", () => link.classList.remove("is-hovered"));
+            });
+        });
         </script>
         <?php wp_head(); ?>
     </head>
@@ -50,7 +106,7 @@
                     </div>
                     <div class="body-small-medium post-count">
                       <?php
-                        $product_count = wp_count_posts('product')->publish;
+                        $product_count = wp_count_posts('products')->publish;
                         echo t('Объявлений: ', 'Listings: ', 'Anunțuri: ') . $product_count;
                       ?>
                     </div>
@@ -140,7 +196,7 @@
               <nav class="header-bottom" aria-label="<?= t('Навигационное меню', 'Navigation Menu', 'Meniu de navigare'); ?>">
                       
                 <!-- Каталог -->
-                <div class="catalog-dropdown-wrapper">
+                <div class="catalog-wrapper">
                   <button class="secondary-button-small catalog-toggle-button"
                           id="catalogToggle"
                           type="button"
@@ -149,62 +205,77 @@
                           aria-controls="catalogDropdown">
                     <?= t('Каталог', 'Catalog', 'Catalog'); ?>
                   </button>
-                                      
-                  <?php
-                  if ( ! function_exists('render_product_cat_tree') ) {
-                    function render_product_cat_tree( $parent_id = 0, $is_root = false ) {
-                      $terms = get_terms([
-                        'taxonomy'   => 'product_cat',
-                        'hide_empty' => false,
-                        'parent'     => $parent_id,
-                        'orderby'    => 'name',
-                        'order'      => 'ASC',
-                      ]);
-                    
-                      if ( empty($terms) || is_wp_error($terms) ) {
-                        if ( $is_root ) {
-                          echo '<ul class="catalog-dropdown-list" id="catalogDropdown">
-                                  <li class="label-small">'. t('Нет категорий', 'No categories', 'Fără categorii') .'</li>
-                                </ul>';
-                        }
-                        return;
-                      }
-                    
-                      echo $is_root
-                        ? '<ul class="catalog-dropdown-list" id="catalogDropdown">'
-                        : '<ul class="submenu">';
-                    
-                      foreach ( $terms as $term ) {
-                        $children = get_terms([
-                          'taxonomy'   => 'product_cat',
-                          'hide_empty' => false,
-                          'parent'     => $term->term_id,
-                          'number'     => 1,
-                        ]);
-                        $has_children = ! empty($children) && ! is_wp_error($children);
-                      
-                        echo '<li class="catalog-item'. ( $has_children ? ' has-children' : '' ) .'">';
-                        echo '<a class="link-button" href="'. esc_url( get_term_link($term) ) .'">'. esc_html( $term->name ) .'</a>';
-                      
-                        if ( $has_children ) {
-                          echo '<button class="submenu-toggle" type="button" aria-expanded="false">
-                                  <span class="icon-caret"></span>
-                                </button>';
-                          render_product_cat_tree( $term->term_id, false );
-                        }
-                      
-                        echo '</li>';
-                      }
-                    
-                      echo '</ul>';
-                    }
-                  }
                 
-                  render_product_cat_tree( 0, true );
+                  <?php
+                  $lang = $GLOBALS['language'] ?? 'ru';
+
+                  $all_terms = get_terms([
+                    'taxonomy'   => 'product_cat',
+                    'hide_empty' => false,
+                    'orderby'    => 'name',
+                    'order'      => 'ASC',
+                  ]);
+
+                  $terms_hierarchy = [];
+                  foreach ($all_terms as $term) {
+                    $terms_hierarchy[$term->parent][] = $term;
+                  }
                   ?>
+                
+                  <?php if (!empty($terms_hierarchy[0])) : ?>
+                    <div class="catalog-dropdown" id="catalogDropdown">
+                      <div class="catalog-inner container-medium">
+                        <ul class="catalog-main">
+                          <?php foreach ($terms_hierarchy[0] as $parent_term) : ?>
+                            <li class="catalog-main__item title-medium" data-category="<?= $parent_term->term_id ?>">
+                              <?= esc_html(get_category_name_translated($parent_term, $lang)) ?>
+                            </li>
+                          <?php endforeach; ?>
+                        </ul>
+                          
+                        <div class="catalog-subcategories">
+                          <?php foreach ($terms_hierarchy[0] as $parent_term) : ?>
+                            <?php
+                            $children = $terms_hierarchy[$parent_term->term_id] ?? [];
+                            ?>
+                            <div class="catalog-subcategories__item" data-category="<?= $parent_term->term_id ?>">
+                              <?php if (!empty($children)) : ?>
+                                <?php foreach ($children as $child) : ?>
+                                  <?php
+                                  $grandchildren = $terms_hierarchy[$child->term_id] ?? [];
+                                  ?>
+                                  <div class="submenu-block">
+                                    <h4 class="submenu-title">
+                                      <a class="title-small" href="<?= esc_url(get_term_link($child)) ?>">
+                                        <?= esc_html(get_category_name_translated($child, $lang)) ?>
+                                      </a>
+                                    </h4>
+                                
+                                    <?php if (!empty($grandchildren)) : ?>
+                                      <ul class="submenu-grandchildren">
+                                        <?php foreach ($grandchildren as $grand) : ?>
+                                          <li>
+                                            <a class="link-button" href="<?= esc_url(get_term_link($grand)) ?>">
+                                              <?= esc_html(get_category_name_translated($grand, $lang)) ?>
+                                            </a>
+                                          </li>
+                                        <?php endforeach; ?>
+                                      </ul>
+                                    <?php endif; ?>
+                                  </div>
+                                <?php endforeach; ?>
+                              <?php else : ?>
+                                <p class="label-small"><?= t('Нет подкатегорий', 'No subcategories', 'Fără subcategorii') ?></p>
+                              <?php endif; ?>
+                            </div>
+                          <?php endforeach; ?>
+                        </div>
+                      </div>
+                    </div>
+                  <?php endif; ?>
+                  <div class="catalog-overlay"></div>
                 </div>
 
-                    
                 <!-- Поиск -->
                 <form role="search" method="get" class="search-form search-panel has-content" action="<?= esc_url(home_url('/blog/')); ?>">
                   <input id="search-field" class="search-field body-medium-regular"

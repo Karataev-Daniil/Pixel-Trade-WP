@@ -1,5 +1,7 @@
 /* 1. Header Wrapper */
 .header .header__wrapper {
+    position: relative;
+    z-index: 1;
     height: 145px;
 }
 .header .header__wrapper .container-medium {
@@ -327,94 +329,129 @@
 }
 
 /* 8. Catalog Dropdown */
-.catalog-dropdown-wrapper {
-    position: relative;
-    display: inline-block;
-}
-.catalog-dropdown-wrapper button{
+button.catalog-toggle-button {
     width: 100%;
 }
-.catalog-dropdown-list {
+.catalog-main::before {
+    content: "";
     position: absolute;
-    top: 100%;
-    left: 0;
-    z-index: 10;
+    top: -10px;
+    left: 62px;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid var(--orange_0);
+}
+.catalog-dropdown {
+    position: absolute;
+    top: 145px;
+    left: 32px;
+    right: 32px;
     display: none;
-    background: var(--background);
-    border: 1px solid var(--gray-200);
-    border-radius: 8px;
-    padding: 8px 0;
-    min-width: 200px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    z-index: 50;
 }
-.catalog-dropdown-list li {
-    padding: 6px 16px;
+.catalog-inner {
+    background: var(--gray_5);
+    border-bottom: 2px solid var(--gray_1);
+    border-left: 2px solid var(--gray_1);
+    border-right: 2px solid var(--gray_1);
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    border-radius: 0 0 6px 6px;
+    display: flex;
+    gap: 16px;
+    padding: 0;
+    width: 100%;
 }
-.catalog-dropdown-list li a {
+.catalog-main {
+    padding: 16px 8px 16px 16px;
+    list-style: none;
+    margin: 0;
+    flex: 0 0 224px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: var(--gray_3);
+    border-radius: 0 0 0 6px;
+    gap: 8px;
+}
+.catalog-main__item {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    padding: 4px 12px;
+    line-height: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+.catalog-main__item.is-active {
+    color: var(--orange_0);
+}
+.catalog-subcategories {
+    width: 100%;
+    padding: 16px 16px 16px 0;
+    flex: 1; 
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.catalog-subcategories__item {
+    display: none;
+    flex-direction: column;
+}
+.catalog-subcategories__item.is-active {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 4px;
+}
+.submenu-title a {
     text-decoration: none;
-    color: var(--text-primary);
+    color: var(--gray_-6);
+}
+.submenu-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.submenu-grandchildren {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.submenu-grandchildren.is-open {
+    display: flex;
+}
+.submenu-grandchildren li a {
     display: block;
 }
-.catalog-dropdown-list,
-.submenu {
-  display: none;
-  margin: 0;
-  padding: .5rem 0;
-  list-style: none;
-  background: var(--gray_2);
-  border: 1px solid #e6e6e6;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.08);
-}
-
-.catalog-dropdown-list.is-open,
-.submenu.is-open {
-  display: block;
-}
-
-.catalog-dropdown-list {
-  position: absolute;
-  z-index: 50;
-  min-width: 240px;
-}
-
-.catalog-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-  padding: .25rem .75rem;
-}
-
-.link-button {
-  flex: 1;
-  text-decoration: none;
-}
-
-.submenu {
-  margin-left: 1rem;
-  border: none;
-  box-shadow: none;
-}
-
-.submenu-toggle {
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: .25rem;
-}
-
 .icon-caret {
-  width: 14px;
-  height: 14px;
-  display: inline-block;
-  clip-path: polygon(25% 20%, 75% 50%, 25% 80%);
-  background: currentColor;
-  transition: transform .2s ease;
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    clip-path: polygon(25% 20%, 75% 50%, 25% 80%);
+    background: currentColor;
+    transition: transform 0.2s ease;
+}
+.submenu-toggle[aria-expanded="true"] .icon-caret {
+    transform: rotate(90deg);
+}
+.catalog-dropdown.is-open {
+    display: flex;
+    gap: 16px;
+}
+.catalog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: -1;
 }
 
-.submenu-toggle[aria-expanded="true"] .icon-caret {
-  transform: rotate(90deg);
+.catalog-overlay.is-active {
+    opacity: 1;
+    pointer-events: auto;
 }

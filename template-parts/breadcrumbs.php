@@ -32,7 +32,7 @@ if (is_tax('product_cat')) {
     }
     echo ' &raquo; <span class="link-small-default">'.esc_html(get_term_name_translated($current_cat,$lang)).'</span>';
 
-} elseif (is_singular('product')) {
+} elseif (is_singular('products')) {
     // Страница продукта
     $terms = get_the_terms($product_id, 'product_cat');
     if ($terms && !is_wp_error($terms)) {

@@ -100,7 +100,7 @@ function favorites_shortcode() {
     }
 
     $query = new WP_Query([
-        'post_type' => 'product',
+        'post_type' => 'products',
         'post__in'  => $favorites,
         'posts_per_page' => -1,
     ]);

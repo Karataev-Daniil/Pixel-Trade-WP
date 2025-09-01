@@ -167,7 +167,7 @@ p {
   align-items: center;
   justify-content: center;
   background-color: var(--gray_6);
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 0;
 }
 #products-list .toggle-favorite svg,

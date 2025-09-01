@@ -30,7 +30,8 @@ function add_product_caps_to_admin() {
         $caps = [
             'edit_product', 'read_product', 'delete_product',
             'edit_products', 'edit_others_products', 'publish_products',
-            'read_private_products', 'delete_products', 'delete_private_products',
+            'read_private_products',
+            'delete_products', 'delete_private_products',
             'delete_published_products', 'delete_others_products',
             'edit_private_products', 'edit_published_products',
             'manage_product_categories'
@@ -48,7 +49,8 @@ function add_product_caps_to_seller() {
         $caps = [
             'edit_product', 'read_product', 'delete_product',
             'edit_products', 'edit_others_products', 'publish_products',
-            'read_private_products', 'delete_products', 'delete_private_products',
+            'read_private_products',
+            'delete_products', 'delete_private_products',
             'delete_published_products', 'delete_others_products',
             'edit_private_products', 'edit_published_products',
             'manage_product_categories'

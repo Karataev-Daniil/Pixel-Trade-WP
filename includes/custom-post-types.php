@@ -3,7 +3,7 @@ global $wpdb;
 add_theme_support('post-thumbnails');
 
 function register_product_post_type() {
-    register_post_type('product', [
+    register_post_type('products', [
         'labels' => [
             'name' => 'Товары',
             'singular_name' => 'Товар',
@@ -36,7 +36,7 @@ function register_product_post_type() {
 add_action('init', 'register_product_post_type');
 
 add_action('add_meta_boxes', function () {
-    add_meta_box('product_translations', 'Переводы', 'render_product_translations', 'product');
+    add_meta_box('product_translations', 'Переводы', 'render_product_translations', 'products');
 });
 
 function render_product_translations($post) {
@@ -60,6 +60,8 @@ function render_product_translations($post) {
 }
 
 add_action('save_post', function ($post_id) {
+    if (get_post_type($post_id) !== 'products') return;
+
     if (array_key_exists('title_en', $_POST)) {
         update_post_meta($post_id, '_title_en', sanitize_text_field($_POST['title_en']));
     }
@@ -75,7 +77,7 @@ add_action('save_post', function ($post_id) {
 });
 
 function register_product_taxonomy() {
-    register_taxonomy('product_cat', 'product', [
+    register_taxonomy('product_cat', 'products', [
         'labels' => [
             'name' => 'Категории товаров',
             'singular_name' => 'Категория товара',
@@ -92,7 +94,7 @@ function register_product_taxonomy() {
         'show_in_rest' => true,
         'show_admin_column' => true,
         'rewrite' => [
-            'slug' => 'product',
+            'slug' => 'categories',
             'with_front' => false,
             'hierarchical' => true,
         ],
@@ -105,20 +107,6 @@ function register_product_taxonomy() {
     ]);
 }
 add_action('init', 'register_product_taxonomy');
-
-function product_cat_enqueue_scripts($hook) {
-    if ('edit-tags.php' === $hook || 'term.php' === $hook) {
-        wp_enqueue_media();
-        wp_enqueue_script(
-            'product-cat-media',
-            get_stylesheet_directory_uri() . '/assets/js/product-cat-media.js', // создаём файл JS
-            ['jquery'],
-            null,
-            true
-        );
-    }
-}
-add_action('admin_enqueue_scripts', 'product_cat_enqueue_scripts');
 
 function product_cat_image_field($term) {
     $image_id = get_term_meta($term->term_id, 'category_image_id', true);
@@ -205,6 +193,124 @@ function save_product_cat_translations($term_id) {
 add_action('edited_product_cat', 'save_product_cat_translations', 10, 2);
 add_action('created_product_cat', 'save_product_cat_translations', 10, 2);
 
+// Счётчик просмотров
+function increment_product_views($post_id) {
+    if (!is_singular('products')) return;
+
+    $user_id = is_user_logged_in() ? get_current_user_id() : null;
+    $ip = $_SERVER['REMOTE_ADDR'];
+    $today = date('Y-m-d');
+
+    $cookie_key = 'viewed_product_' . $post_id;
+    if (!$user_id && isset($_COOKIE[$cookie_key])) return;
+    if (!$user_id) setcookie($cookie_key, '1', time() + 3600, "/");
+
+    global $wpdb;
+    $wpdb->insert(
+        $wpdb->prefix . 'product_views',
+        [
+            'product_id' => $post_id,
+            'user_id'    => $user_id,
+            'ip_address' => $ip,
+            'viewed_at'  => current_time('mysql')
+        ],
+        ['%d','%d','%s','%s']
+    );
+
+    $table = $wpdb->prefix . 'product_daily_views';
+    $wpdb->query(
+        $wpdb->prepare(
+            "INSERT INTO $table (product_id, view_date, views) VALUES (%d, %s, 1)
+             ON DUPLICATE KEY UPDATE views = views + 1",
+            $post_id, $today
+        )
+    );
+}
+
+function get_product_daily_views($post_id = null) {
+    global $wpdb;
+    if (!$post_id) $post_id = get_the_ID();
+    return $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT view_date, views FROM {$wpdb->prefix}product_daily_views WHERE product_id = %d ORDER BY view_date ASC",
+            $post_id
+        ),
+        ARRAY_A
+    );
+}
+
+function track_product_views() {
+    if (is_singular('products')) {
+        global $post;
+        if ($post) {
+            increment_product_views($post->ID);
+        }
+    }
+}
+add_action('wp', 'track_product_views');
+
+function get_product_views($post_id = null) {
+    global $wpdb;
+    if (!$post_id) $post_id = get_the_ID();
+    return (int)$wpdb->get_var(
+        $wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}product_views WHERE product_id = %d", $post_id)
+    );
+}
+
+function add_product_views_column($columns) {
+    $columns['product_views'] = 'Просмотры';
+    $columns['product_price'] = 'Цена';
+    return $columns;
+}
+add_filter('manage_products_posts_columns', 'add_product_views_column');
+
+function show_product_views_column($column, $post_id) {
+    if ($column == 'product_views') {
+        echo (int) get_product_views($post_id);
+    }
+    if ($column == 'product_price') {
+        $price = get_post_meta($post_id, 'product_price', true);
+        echo $price ? esc_html($price) . ' ₽' : '—';
+    }
+}
+add_action('manage_products_posts_custom_column', 'show_product_views_column', 10, 2);
+
+function add_product_price_metabox() {
+    add_meta_box(
+        'product_price_metabox',
+        'Цена товара',
+        'render_product_price_metabox',
+        'products',
+        'side',
+        'default'
+    );
+}
+add_action('add_meta_boxes', 'add_product_price_metabox');
+
+function render_product_price_metabox($post) {
+    $price = get_post_meta($post->ID, 'product_price', true);
+    wp_nonce_field('save_product_price', 'product_price_nonce');
+    ?>
+    <label for="product_price_field">Цена (₽):</label>
+    <input type="number" name="product_price_field" id="product_price_field" value="<?php echo esc_attr($price); ?>" step="0.01" min="0" style="width: 100%;" />
+    <?php
+}
+
+function save_product_price_metabox($post_id) {
+    if (!isset($_POST['product_price_nonce']) || !wp_verify_nonce($_POST['product_price_nonce'], 'save_product_price')) {
+        return;
+    }
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+
+    if (isset($_POST['product_price_field'])) {
+        $price = sanitize_text_field($_POST['product_price_field']);
+        update_post_meta($post_id, 'product_price', $price);
+    }
+}
+add_action('save_post_products', 'save_product_price_metabox');
+
+
 
 // function delete_all_product_categories() {
 //     $terms = get_terms(['taxonomy' => 'product_cat', 'hide_empty' => false]);
@@ -262,124 +368,3 @@ add_action('created_product_cat', 'save_product_cat_translations', 10, 2);
 // }
 
 // add_action('init', 'populate_product_categories', 30);
-
-
-
-// Счётчик просмотров
-function increment_product_views($post_id) {
-    if (!is_singular('product')) return;
-
-    $user_id = is_user_logged_in() ? get_current_user_id() : null;
-    $ip = $_SERVER['REMOTE_ADDR'];
-    $today = date('Y-m-d');
-
-    $cookie_key = 'viewed_product_' . $post_id;
-    if (!$user_id && isset($_COOKIE[$cookie_key])) return;
-    if (!$user_id) setcookie($cookie_key, '1', time() + 3600, "/");
-
-    global $wpdb;
-    $wpdb->insert(
-        $wpdb->prefix . 'product_views',
-        [
-            'product_id' => $post_id,
-            'user_id'    => $user_id,
-            'ip_address' => $ip,
-            'viewed_at'  => current_time('mysql')
-        ],
-        ['%d','%d','%s','%s']
-    );
-
-    $table = $wpdb->prefix . 'product_daily_views';
-    $wpdb->query(
-        $wpdb->prepare(
-            "INSERT INTO $table (product_id, view_date, views) VALUES (%d, %s, 1)
-             ON DUPLICATE KEY UPDATE views = views + 1",
-            $post_id, $today
-        )
-    );
-}
-
-function get_product_daily_views($post_id = null) {
-    global $wpdb;
-    if (!$post_id) $post_id = get_the_ID();
-    return $wpdb->get_results(
-        $wpdb->prepare(
-            "SELECT view_date, views FROM {$wpdb->prefix}product_daily_views WHERE product_id = %d ORDER BY view_date ASC",
-            $post_id
-        ),
-        ARRAY_A
-    );
-}
-
-function track_product_views() {
-    if (is_singular('product')) {
-        global $post;
-        if ($post) {
-            increment_product_views($post->ID);
-        }
-    }
-}
-add_action('wp', 'track_product_views');
-
-function get_product_views($post_id = null) {
-    global $wpdb;
-    if (!$post_id) $post_id = get_the_ID();
-    return (int)$wpdb->get_var(
-        $wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}product_views WHERE product_id = %d", $post_id)
-    );
-}
-
-function add_product_views_column($columns) {
-    $columns['product_views'] = 'Просмотры';
-    $columns['product_price'] = 'Цена';
-    return $columns;
-}
-add_filter('manage_product_posts_columns', 'add_product_views_column');
-
-function show_product_views_column($column, $post_id) {
-    if ($column == 'product_views') {
-        echo (int) get_product_views($post_id);
-    }
-    if ($column == 'product_price') {
-        $price = get_post_meta($post_id, 'product_price', true);
-        echo $price ? esc_html($price) . ' ₽' : '—';
-    }
-}
-add_action('manage_product_posts_custom_column', 'show_product_views_column', 10, 2);
-
-// Поле "Цена товара"
-function add_product_price_metabox() {
-    add_meta_box(
-        'product_price_metabox',
-        'Цена товара',
-        'render_product_price_metabox',
-        'product',
-        'side',
-        'default'
-    );
-}
-add_action('add_meta_boxes', 'add_product_price_metabox');
-
-function render_product_price_metabox($post) {
-    $price = get_post_meta($post->ID, 'product_price', true);
-    wp_nonce_field('save_product_price', 'product_price_nonce');
-    ?>
-    <label for="product_price_field">Цена (₽):</label>
-    <input type="number" name="product_price_field" id="product_price_field" value="<?php echo esc_attr($price); ?>" step="0.01" min="0" style="width: 100%;" />
-    <?php
-}
-
-function save_product_price_metabox($post_id) {
-    if (!isset($_POST['product_price_nonce']) || !wp_verify_nonce($_POST['product_price_nonce'], 'save_product_price')) {
-        return;
-    }
-
-    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
-
-    if (isset($_POST['product_price_field'])) {
-        $price = sanitize_text_field($_POST['product_price_field']);
-        update_post_meta($post_id, 'product_price', $price);
-    }
-}
-add_action('save_post_product', 'save_product_price_metabox');
-
