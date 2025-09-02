@@ -3,7 +3,8 @@ $product_id = $args['product_id'] ?? get_the_ID();
 if (!$product_id) return;
 
 $lang = $GLOBALS['language'] ?? 'ru';
-// Headings and descriptions
+
+// Заголовки и описания
 $title_translations = [
     'ru' => get_the_title($product_id),
     'en' => get_post_meta($product_id, '_title_en', true),
@@ -16,16 +17,30 @@ $content_translations = [
     'ro' => get_post_meta($product_id, '_description_ro', true),
 ];
 
-// Price
+// Цена и валюта
 $price = get_post_meta($product_id, 'product_price', true);
+$currency = get_post_meta($product_id, 'product_currency', true) ?: 'lei';
 
-// Gallery
+// Функция форматирования цены с валютой
+if (!function_exists('format_price_with_currency')) {
+    function format_price_with_currency($price, $currency = 'lei') {
+        if (!$price) return '-';
+        switch($currency) {
+            case 'usd': $symbol = '$'; break;
+            case 'eur': $symbol = '€'; break;
+            default: $symbol = 'lei'; break;
+        }
+        return number_format((float)$price, 2, '.', ',') . ' ' . $symbol;
+    }
+}
+
+// Галерея
 $gallery_ids = get_post_meta($product_id, 'product_gallery', true);
 $gallery_ids = is_array($gallery_ids) ? array_filter($gallery_ids) : [];
 $thumbnail_id = get_post_thumbnail_id($product_id);
 if ($thumbnail_id && !in_array($thumbnail_id, $gallery_ids)) array_unshift($gallery_ids, $thumbnail_id);
 
-// Author
+// Автор
 $author_id = get_the_author_meta('ID');
 $current_user_id = get_current_user_id();
 $author_avatar = get_avatar($author_id, 64);
@@ -43,43 +58,45 @@ $product_type = get_post_meta($product_id, 'product_type', true);
             <h1 class="product-card__title display-small"><?= esc_html($title_translations[$lang] ?? get_the_title($product_id)); ?></h1>
 
             <div class="product-card">
-                    <article class="product-content">
-                        <?php if (!empty($gallery_ids)) : ?>
-                            <section class="product-gallery-carousel" aria-label="<?= esc_attr(t('Галерея изображений товара','Product image gallery','Galerie de imagini ale produsului')); ?>">
-                                <div class="main-slider">
-                                    <?php foreach ($gallery_ids as $id): ?>
-                                        <?php if ($id): ?>
-                                            <figure>
-                                                <?= wp_get_attachment_image($id, 'large', false, [
-                                                    'alt' => get_post_meta($id,'_wp_attachment_image_alt',true) ?: t('Изображение товара','Product image','Imagine produs')
-                                                ]); ?>
-                                            </figure>
-                                        <?php endif; ?>
-                                    <?php endforeach; ?>
-                                </div>
-                            </section>
-                        <?php endif; ?>
+                <article class="product-content">
 
-                        <section class="content body-small-regular" aria-label="<?= t('Описание товара','Product Description','Descriere produs'); ?>">
-                            <?= wpautop($content_translations[$lang] ?? get_the_content($product_id)); ?>
+                    <?php if (!empty($gallery_ids)) : ?>
+                        <section class="product-gallery-carousel" aria-label="<?= esc_attr(t('Галерея изображений товара','Product image gallery','Galerie de imagini ale produsului')); ?>">
+                            <div class="main-slider">
+                                <?php foreach ($gallery_ids as $id): ?>
+                                    <?php if ($id): ?>
+                                        <figure>
+                                            <?= wp_get_attachment_image($id, 'large', false, [
+                                                'alt' => get_post_meta($id,'_wp_attachment_image_alt',true) ?: t('Изображение товара','Product image','Imagine produs')
+                                            ]); ?>
+                                        </figure>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
                         </section>
+                    <?php endif; ?>
 
-                        <section class="price title-medium" aria-label="<?= t('Цена','Price','Preț'); ?>">
-                            <p><strong><?= t('Цена:','Price:','Preț:'); ?></strong> <?= format_price_mdl_with_conversions($price); ?></p>
-                        </section>
+                    <section class="content body-small-regular" aria-label="<?= t('Описание товара','Product Description','Descriere produs'); ?>">
+                        <?= wpautop($content_translations[$lang] ?? get_the_content($product_id)); ?>
+                    </section>
 
-                        <?php if (is_user_logged_in() && $author_id && $author_id != $current_user_id): 
-                            $author_name = get_the_author_meta('display_name', $author_id); ?>
-                            <button class="dm-write-btn" data-user="<?= esc_attr($author_id); ?>">Написать <?= esc_html($author_name); ?></button>
-                        <?php endif; ?>
-                    </article>
+                    <section class="price title-medium" aria-label="<?= t('Цена','Price','Preț'); ?>">
+                        <p><strong><?= t('Цена:','Price:','Preț:'); ?></strong> <?= format_price_with_currency($price, $currency); ?></p>
+                    </section>
+
+                    <?php if (is_user_logged_in() && $author_id && $author_id != $current_user_id): 
+                        $author_name = get_the_author_meta('display_name', $author_id); ?>
+                        <button class="dm-write-btn" data-user="<?= esc_attr($author_id); ?>">Написать <?= esc_html($author_name); ?></button>
+                    <?php endif; ?>
+
+                </article>
 
                 <aside class="product-sidebar">
                     <section class="author" aria-label="<?= t('Информация об авторе','Author Info','Informații despre autor'); ?>">
                         <div class="author-avatar"><?= $author_avatar; ?></div>
                         <div class="author-profile">
                             <a class="link-button" href="<?= esc_url($author_url); ?>">
-                                <strong><?= t('Автор:','Author:','Autor:'); ?></strong> <?php the_author_meta('display_name',$author_id); ?>
+                                <strong><?= t('Автор:','Author:','Autor:'); ?></strong> <?= get_the_author_meta('display_name',$author_id); ?>
                             </a>
                             <span class="body-small-regular"><?= t('На сайте с','On the site since','Pe site din'); ?> <?= date_i18n('d.m.Y', strtotime($author_registered)); ?></span>
                         </div>
@@ -87,11 +104,13 @@ $product_type = get_post_meta($product_id, 'product_type', true);
 
                     <section class="details" aria-label="<?= t('Детали товара','Product Details','Detalii produs'); ?>">
                         <div class="item body-small-regular"><?= t('Дата публикации','Published on','Data publicării'); ?>: <?= get_the_date('d.m.Y', $product_id); ?></div>
-                        <div class="item body-small-regular"><?= t('Просмотры','Views','Vizualizări'); ?>: <?= $total_views = get_product_views($product_id); ?></div>
+                        <div class="item body-small-regular"><?= t('Просмотры','Views','Vizualizări'); ?>: <?= get_product_views($product_id); ?></div>
                         <?php if ($product_type): ?><div class="item body-small-regular"><?= t('Тип','Type','Tip'); ?>: <?= esc_html($product_type); ?></div><?php endif; ?>
                     </section>
 
-                    <section class="price title-medium" aria-label="<?= t('Цена','Price','Preț'); ?>"><?= format_price_mdl_with_conversions($price); ?></section>
+                    <section class="price title-medium" aria-label="<?= t('Цена','Price','Preț'); ?>">
+                        <?= format_price_with_currency($price, $currency); ?>
+                    </section>
 
                     <?php if ($author_region): ?>
                         <section class="author-region" aria-label="<?= t('Регион автора','Author Region','Regiunea autorului'); ?>">

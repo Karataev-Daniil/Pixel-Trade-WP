@@ -34,6 +34,17 @@ $language = $GLOBALS['language'] ?? 'ru';
                     <h1 class="product-edit__title display-small"><?php echo t('Редактировать объявление', 'Edit Listing', 'Editează Anunț'); ?></h1>
                     <?php wp_nonce_field('save_product_form', 'product_form_nonce'); ?>
 
+                    <section class="form-group form-group--type">
+                        <?php 
+                            $type = get_post_meta($product_id, 'product_type', true) ?: 'sell';
+                        ?>
+                        <label class="form-label label-large" for="product_type"><?php echo t('Тип объявления', 'Type', 'Tip'); ?></label>
+                        <select name="product_type" id="product_type" class="form-select select-tertiary body-medium-regular">
+                            <option value="sell" <?php selected($type, 'sell'); ?>><?php echo t('Продам', 'Sell', 'Vând'); ?></option>
+                            <option value="buy" <?php selected($type, 'buy'); ?>><?php echo t('Куплю', 'Buy', 'Cumpăr'); ?></option>
+                        </select>
+                    </section>
+
                     <!-- Categories -->
                     <fieldset class="form-group form-group--categories">
                         <div id="category-selectors" class="category-selectors" data-restored="1">
@@ -103,15 +114,24 @@ $language = $GLOBALS['language'] ?? 'ru';
                     <!-- Price -->
                     <div class="form-group form-group--price">
                         <div class="form-group__left">
+                            <label class="form-label label-large" for="product_price"><?php echo t('Цена', 'Price', 'Preț'); ?></label>
+                            <input type="number" step="0.01" name="product_price" id="product_price" value="<?php echo esc_attr($price); ?>" class="form-input body-medium-regular" required>
+                            <?php 
+                                $currency = get_post_meta($product_id, 'product_currency', true) ?: 'lei';
+                            ?>
+                            <label class="form-label label-large" for="product_currency"><?php echo t('Валюта', 'Currency', 'Monedă'); ?></label>
+                            <select name="product_currency" id="product_currency" class="form-select select-tertiary body-medium-regular">
+                                <option value="lei" <?php selected($currency, 'lei'); ?>>Леи</option>
+                                <option value="usd" <?php selected($currency, 'usd'); ?>>$</option>
+                                <option value="eur" <?php selected($currency, 'eur'); ?>>€</option>
+                            </select>
+                        </div>
+                        <div class="form-group__right">
                             <label class="form-label label-large" for="product_status"><?php echo t('Статус', 'Status', 'Stare'); ?></label>
                             <select id="product_status" name="product_status" class="form-select select-tertiary body-medium-regular">
                                 <option value="draft" <?php selected($status, 'draft'); ?>><?php echo t('Черновик', 'Draft', 'Schiță'); ?></option>
                                 <option value="publish" <?php selected($status, 'publish'); ?>><?php echo t('Опубликован', 'Published', 'Publicat'); ?></option>
                             </select>
-                        </div>
-                        <div class="form-group__right">
-                            <label class="form-label label-large"><?php echo t('Цена (леи)', 'Price (lei)', 'Preț (lei)'); ?></label>
-                            <input type="number" step="0.01" name="product_price" value="<?php echo esc_attr($price); ?>" class="form-input body-medium-regular" required>
                         </div>
                     </div>
 

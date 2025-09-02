@@ -289,10 +289,19 @@ add_action('add_meta_boxes', 'add_product_price_metabox');
 
 function render_product_price_metabox($post) {
     $price = get_post_meta($post->ID, 'product_price', true);
+    $currency = get_post_meta($post->ID, 'product_currency', true) ?: 'RUB'; // по умолчанию рубли
+    $currencies = ['LEI' => 'лей', 'USD' => '$', 'EUR' => '€'];
     wp_nonce_field('save_product_price', 'product_price_nonce');
     ?>
-    <label for="product_price_field">Цена (₽):</label>
-    <input type="number" name="product_price_field" id="product_price_field" value="<?php echo esc_attr($price); ?>" step="0.01" min="0" style="width: 100%;" />
+    <label for="product_price_field">Цена:</label>
+    <div style="display:flex; gap:8px; align-items:center;">
+        <input type="number" name="product_price_field" id="product_price_field" value="<?php echo esc_attr($price); ?>" step="0.01" min="0" style="flex:1;" />
+        <select name="product_currency_field" id="product_currency_field">
+            <?php foreach ($currencies as $key => $symbol): ?>
+                <option value="<?php echo esc_attr($key); ?>" <?php selected($currency, $key); ?>><?php echo esc_html($symbol); ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
     <?php
 }
 
@@ -307,8 +316,44 @@ function save_product_price_metabox($post_id) {
         $price = sanitize_text_field($_POST['product_price_field']);
         update_post_meta($post_id, 'product_price', $price);
     }
+
+    if (isset($_POST['product_currency_field'])) {
+        $currency = sanitize_text_field($_POST['product_currency_field']);
+        update_post_meta($post_id, 'product_currency', $currency);
+    }
 }
 add_action('save_post_products', 'save_product_price_metabox');
+
+function add_product_type_metabox() {
+    add_meta_box(
+        'product_type_metabox',
+        'Тип объявления',
+        'render_product_type_metabox',
+        'products',
+        'side',
+        'default'
+    );
+}
+add_action('add_meta_boxes', 'add_product_type_metabox');
+
+function render_product_type_metabox($post) {
+    $type = get_post_meta($post->ID, 'product_type', true) ?: 'sell'; // по умолчанию Продам
+    ?>
+    <select name="product_type_field" id="product_type_field" style="width:100%;">
+        <option value="sell" <?php selected($type, 'sell'); ?>>Продам</option>
+        <option value="buy" <?php selected($type, 'buy'); ?>>Куплю</option>
+    </select>
+    <?php
+}
+
+function save_product_type_metabox($post_id) {
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+
+    if (isset($_POST['product_type_field'])) {
+        update_post_meta($post_id, 'product_type', sanitize_text_field($_POST['product_type_field']));
+    }
+}
+add_action('save_post_products', 'save_product_type_metabox');
 
 
 

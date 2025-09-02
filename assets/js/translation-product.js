@@ -72,3 +72,113 @@ function generateTranslations() {
         messageBlock.textContent = 'Ошибка связи с сервером.';
     });
 }
+
+function showImproveOptions() {
+    document.getElementById('improve-options').classList.toggle('hidden');
+}
+
+function improveText(style) {
+    const textarea = document.querySelector('textarea[name="product_content"]');
+    const text = textarea.value.trim();
+    const messageBlock = document.getElementById('translation-message');
+
+    if (!text) {
+        messageBlock.style.color = 'red';
+        messageBlock.textContent = 'Поле описания пустое.';
+        return;
+    }
+
+    messageBlock.style.color = 'black';
+    messageBlock.textContent = 'Улучшаем текст...';
+
+    fetch(translationVars.ajaxUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            action: 'ai_improve_text',
+            text,
+            style,
+            lang: 'ru',
+            _ajax_nonce: translationVars.nonce
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            textarea.value = data.data.improved_text;
+            messageBlock.style.color = 'green';
+            messageBlock.textContent = 'Текст улучшен.';
+        } else {
+            messageBlock.style.color = 'red';
+            messageBlock.textContent = data.data || 'Ошибка при улучшении текста.';
+        }
+    })
+    .catch(() => {
+        messageBlock.style.color = 'red';
+        messageBlock.textContent = 'Ошибка связи с сервером.';
+    });
+}
+
+function generateSEOText() {
+    const textarea = document.querySelector('textarea[name="product_content"]');
+    const title = document.querySelector('input[name="product_title"]').value.trim();
+    const category = document.querySelector('select[name="product_category"]')?.value.trim() || '';
+    const text = textarea.value.trim();
+    const messageBlock = document.getElementById('translation-message');
+
+    if (!title || !text || !category) {
+        showPopup({
+            title: 'Внимание!',
+            message: '⚠️ Рекомендуется заполнить название, описание и категорию товара для лучшего SEO. Продолжить генерацию?',
+            type: 'warning',
+            buttons: [
+                { 
+                    text: 'Продолжить', 
+                    className: 'primary', 
+                    callback: () => proceedSEOGeneration() 
+                },
+                { 
+                    text: 'Отмена', 
+                    className: 'secondary', 
+                    callback: () => { } 
+                }
+            ]
+        });
+        return;
+    }
+
+    proceedSEOGeneration();
+
+    function proceedSEOGeneration() {
+        messageBlock.style.color = 'black';
+        messageBlock.textContent = 'Генерация SEO-текста...';
+
+        fetch(translationVars.ajaxUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                action: 'ai_seo_text',
+                text,
+                title,
+                category,
+                lang: 'ru',
+                _ajax_nonce: translationVars.nonce
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                textarea.value = data.data.seo_text;
+                messageBlock.style.color = 'green';
+                messageBlock.textContent = 'SEO-текст сгенерирован.';
+            } else {
+                messageBlock.style.color = 'red';
+                messageBlock.textContent = data.data || 'Ошибка при генерации SEO-текста.';
+            }
+        })
+        .catch(() => {
+            messageBlock.style.color = 'red';
+            messageBlock.textContent = 'Ошибка связи с сервером.';
+        });
+    }
+}

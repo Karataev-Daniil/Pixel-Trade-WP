@@ -165,10 +165,6 @@ function custom_enqueue_assets() {
             filemtime($theme_path . '/assets/css/template/page-user-settings.css')
         );
     }
-
-    wp_enqueue_script('chat-js', $theme_dir . '/assets/js/chat.js', ['jquery'], null, true);
-    wp_localize_script('chat-js', 'ajaxurl', admin_url('admin-ajax.php'));
-
 }
 add_action('wp_enqueue_scripts', 'custom_enqueue_assets');
 
@@ -186,6 +182,7 @@ function favorites_enqueue_assets() {
     ]);
 }
 add_action('wp_enqueue_scripts', 'favorites_enqueue_assets');
+
 function product_cat_enqueue_scripts($hook) {
     if ('edit-tags.php' === $hook || 'term.php' === $hook) {
         wp_enqueue_media();

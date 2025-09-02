@@ -1,6 +1,6 @@
 <?php
 add_action('wp_enqueue_scripts', function(){
-    wp_enqueue_style('dm-style',get_stylesheet_directory_uri().'/assets/css/template/messenger.css');
+    wp_enqueue_style('dm-style',get_stylesheet_directory_uri().'/assets/css/widgets/messenger.css');
     wp_enqueue_script('react','https://unpkg.com/react@18/umd/react.production.min.js',[],null,true);
     wp_enqueue_script('react-dom','https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',['react'],null,true);
     wp_enqueue_script('dm-app',get_stylesheet_directory_uri().'/assets/js/messenger.js',['react','react-dom'],null,true);

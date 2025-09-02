@@ -25,6 +25,14 @@ function handle_product_edit_form_submission() {
 
     update_post_meta($product_id, 'product_price', sanitize_text_field($_POST['product_price'] ?? ''));
 
+    if (isset($_POST['product_currency'])) {
+        update_post_meta($product_id, 'product_currency', sanitize_text_field($_POST['product_currency']));
+    }
+
+    if (isset($_POST['product_type'])) {
+        update_post_meta($product_id, 'product_type', sanitize_text_field($_POST['product_type']));
+    }
+
     if (!empty($_POST['product_categories']) && is_array($_POST['product_categories'])) {
         $category_ids = array_map('intval', $_POST['product_categories']);
         wp_set_post_terms($product_id, $category_ids, 'product_cat');
@@ -53,7 +61,6 @@ function handle_product_edit_form_submission() {
     }
 
     $new_attachment_ids = [];
-
     if (!empty($_FILES['product_gallery_input']['name'][0])) {
         add_filter('wp_handle_upload_prefilter', function($file) {
             $file['name'] = wp_generate_password(12, false, false) . '.' . pathinfo($file['name'], PATHINFO_EXTENSION);
@@ -109,4 +116,3 @@ function handle_product_edit_form_submission() {
     exit;
 }
 add_action('init', 'handle_product_edit_form_submission');
-

@@ -1,15 +1,5 @@
-// глобальная переменная из wp_localize_script
-const translations = singleProductData.translations;
 const language = singleProductData.language;
 
-function updateCharCount(textarea) {
-    const count = textarea.value.length;
-    const counter = textarea.nextElementSibling;
-    if (counter) {
-        counter.textContent = `${count} / 300`;
-    }
-    updateProgress();
-}
 
 function updateProgress() {
     const steps = {
@@ -37,9 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('change', updateProgress);
     });
 
-    document.querySelectorAll('textarea[maxlength]').forEach(updateCharCount);
-
-    // табы
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
     tabButtons.forEach(button => {
@@ -52,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // сортировка галереи
     const gallery = document.getElementById('gallery_preview');
     if (gallery) {
         new Sortable(gallery, {

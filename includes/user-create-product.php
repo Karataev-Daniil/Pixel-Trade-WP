@@ -5,38 +5,43 @@ add_filter('wp_handle_upload_prefilter', function($file) {
 });
 
 function handle_create_product() {
-    if (
-        !isset($_POST['submit_product']) ||
-        !isset($_POST['product_form_nonce']) ||
-        !wp_verify_nonce($_POST['product_form_nonce'], 'create_product_form') ||
-        !(current_user_can('publish_products') || current_user_can('edit_products'))
-    ) {
-        wp_die('Ошибка безопасности или нет прав');
+    if (!isset($_POST['product_form_nonce']) || !wp_verify_nonce($_POST['product_form_nonce'], 'create_product_form')) {
+        wp_die('Неверный запрос');
     }
 
-    $post_title    = sanitize_text_field($_POST['product_title'] ?? '');
-    $post_content  = sanitize_textarea_field($_POST['product_content'] ?? '');
-    $post_status   = sanitize_text_field($_POST['product_status'] ?? 'draft');
-    $product_price = sanitize_text_field($_POST['product_price'] ?? '');
+    if (!is_user_logged_in()) {
+        wp_die('Вы должны быть авторизованы для создания объявления');
+    }
+
+    $current_user = wp_get_current_user();
 
     $post_id = wp_insert_post([
-        'post_title'   => $post_title,
-        'post_content' => $post_content,
-        'post_status'  => $post_status,
         'post_type'    => 'products',
-        'post_author'  => get_current_user_id(),
-        'post_name'    => generate_product_slug(),
+        'post_title'   => sanitize_text_field($_POST['product_title'] ?? ''),
+        'post_content' => sanitize_textarea_field($_POST['product_content'] ?? ''),
+        'post_status'  => sanitize_text_field($_POST['product_status'] ?? 'draft'),
+        'post_author'  => $current_user->ID,
     ]);
 
-    if (is_wp_error($post_id)) {
-        wp_die('Ошибка создания товара');
+    if (!$post_id) {
+        wp_die('Ошибка при создании объявления');
     }
 
-    update_post_meta($post_id, 'product_price', $product_price);
-
-    if (!empty($_POST['product_categories']) && is_array($_POST['product_categories'])) {
-        $category_ids = array_map('intval', $_POST['product_categories']);
+    if (!empty($_POST['selected_categories'])) {
+        $category_ids = array_map('intval', json_decode(stripslashes($_POST['selected_categories']), true));
         wp_set_post_terms($post_id, $category_ids, 'product_cat');
+    }
+
+    if (isset($_POST['product_price'])) {
+        update_post_meta($post_id, 'product_price', sanitize_text_field($_POST['product_price']));
+    }
+
+    if (isset($_POST['product_currency'])) {
+        update_post_meta($post_id, 'product_currency', sanitize_text_field($_POST['product_currency']));
+    }
+
+    if (isset($_POST['product_type'])) {
+        update_post_meta($post_id, 'product_type', sanitize_text_field($_POST['product_type']));
     }
 
     if (!function_exists('media_handle_upload')) {

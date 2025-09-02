@@ -2,16 +2,7 @@
   <button id="dm-toggle-btn" class="dm-toggle-btn button-medium">Чат</button>
 
 
-  <script>
-function updateCharCount(textarea) {
-    const count = textarea.value.length;
-    const counter = textarea.nextElementSibling;
-    if (counter) {
-        counter.textContent = `${count} / 300`;
-    }
-    updateProgress();
-}
-
+  <!-- <script>
 function updateProgress() {
     const steps = {
         title: document.querySelector('input[name="product_title"]')?.value.trim().length > 0,
@@ -69,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
-</script>
+</script> -->
 
     <footer class="footer" role="contentinfo">
       <div class="footer__wrapper">

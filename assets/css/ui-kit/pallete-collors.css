@@ -1,4 +1,7 @@
 :root {
+    --popup-bg: rgba(0, 0, 0, 0.3);
+    --shadow: rgba(0, 0, 0, 0.5);
+
     /* Primary colors 'gray' */
     --gray_-6: #090909;
     --gray_-5: #131415;
@@ -184,6 +187,9 @@
     --danger_5: #FDF8F8;
 }
 html[data-theme="dark"] {
+    --popup-bg: rgba(0, 0, 0, 0.6);
+    --shadow: rgba(0, 0, 0, 0.8);
+
     /* Primary colors 'gray' */
     --gray_-6: #FFFFFF;
     --gray_-5: #F6F6F7;

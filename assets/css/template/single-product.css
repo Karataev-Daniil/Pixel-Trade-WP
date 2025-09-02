@@ -1,8 +1,14 @@
 .product__wrapper {
     background-color: var(--gray_6);
 }
+.single-products .product__wrapper {
+    overflow: hidden;
+}
 .product__wrapper .container-medium {
     overflow: visible;
+}
+.single-products {
+    display: block;
 }
 
 /* Основной контейнер карточки товара */
@@ -48,7 +54,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(255, 255, 255, 0);
+    background: var(--popup-bg);
     pointer-events: none;
     z-index: 1;
 }
@@ -84,7 +90,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.250); 
+    background: var(--popup-bg); 
     pointer-events: none;
     z-index: 1;
 }
@@ -267,6 +273,7 @@
     flex-direction: column;
     gap: 16px;
 }
+.form-group--type,
 .form-group--tabs,
 .form-group--gallery,
 .form-group--price,
@@ -284,6 +291,9 @@
     display: flex;
     flex-direction: row;
     gap: 24px;
+}
+.form-group--price .form-select {
+    min-width: 60px;
 }
 .form-group__right,
 .form-group__left {
@@ -320,11 +330,9 @@
 .product-create .tab-btn,
 .product-edit .tab-btn {
     color: var(--gray_-6);
-    background-color: var(--gray_4);
     line-height: 100%;
     padding: 8px 16px 10px;
     border-radius: 4px 4px 0 0;
-    border: 1px solid var(--gray_3);
     transition: background-color 0.3s, color 0.3s, border 0.3s;
     user-select: none;
     cursor: pointer;
@@ -332,8 +340,7 @@
 .product-create .tab-btn.active,
 .product-edit .tab-btn.active {
     color: var(--orange_0);
-    background-color: var(--gray_5);
-    border-bottom: 1px solid var(--gray_5);
+    border-bottom: 1px solid var(--orange_0);
 }
 .product-create .tab-content,
 .product-edit .tab-content {

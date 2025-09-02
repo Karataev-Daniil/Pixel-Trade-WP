@@ -78,7 +78,7 @@
   background: var(--gray_3);
   border: 1px solid var(--gray_1);
   border-radius: 6px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px var(--shadow);
   z-index: 1000;
   min-width: 120px;
   padding: 6px 0;
@@ -306,7 +306,7 @@
     top: 110%;
     background: var(--gray_3);
     border: 1px solid var(--gray_1);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 24px var(--shadow);
     padding: 8px 0;
     border-radius: 8px;
     min-width: 160px;
@@ -354,7 +354,6 @@ button.catalog-toggle-button {
     border-bottom: 2px solid var(--gray_1);
     border-left: 2px solid var(--gray_1);
     border-right: 2px solid var(--gray_1);
-    box-shadow: 0 8px 24px rgba(0,0,0,.08);
     border-radius: 0 0 6px 6px;
     display: flex;
     gap: 16px;
@@ -444,7 +443,7 @@ button.catalog-toggle-button {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.4);
+    background: var(--popup-bg);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;

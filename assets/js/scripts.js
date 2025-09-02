@@ -100,3 +100,60 @@ jQuery(document).ready(function($) {
 
     initFirstSlider();
 });
+
+
+/**
+ * showPopup - универсальная функция для показа уведомлений/попапов
+ * 
+ * @param {Object} options
+ * options = {
+ *   title: "Заголовок",          // заголовок
+ *   message: "Текст уведомления", // описание
+ *   type: "success|error|warning|info", // статус (цвет)
+ *   buttons: [                    // массив кнопок
+ *       { text: "OK", callback: () => {}, className: "primary" },
+ *       { text: "Отмена", callback: () => {}, className: "secondary" }
+ *   ]
+ * }
+ */
+function showPopup(options) {
+    const defaultOptions = {
+        title: '',
+        message: '',
+        type: 'info',
+        buttons: [{ text: 'Ок', callback: () => {}, className: 'primary' }]
+    };
+    const opts = { ...defaultOptions, ...options };
+
+    const overlay = document.createElement('div');
+    overlay.className = 'universal-popup-overlay';
+
+    const popup = document.createElement('div');
+    popup.className = `universal-popup ${opts.type}`;
+
+    const html = `
+        <h3 class="popup-title">${opts.title}</h3>
+        <p class="popup-message">${opts.message}</p>
+        <div class="popup-buttons"></div>
+    `;
+    popup.innerHTML = html;
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+
+    const btnContainer = popup.querySelector('.popup-buttons');
+
+    opts.buttons.forEach(btn => {
+        const b = document.createElement('button');
+        b.textContent = btn.text;
+        b.className = `popup-btn ${btn.className || ''}`;
+        b.onclick = () => {
+            if (btn.callback) btn.callback();
+            document.body.removeChild(overlay);
+        };
+        btnContainer.appendChild(b);
+    });
+
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) document.body.removeChild(overlay);
+    });
+}

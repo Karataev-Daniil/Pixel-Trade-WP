@@ -9,6 +9,13 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                 <form method="post" enctype="multipart/form-data" action="<?php echo admin_url('admin-post.php?action=create_product'); ?>">
                     <h1 class="product-create__title display-small"><?php echo t('Создать объявление', 'Create Listing', 'Creează Anunț'); ?></h1>
                     <?php wp_nonce_field('create_product_form', 'product_form_nonce'); ?>
+                    <section class="form-group form-group--type">
+                        <label class="form-label label-large"><?php echo t('Тип объявления', 'Listing type', 'Tip anunț'); ?></label>
+                        <select name="product_type" class="form-select select-tertiary body-medium-regular">
+                            <option value="sell"><?php echo t('Продам', 'Sell', 'Vând'); ?></option>
+                            <option value="buy"><?php echo t('Куплю', 'Buy', 'Cumpăr'); ?></option>
+                        </select>
+                    </section>
 
                     <!-- Categories -->
                     <fieldset class="form-group form-group--categories">
@@ -71,8 +78,27 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
 
                         <div class="translation-button">
                             <div id="translation-message" class="form-message body-medium-regular"></div>
+
+                            <div class="ai-actions">
+                                <button type="button" class="button secondary-button-small" onclick="showImproveOptions()">
+                                    <?php echo t('Улучшить текст', 'Improve text', 'Îmbunătățește textul'); ?>
+                                </button>
+                                <div id="improve-options" class="ai-options hidden">
+                                    <button type="button" class="button tertiary-button-small" onclick="improveText('formal')">
+                                        <?php echo t('Официальный стиль', 'Formal style', 'Stil oficial'); ?>
+                                    </button>
+                                    <button type="button" class="button tertiary-button-small" onclick="improveText('casual')">
+                                        <?php echo t('Повседневный стиль', 'Casual style', 'Stil cotidian'); ?>
+                                    </button>
+                                </div>
+                            </div>
+
                             <button type="button" class="button secondary-button-small generate-translation" onclick="generateTranslations()">
                                 <?php echo t('Сгенерировать переводы', 'Generate Translations', 'Generează traduceri'); ?>
+                            </button>
+
+                            <button type="button" class="button secondary-button-small" onclick="generateSEOText()">
+                                <?php echo t('SEO текст', 'SEO Text', 'Text SEO'); ?>
                             </button>
                         </div>
                     </section>
@@ -92,8 +118,15 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                     <!-- Price -->
                     <section class="form-group form-group--price">
                         <div class="form-group__left">
-                            <label class="form-label label-large"><?php echo t('Цена (леи)', 'Price (lei)', 'Preț (lei)'); ?></label>
-                            <input type="number" step="0.01" name="product_price" class="form-input input-secondary body-medium-regular" required>
+                            <label class="form-label label-large"><?php echo t('Цена', 'Price', 'Preț'); ?></label>
+                            <div class="price-input-wrapper">
+                                <input type="number" step="0.01" name="product_price" class="form-input input-secondary body-medium-regular" required>
+                                <select name="product_currency" class="form-select select-tertiary body-medium-regular">
+                                    <option value="lei">лей</option>
+                                    <option value="usd">$</option>
+                                    <option value="eur">€</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="form-group__right">
                             <label class="form-label label-large"><?php echo t('Статус', 'Status', 'Stare'); ?></label>
