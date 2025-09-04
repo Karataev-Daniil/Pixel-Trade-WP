@@ -336,7 +336,7 @@ button.catalog-toggle-button {
     content: "";
     position: absolute;
     top: -10px;
-    left: 62px;
+    left: 94px;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
     border-bottom: 10px solid var(--orange_0);
@@ -344,12 +344,13 @@ button.catalog-toggle-button {
 .catalog-dropdown {
     position: absolute;
     top: 145px;
-    left: 32px;
-    right: 32px;
+    left: 4px;
+    right: 4px;
     display: none;
     z-index: 50;
 }
 .catalog-inner {
+    max-width: 1280px;
     background: var(--gray_5);
     border-bottom: 2px solid var(--gray_1);
     border-left: 2px solid var(--gray_1);
@@ -361,6 +362,7 @@ button.catalog-toggle-button {
     width: 100%;
 }
 .catalog-main {
+    position: relative;
     padding: 16px 8px 16px 16px;
     list-style: none;
     margin: 0;

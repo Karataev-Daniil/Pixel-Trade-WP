@@ -109,13 +109,13 @@
     /* font-size: 16px; */
     /* line-height: 22px; */
 }
-.input-secondary:focus + label,
+/* .input-secondary:focus + label,
 .input-secondary:not(:placeholder-shown) + label {
     top: 16px;
     font-size: 12px;
     line-height: 17px;
     color: var(--text_pr);
-}
+} */
 
 /* Tertiary Input */
 .input-tertiary {

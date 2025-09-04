@@ -6,41 +6,43 @@ add_filter('wp_handle_upload_prefilter', function($file) {
 
 function handle_create_product() {
     if (!isset($_POST['product_form_nonce']) || !wp_verify_nonce($_POST['product_form_nonce'], 'create_product_form')) {
-        wp_die('Неверный запрос');
+        return;
     }
 
     if (!is_user_logged_in()) {
-        wp_die('Вы должны быть авторизованы для создания объявления');
+        return;
+    }
+
+    $title = trim($_POST['product_title'] ?? '');
+    $content = trim($_POST['product_content'] ?? '');
+    $price = trim($_POST['product_price'] ?? '') ?: trim($_POST['product_old_price'] ?? '');
+    $categories = json_decode(stripslashes($_POST['selected_categories'] ?? '[]'), true);
+
+    if (!$title || !$content || !$price || empty($categories)) {
+        return;
     }
 
     $current_user = wp_get_current_user();
 
     $post_id = wp_insert_post([
         'post_type'    => 'products',
-        'post_title'   => sanitize_text_field($_POST['product_title'] ?? ''),
-        'post_content' => sanitize_textarea_field($_POST['product_content'] ?? ''),
+        'post_title'   => sanitize_text_field($title),
+        'post_content' => sanitize_textarea_field($content),
         'post_status'  => sanitize_text_field($_POST['product_status'] ?? 'draft'),
         'post_author'  => $current_user->ID,
     ]);
 
     if (!$post_id) {
-        wp_die('Ошибка при создании объявления');
+        return;
     }
 
-    if (!empty($_POST['selected_categories'])) {
-        $category_ids = array_map('intval', json_decode(stripslashes($_POST['selected_categories']), true));
-        wp_set_post_terms($post_id, $category_ids, 'product_cat');
-    }
+    wp_set_post_terms($post_id, array_map('intval', $categories), 'product_cat');
 
-    if (isset($_POST['product_price'])) {
-        update_post_meta($post_id, 'product_price', sanitize_text_field($_POST['product_price']));
-    }
-
-    if (isset($_POST['product_currency'])) {
+    update_post_meta($post_id, 'product_price', sanitize_text_field($price));
+    if (!empty($_POST['product_currency'])) {
         update_post_meta($post_id, 'product_currency', sanitize_text_field($_POST['product_currency']));
     }
-
-    if (isset($_POST['product_type'])) {
+    if (!empty($_POST['product_type'])) {
         update_post_meta($post_id, 'product_type', sanitize_text_field($_POST['product_type']));
     }
 

@@ -10,6 +10,9 @@
 .single-products {
     display: block;
 }
+.visually-hidden {
+    display: none;
+}
 
 /* Основной контейнер карточки товара */
 .product-card {
@@ -280,6 +283,14 @@
 .form-group--categories {
     margin: 0 0 80px;
 }
+.product-create .form-group--type,
+.product-edit .form-group--type {
+    align-items: flex-start;
+}
+.product-create .form-group--categories,
+.product-edit .form-group--categories {
+    align-items: flex-start;
+}
 .product-create .translation-block,
 .product-edit .translation-block {
     display: flex;
@@ -293,7 +304,12 @@
     gap: 24px;
 }
 .form-group--price .form-select {
-    min-width: 60px;
+    min-width: 76px;
+    max-width: 126px;
+}
+.form-group--price .price-input-wrapper {
+    display: flex;
+    gap: 8px;
 }
 .form-group__right,
 .form-group__left {
@@ -315,7 +331,7 @@
 .product-edit .category-selectors {
     min-height: 40px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 24px;
 }
 .product-create .category-selectors .select-tertiary,
@@ -354,6 +370,69 @@
 .product-edit .tab-content input {
     margin: 0 0 24px;
 }
+.product-create .content-setting,
+.product-edit .content-setting {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+.form-error {
+    padding: 8px;
+    display: inline-block;
+    min-height: 24px;
+}
+.form-error.success { 
+    border-left: 3px solid var(--success_0);
+    color: var(--success_0); 
+}
+.form-error.error { 
+    border-left: 3px solid var(--danger_0);
+    color: var(--danger_0); 
+}
+.form-error.warning { 
+    border-left: 3px solid var(--warning_0); 
+    color: var(--warning_0); 
+}
+.form-error.info { 
+    border-left: 3px solid var(--aqua_0); 
+    color: var(--aqua_0); 
+}
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+.dropdown-content {
+    top: 50px;
+    display: none;
+    position: absolute;
+    background-color: var(--gray_5);
+    min-width: 200px;
+    box-shadow: 0px 8px 16px var(--shadow);
+    border: 1px solid var(--gray_1);
+    border-top: 1px solid var(--orange_0);
+    padding: 8px;
+    border-radius: 4px 0 4px 4px;
+}
+.dropdown-content::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 48px;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid var(--orange_0);
+}
+.dropdown-content button {
+    text-align: left;
+    text-decoration: none;
+}
+.dropdown.show .dropdown-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
 .product-create .tab-content.active,
 .product-edit .tab-content.active {
     display: block;
@@ -371,7 +450,7 @@
 .product-create .gallery-preview,
 .product-edit .gallery-preview {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(75px, 120px));
     gap: 24px;
 }
 .product-create .gallery-item,
@@ -379,6 +458,7 @@
     aspect-ratio: 4 / 3;
     overflow: hidden;
     display: flex;
+    justify-content: center;
     position: relative;
 }
 .product-create .gallery-item,
@@ -403,6 +483,38 @@
     right: 0;
     background-color: var(--gray_5);
     border-radius: 0 0 0 4px;
+}
+.btn-upload__icon {
+    aspect-ratio: 4 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--gray_1);
+}
+.btn-upload__text {
+    display: flex;
+    align-items: center;
+    justify-self: center;
+    width: 100%;
+    grid-column: span 2;
+}
+.btn-upload__icon .icon-camera {
+    height: 40px;
+    width: 40px;
+}
+.gallery-loading {
+    width: 30px;
+    height: 30px;
+
+    border: 3px solid var(--gray_1);
+    border-top: 3px solid var(--orange_0);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 5px;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .form-progress {
@@ -434,10 +546,10 @@
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    border: 3px solid var(--gray_1);
+    border: 1px solid var(--gray_1);
     transition: background-color 0.3s, ;
 }
 .form-progress__step.filled .form-progress__circle {
     background-color: var(--green_0);
-    border: 2px solid var(--gray_0);
+    border: none;
 }

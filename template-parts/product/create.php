@@ -6,15 +6,25 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
     <div class="container-medium">
         <main>
             <section class="product-create">
-                <form method="post" enctype="multipart/form-data" action="<?php echo admin_url('admin-post.php?action=create_product'); ?>">
-                    <h1 class="product-create__title display-small"><?php echo t('Создать объявление', 'Create Listing', 'Creează Anunț'); ?></h1>
+                <form id="create-product-form" method="post" enctype="multipart/form-data">
+                    <h1 class="product-create__title display-small">
+                        <?php echo t('Создать объявление', 'Create Listing', 'Creează Anunț'); ?>
+                    </h1>
                     <?php wp_nonce_field('create_product_form', 'product_form_nonce'); ?>
+
+                    <!-- Тип объявления -->
                     <section class="form-group form-group--type">
-                        <label class="form-label label-large"><?php echo t('Тип объявления', 'Listing type', 'Tip anunț'); ?></label>
+                        <label class="form-label label-large">
+                            <?php echo t('Тип объявления', 'Listing type', 'Tip anunț'); ?>
+                        </label>
                         <select name="product_type" class="form-select select-tertiary body-medium-regular">
                             <option value="sell"><?php echo t('Продам', 'Sell', 'Vând'); ?></option>
                             <option value="buy"><?php echo t('Куплю', 'Buy', 'Cumpăr'); ?></option>
                         </select>
+                        <small class="form-hint body-small-regular">
+                            <?php echo t('Выберите, что хотите сделать: продать или купить', 'Select whether you want to sell or buy', 'Alegeți dacă doriți să vindeți sau să cumpărați'); ?>
+                        </small>
+                        <div class="form-message body-small-regular" id="message_product_type"></div>
                     </section>
 
                     <!-- Categories -->
@@ -35,6 +45,10 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                                 };
                             </script>
                         </div>
+                        <small class="form-hint body-small-regular">
+                            <?php echo t('Выберите категорию товара. Можно выбрать несколько уровней', 'Select the product category. Multiple levels allowed', 'Selectați categoria produsului. Sunt permise mai multe niveluri'); ?>
+                        </small>
+                        <div class="form-message body-small-regular" id="message_selected_categories"></div>
                     </fieldset>
 
                     <!-- Language tabs -->
@@ -46,73 +60,98 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                             <li class="tab-btn body-small-semibold <?php if ($language === 'ro') echo 'active'; ?>" data-tab="tab-ro">RO</li>
                         </ul>
 
-                        <div class="tab-content <?php if ($language === 'ru') echo 'active'; ?>" id="tab-ru">
+                        <!-- RU tab -->
+                        <div class="tab-content <?php if ($language === 'ru') echo 'active'; ?>" id="tab-ru" data-lang="ru">
                             <label class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
                             <input type="text" class="form-input input-secondary body-medium-regular" name="product_title"
-                                   placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>">
+                                   placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>" data-lang="ru">
+                            <small class="form-help body-small-regular">
+                                <?php echo t('Придумайте короткое название для объявления', 'Enter a short title for your listing', 'Introduceți un titlu scurt pentru anunț'); ?>
+                            </small>
+
                             <label class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
-                            <textarea name="product_content" rows="5" class="form-textarea input-tertiary body-medium-regular"
-                                      placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>"></textarea>
-                            <small class="body-small-regular">0 / 2000</small>          
+                            <textarea name="product_content" rows="5" class="form-textarea input-tertiary body-small-regular"
+                                      placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>" data-lang="ru"></textarea>
+                            <small class="form-hint body-small-regular">0 / 2000</small>
                         </div>
 
-                        <div class="tab-content <?php if ($language === 'en') echo 'active'; ?>" id="tab-en">
+                        <!-- EN tab -->
+                        <div class="tab-content <?php if ($language === 'en') echo 'active'; ?>" id="tab-en" data-lang="en">
                             <label class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
                             <input type="text" class="form-input input-secondary body-medium-regular" name="title_en"
-                                   placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>">
+                                   placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>" data-lang="en">
+                            <small class="form-help body-small-regular">
+                                <?php echo t('Enter a short title for your listing', 'Enter a short title for your listing', 'Introduceți un titlu scurt pentru anunț'); ?>
+                            </small>
+
                             <label class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
-                            <textarea name="description_en" rows="5" class="form-textarea input-tertiary body-medium-regular"
-                                      placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>"></textarea>
-                            <small class="body-small-regular">0 / 2000</small>
+                            <textarea name="description_en" rows="5" class="form-textarea input-tertiary body-small-regular"
+                                      placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>" data-lang="en"></textarea>
+                            <small class="form-hint body-small-regular">0 / 2000</small>
                         </div>
 
-                        <div class="tab-content <?php if ($language === 'ro') echo 'active'; ?>" id="tab-ro">
+                        <!-- RO tab -->
+                        <div class="tab-content <?php if ($language === 'ro') echo 'active'; ?>" id="tab-ro" data-lang="ro">
                             <label class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
                             <input type="text" class="form-input input-secondary body-medium-regular" name="title_ro"
-                                   placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>">
+                                   placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>" data-lang="ro">
+                            <small class="form-help body-small-regular">
+                                <?php echo t('Introduceți un titlu scurt pentru anunț', 'Enter a short title for your listing', 'Introduceți un titlu scurt pentru anunț'); ?>
+                            </small>
+
                             <label class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
-                            <textarea name="description_ro" rows="5" class="form-textarea input-tertiary body-medium-regular"
-                                      placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>"></textarea>
-                            <small class="body-small-regular">0 / 2000</small>
+                            <textarea name="description_ro" rows="5" class="form-textarea input-tertiary body-small-regular"
+                                      placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>" data-lang="ro"></textarea>
+                            <small class="form-hint body-small-regular">0 / 2000</small>
                         </div>
 
-                        <div class="translation-button">
-                            <div id="translation-message" class="form-message body-medium-regular"></div>
-
-                            <div class="ai-actions">
-                                <button type="button" class="button secondary-button-small" onclick="showImproveOptions()">
-                                    <?php echo t('Улучшить текст', 'Improve text', 'Îmbunătățește textul'); ?>
+                        <!-- Translation / Actions block -->
+                        <div class="content-setting">
+                            <div class="dropdown">
+                                <button id="translation-action-button" class="secondary-button-small button-small">
+                                    <?php echo t('Действия', 'Actions', 'Acțiuni'); ?>
                                 </button>
-                                <div id="improve-options" class="ai-options hidden">
-                                    <button type="button" class="button tertiary-button-small" onclick="improveText('formal')">
-                                        <?php echo t('Официальный стиль', 'Formal style', 'Stil oficial'); ?>
+                                <div class="dropdown-content" id="translation-action-menu">
+                                    <button class="link-button-gray button-small" type="button" onclick="generateTranslations()">
+                                        <?php echo t('Генерировать переводы', 'Generate translations', 'Generează traduceri'); ?>
                                     </button>
-                                    <button type="button" class="button tertiary-button-small" onclick="improveText('casual')">
-                                        <?php echo t('Повседневный стиль', 'Casual style', 'Stil cotidian'); ?>
+                                    <button class="link-button-gray button-small" type="button" onclick="showImproveOptions()">
+                                        <?php echo t('Улучшить текст', 'Improve text', 'Îmbunătățește textul'); ?>
+                                    </button>
+                                    <button class="link-button-gray button-small" type="button" onclick="generateSEOText()">
+                                        <?php echo t('Сгенерировать SEO-текст', 'Generate SEO text', 'Generează text SEO'); ?>
                                     </button>
                                 </div>
                             </div>
-
-                            <button type="button" class="button secondary-button-small generate-translation" onclick="generateTranslations()">
-                                <?php echo t('Сгенерировать переводы', 'Generate Translations', 'Generează traduceri'); ?>
-                            </button>
-
-                            <button type="button" class="button secondary-button-small" onclick="generateSEOText()">
-                                <?php echo t('SEO текст', 'SEO Text', 'Text SEO'); ?>
-                            </button>
+                            <div id="translation-message" class="form-error body-small-regular"></div>
                         </div>
                     </section>
 
                     <!-- Gallery -->
                     <div class="form-group form-group--gallery">
-                        <label class="form-label label-large">
-                            <?php echo t('Изображения (до 6 шт., первое — миниатюра)', 'Images (up to 6, first is thumbnail)', 'Imagini (până la 6, prima este miniatura)'); ?>
-                        </label>
-                        <input type="file" name="product_gallery[]" accept="image/*" multiple class="form-file body-medium-regular" id="product_gallery_input" onchange="checkGalleryLimit(this)">
+                        <label class="form-label label-large"><?php echo t('Изображения', 'Images', 'Imagini'); ?></label>
+                        <div id="gallery_preview" class="gallery-preview">
+                            <label class="btn-upload" for="product_gallery_input">
+                                <div class="btn-upload__icon">
+                                    <?php 
+                                        $svg = file_get_contents(get_template_directory() . '/images/icon-camera.svg');
+                                        $svg = str_replace('<svg', '<svg class="icon icon-camera"', $svg);
+                                        echo $svg;
+                                    ?>
+                                </div>
+                            </label>
+                            <span class="btn-upload__text uppercase-small">
+                                <?php echo t('Добавить фото (до 10 шт.)', 'Add photo (up to 10)', 'Adaugă foto (până la 10)'); ?>
+                            </span>
+                        </div>
+                        <small class="form-hint body-small-regular">
+                            <?php echo t('Первое изображение станет миниатюрой.', 'The first image will become the thumbnail.', 'Prima imagine va deveni miniatura.'); ?>
+                        </small>
+                        <input type="file" name="product_gallery[]" accept="image/*" multiple class="form-file visually-hidden" id="product_gallery_input" onchange="checkGalleryLimit(this)">
                         <input type="hidden" name="gallery_order" id="gallery_order_input" value="">
                         <input type="hidden" name="remove_gallery_ids[]" id="remove_gallery_ids_input" value="">
                         <input type="hidden" name="main_thumbnail_id" id="main_thumbnail_id" value="">
-                        <div id="gallery_preview" class="gallery-preview"></div>
+                        <div class="form-message body-small-regular" id="message_product_gallery"></div>
                     </div>
 
                     <!-- Price -->
@@ -120,13 +159,18 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                         <div class="form-group__left">
                             <label class="form-label label-large"><?php echo t('Цена', 'Price', 'Preț'); ?></label>
                             <div class="price-input-wrapper">
-                                <input type="number" step="0.01" name="product_price" class="form-input input-secondary body-medium-regular" required>
+                                <input type="number" step="0.01" name="product_price" class="form-input input-secondary body-medium-regular"
+                                       placeholder="<?php echo t('Укажите цену', 'Enter the price', 'Introduceți prețul'); ?>">
                                 <select name="product_currency" class="form-select select-tertiary body-medium-regular">
                                     <option value="lei">лей</option>
                                     <option value="usd">$</option>
                                     <option value="eur">€</option>
                                 </select>
                             </div>
+                            <small class="form-hint body-small-regular">
+                                <?php echo t('Введите цену без пробелов и символов, только цифры', 'Enter the price as digits only', 'Introduceți prețul doar cu cifre'); ?>
+                            </small>
+                            <div class="form-message body-small-regular" id="message_product_price"></div>
                         </div>
                         <div class="form-group__right">
                             <label class="form-label label-large"><?php echo t('Статус', 'Status', 'Stare'); ?></label>
@@ -134,9 +178,11 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                                 <option value="publish"><?php echo t('Опубликован', 'Published', 'Publicat'); ?></option>
                                 <option value="draft"><?php echo t('Черновик', 'Draft', 'Schiță'); ?></option>
                             </select>
+                            <div class="form-message body-small-regular" id="message_product_status"></div>
                         </div>
                     </section>
 
+                    <!-- Submit -->
                     <div class="form-group">
                         <input type="submit" name="submit_product" value="<?php echo t('Создать', 'Create', 'Creează'); ?>" class="form-submit primary-button-large button-large">
                     </div>
@@ -148,7 +194,9 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                         <?php foreach (['category','title','description','image','price'] as $step): ?>
                             <li class="form-progress__step" data-step="<?php echo $step; ?>" <?php if ($step==='title') echo 'aria-current="step"'; ?>>
                                 <span class="form-progress__circle"></span>
-                                <span class="form-progress__label body-small-semibold"><?php echo t(ucfirst($step), ucfirst($step), ucfirst($step)); ?></span>
+                                <span class="form-progress__label body-small-semibold">
+                                    <?php echo t(ucfirst($step), ucfirst($step), ucfirst($step)); ?>
+                                </span>
                             </li>
                         <?php endforeach; ?>
                     </ol>
@@ -158,23 +206,3 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const target = this.getAttribute('data-tab');
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-            this.classList.add('active');
-            document.getElementById(target).classList.add('active');
-        });
-    });
-
-    function updateSelectedCategories(ids) {
-        document.getElementById('selected_categories_input').value = ids.join(',');
-    }
-});
-</script>

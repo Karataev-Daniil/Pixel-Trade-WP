@@ -12,6 +12,7 @@ function custom_enqueue_assets() {
         'pallete-colors'   => '/assets/css/ui-kit/pallete-collors.css',
         'inputs-ui'        => '/assets/css/ui-kit/inputs.css',
         'typography'       => '/assets/css/ui-kit/typography.css',
+        'popup'            => '/assets/css/ui-kit/popup.css',
         'menu'             => '/assets/css/menu.css',
         'footer-menu'      => '/assets/css/footer-menu.css',
         'test-ui-page'     => '/assets/css/template/test-ui-page.css',
@@ -35,6 +36,19 @@ function custom_enqueue_assets() {
         filemtime( $theme_path . '/assets/js/scripts.js' ),
         true
     );
+
+    wp_enqueue_script(
+        'popup', 
+        $theme_dir . '/assets/js/popup.js',
+        ['jquery'],
+        filemtime( $theme_path . '/assets/js/popup.js' ),
+        true
+    );
+
+    wp_localize_script('popup', 'themeVars', [
+        'imgPath' => get_template_directory_uri() . '/images/'
+    ]);
+
 
     wp_enqueue_script(
         'slick-js',
@@ -90,7 +104,7 @@ function custom_enqueue_assets() {
         wp_enqueue_script(
             'single-product-scripts',
             $theme_dir . '/assets/js/single-product.js',
-            ['jquery'],
+            ['jquery', 'sortablejs'],
             filemtime($theme_path . '/assets/js/single-product.js'),
             true
         );
@@ -109,14 +123,14 @@ function custom_enqueue_assets() {
         ]);
 
         wp_enqueue_script(
-            'translation-product',
-            $theme_dir . '/assets/js/translation-product.js',
+            'product-translations',
+            $theme_dir . '/assets/js/product-translations.js',
             [],
-            filemtime($theme_path . '/assets/js/translation-product.js'),
+            filemtime($theme_path . '/assets/js/product-translations.js'),
             true
         );
 
-        wp_localize_script('translation-product', 'translationVars', [
+        wp_localize_script('product-translations', 'translationVars', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce'   => wp_create_nonce('generate_translations_nonce'),
         ]);
@@ -126,14 +140,6 @@ function custom_enqueue_assets() {
             'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js',
             [],
             null,
-            true
-        );
-
-        wp_enqueue_script(
-            'gallery-manager',
-            $theme_dir . '/assets/js/gallery-manager.js',
-            ['sortablejs'],
-            filemtime($theme_path . '/assets/js/gallery-manager.js'),
             true
         );
 
