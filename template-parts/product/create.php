@@ -7,17 +7,17 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
         <main>
             <section class="product-create">
                 <form id="create-product-form" method="post" enctype="multipart/form-data">
-                    <h1 class="product-create__title display-small">
+                    <h1 class="product-create__title display-large">
                         <?php echo t('Создать объявление', 'Create Listing', 'Creează Anunț'); ?>
                     </h1>
                     <?php wp_nonce_field('create_product_form', 'product_form_nonce'); ?>
 
                     <!-- Тип объявления -->
                     <section class="form-group form-group--type">
-                        <label class="form-label label-large">
+                        <label class="form-label label-large" for="product_type">
                             <?php echo t('Тип объявления', 'Listing type', 'Tip anunț'); ?>
                         </label>
-                        <select name="product_type" class="form-select select-tertiary body-medium-regular">
+                        <select id="product_type" name="product_type" class="form-select select-tertiary body-medium-regular">
                             <option value="sell"><?php echo t('Продам', 'Sell', 'Vând'); ?></option>
                             <option value="buy"><?php echo t('Куплю', 'Buy', 'Cumpăr'); ?></option>
                         </select>
@@ -29,9 +29,10 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
 
                     <!-- Categories -->
                     <fieldset class="form-group form-group--categories">
+                        <legend class="label-large"><?php echo t('Категории', 'Categories', 'Categorii'); ?></legend>
                         <div class="category-selectors" id="category-selectors" data-restored="1">
                             <?php
-                            $selected_categories = isset($selected_categories) ? $selected_categories : [];
+                            $selected_categories = $selected_categories ?? [];
                             $sorted_term_ids = sort_categories_by_hierarchy($selected_categories);
                             ?>
                             <div id="preselected-categories" data-terms="<?php echo esc_attr(json_encode($sorted_term_ids)); ?>"></div>
@@ -39,7 +40,7 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                             <script>
                                 const translations = {
                                     selectCategory: <?php echo json_encode(t('Выберите категорию', 'Select category', 'Selectați categoria')); ?>,
-                                    labelLevel0: <?php echo json_encode(t('Категория', 'Category', 'Categorie')); ?>,
+                                    labelLevel0: <?php echo json_encode(t('', '', '')); ?>,
                                     labelLevel1: <?php echo json_encode(t('Подкатегория', 'Subcategory', 'Subcategorie')); ?>,
                                     labelLevel2: <?php echo json_encode(t('Под-подкатегория', 'Sub-subcategory', 'Sub-subcategorie')); ?>,
                                 };
@@ -51,7 +52,7 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                         <div class="form-message body-small-regular" id="message_selected_categories"></div>
                     </fieldset>
 
-                    <!-- Language tabs -->
+                     <!-- Language tabs -->
                     <section class="form-group form-group--tabs tabs">
                         <?php $language = $GLOBALS['language']; ?>
                         <ul class="tab-buttons">
@@ -65,12 +66,9 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                             <label class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
                             <input type="text" class="form-input input-secondary body-medium-regular" name="product_title"
                                    placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>" data-lang="ru">
-                            <small class="form-help body-small-regular">
-                                <?php echo t('Придумайте короткое название для объявления', 'Enter a short title for your listing', 'Introduceți un titlu scurt pentru anunț'); ?>
-                            </small>
 
                             <label class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
-                            <textarea name="product_content" rows="5" class="form-textarea input-tertiary body-small-regular"
+                            <textarea name="product_content" rows="5" class="form-textarea input-tertiary body-medium-regular"
                                       placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>" data-lang="ru"></textarea>
                             <small class="form-hint body-small-regular">0 / 2000</small>
                         </div>
@@ -80,12 +78,9 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                             <label class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
                             <input type="text" class="form-input input-secondary body-medium-regular" name="title_en"
                                    placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>" data-lang="en">
-                            <small class="form-help body-small-regular">
-                                <?php echo t('Enter a short title for your listing', 'Enter a short title for your listing', 'Introduceți un titlu scurt pentru anunț'); ?>
-                            </small>
 
                             <label class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
-                            <textarea name="description_en" rows="5" class="form-textarea input-tertiary body-small-regular"
+                            <textarea name="description_en" rows="5" class="form-textarea input-tertiary body-medium-regular"
                                       placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>" data-lang="en"></textarea>
                             <small class="form-hint body-small-regular">0 / 2000</small>
                         </div>
@@ -95,12 +90,9 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                             <label class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
                             <input type="text" class="form-input input-secondary body-medium-regular" name="title_ro"
                                    placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>" data-lang="ro">
-                            <small class="form-help body-small-regular">
-                                <?php echo t('Introduceți un titlu scurt pentru anunț', 'Enter a short title for your listing', 'Introduceți un titlu scurt pentru anunț'); ?>
-                            </small>
 
                             <label class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
-                            <textarea name="description_ro" rows="5" class="form-textarea input-tertiary body-small-regular"
+                            <textarea name="description_ro" rows="5" class="form-textarea input-tertiary body-medium-regular"
                                       placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>" data-lang="ro"></textarea>
                             <small class="form-hint body-small-regular">0 / 2000</small>
                         </div>
@@ -108,27 +100,27 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                         <!-- Translation / Actions block -->
                         <div class="content-setting">
                             <div class="dropdown">
-                                <button id="translation-action-button" class="secondary-button-small button-small">
+                                <button id="translation-action-button" class="secondary-button-small">
                                     <?php echo t('Действия', 'Actions', 'Acțiuni'); ?>
                                 </button>
                                 <div class="dropdown-content" id="translation-action-menu">
-                                    <button class="link-button-gray button-small" type="button" onclick="generateTranslations()">
+                                    <button class="link-button-gray" type="button" onclick="generateTranslations()">
                                         <?php echo t('Генерировать переводы', 'Generate translations', 'Generează traduceri'); ?>
                                     </button>
-                                    <button class="link-button-gray button-small" type="button" onclick="showImproveOptions()">
+                                    <button class="link-button-gray" type="button" onclick="showImproveOptions()">
                                         <?php echo t('Улучшить текст', 'Improve text', 'Îmbunătățește textul'); ?>
                                     </button>
-                                    <button class="link-button-gray button-small" type="button" onclick="generateSEOText()">
+                                    <button class="link-button-gray" type="button" onclick="generateSEOText()">
                                         <?php echo t('Сгенерировать SEO-текст', 'Generate SEO text', 'Generează text SEO'); ?>
                                     </button>
                                 </div>
                             </div>
-                            <div id="translation-message" class="form-error body-small-regular"></div>
+                            <div id="translation-message" class="form-message body-small-regular"></div>
                         </div>
                     </section>
 
                     <!-- Gallery -->
-                    <div class="form-group form-group--gallery">
+                    <section class="form-group form-group--gallery">
                         <label class="form-label label-large"><?php echo t('Изображения', 'Images', 'Imagini'); ?></label>
                         <div id="gallery_preview" class="gallery-preview">
                             <label class="btn-upload" for="product_gallery_input">
@@ -139,20 +131,16 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                                         echo $svg;
                                     ?>
                                 </div>
+                                <span class="btn-upload__text uppercase-small"><?php echo t('Добавить фото (до 10 шт.)', 'Add photo (up to 10)', 'Adaugă foto (până la 10)'); ?></span>
                             </label>
-                            <span class="btn-upload__text uppercase-small">
-                                <?php echo t('Добавить фото (до 10 шт.)', 'Add photo (up to 10)', 'Adaugă foto (până la 10)'); ?>
-                            </span>
                         </div>
-                        <small class="form-hint body-small-regular">
-                            <?php echo t('Первое изображение станет миниатюрой.', 'The first image will become the thumbnail.', 'Prima imagine va deveni miniatura.'); ?>
-                        </small>
+                        <small class="form-hint body-small-regular"><?php echo t('Первое изображение станет миниатюрой.', 'The first image will become the thumbnail.', 'Prima imagine va deveni miniatura.'); ?></small>
                         <input type="file" name="product_gallery[]" accept="image/*" multiple class="form-file visually-hidden" id="product_gallery_input" onchange="checkGalleryLimit(this)">
                         <input type="hidden" name="gallery_order" id="gallery_order_input" value="">
                         <input type="hidden" name="remove_gallery_ids[]" id="remove_gallery_ids_input" value="">
                         <input type="hidden" name="main_thumbnail_id" id="main_thumbnail_id" value="">
                         <div class="form-message body-small-regular" id="message_product_gallery"></div>
-                    </div>
+                    </section>
 
                     <!-- Price -->
                     <section class="form-group form-group--price">
@@ -184,25 +172,12 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
 
                     <!-- Submit -->
                     <div class="form-group">
-                        <input type="submit" name="submit_product" value="<?php echo t('Создать', 'Create', 'Creează'); ?>" class="form-submit primary-button-large button-large">
+                        <button type="submit" name="submit_product" class="form-submit primary-button-large">
+                            <?php echo t('Создать', 'Create', 'Creează'); ?>
+                        </button>
                     </div>
                 </form>
-
-                <!-- Progress -->
-                <nav class="form-progress" aria-label="Progress">
-                    <ol class="form-progress__steps" id="form-progress-bar">
-                        <?php foreach (['category','title','description','image','price'] as $step): ?>
-                            <li class="form-progress__step" data-step="<?php echo $step; ?>" <?php if ($step==='title') echo 'aria-current="step"'; ?>>
-                                <span class="form-progress__circle"></span>
-                                <span class="form-progress__label body-small-semibold">
-                                    <?php echo t(ucfirst($step), ucfirst($step), ucfirst($step)); ?>
-                                </span>
-                            </li>
-                        <?php endforeach; ?>
-                    </ol>
-                </nav>
             </section>
         </main>
     </div>
 </div>
-

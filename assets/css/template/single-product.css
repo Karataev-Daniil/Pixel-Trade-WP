@@ -331,7 +331,9 @@
 .product-edit .category-selectors {
     min-height: 40px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 250px));
+    width: 100%;
+    align-items: end;
     gap: 24px;
 }
 .product-create .category-selectors .select-tertiary,
@@ -377,24 +379,24 @@
     align-items: flex-start;
     gap: 12px;
 }
-.form-error {
+.form-message {
     padding: 8px;
     display: inline-block;
     min-height: 24px;
 }
-.form-error.success { 
+.form-message.success { 
     border-left: 3px solid var(--success_0);
     color: var(--success_0); 
 }
-.form-error.error { 
+.form-message.error { 
     border-left: 3px solid var(--danger_0);
     color: var(--danger_0); 
 }
-.form-error.warning { 
+.form-message.warning { 
     border-left: 3px solid var(--warning_0); 
     color: var(--warning_0); 
 }
-.form-error.info { 
+.form-message.info { 
     border-left: 3px solid var(--aqua_0); 
     color: var(--aqua_0); 
 }
@@ -483,6 +485,12 @@
     right: 0;
     background-color: var(--gray_5);
     border-radius: 0 0 0 4px;
+}
+.btn-upload {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(75px, 120px));
+    gap: 24px;
+    grid-column: span 3;
 }
 .btn-upload__icon {
     aspect-ratio: 4 / 3;
