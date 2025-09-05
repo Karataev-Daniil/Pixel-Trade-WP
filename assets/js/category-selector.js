@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
         container.dataset.level = level;
 
         const label = document.createElement('label');
-        label.classList.add('label-medium');
+        label.classList.add(level === 0 ? 'label-large' : 'label-medium');
         label.textContent = translations['labelLevel' + (level || 0)] || ``;
 
         const select = document.createElement('select');

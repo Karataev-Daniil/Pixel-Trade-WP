@@ -42,7 +42,9 @@ if ($author_region && !empty($regions)) {
         </div>
         <h3 class="product-card__title body-small-regular"><?php the_title(); ?></h3>
         <?php if ($price): ?>
-            <div class="product-card__price uppercase-small"><?php echo esc_html($price); ?> MDL</div>
+            <div class="product-card__price uppercase-small">
+                <?php echo number_format((float)$price, 0, '', ','); ?> MDL
+            </div>
         <?php endif; ?>
         
         <?php if ($region_name): ?>
