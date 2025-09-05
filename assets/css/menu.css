@@ -7,6 +7,28 @@
 .header .header__wrapper .container-medium {
     overflow: visible;
 }
+.main-navigation .logo a {
+    color: var(--orange_0);
+    text-decoration: none;
+}
+.main-navigation li {
+    list-style: none;
+}
+.main-navigation .language-switcher a {
+    border-radius: 4px;
+    color: var(--gray_-6);
+}
+.main-navigation .language-switcher a:hover {
+    color: var(--gray_-2);
+}
+.main-navigation .language-switcher a.active {
+    color: var(--orange_0);
+    font-weight: bold;
+}
+.main-navigation .language-switcher a.active:hover {
+    color: var(--orange_2);
+    transform: scale(1);
+}
 
 /* 2. Navigation Layout */
 .main-navigation {
@@ -23,7 +45,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 0 0 2px;
 }
 .header-top-left {
     display: flex;
@@ -71,21 +92,21 @@
     padding: 8px 12px;
 }
 .main-navigation .language-options {
-  display: none;
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: var(--gray_3);
-  border: 1px solid var(--gray_1);
-  border-radius: 6px;
-  box-shadow: 0 8px 24px var(--shadow);
-  z-index: 1000;
-  min-width: 120px;
-  padding: 6px 0;
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--gray_3);
+    border: 1px solid var(--gray_1);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px var(--shadow);
+    z-index: 1000;
+    min-width: 120px;
+    padding: 6px 0;
 }
 .language-switcher:hover .language-options,
 .language-switcher.open .language-options {
-  display: block;
+    display: block;
 }
 .language-toggle .lang-label {
     padding: 8px 12px;
@@ -118,28 +139,136 @@
     font-size: 1.2em;
 }
 
-
-.main-navigation .logo a {
-    color: var(--orange_0);
-    text-decoration: none;
+/* 6. Theme Toggle */
+.theme-icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    min-height: auto;
+    box-sizing: border-box;
+    cursor: pointer;
+    background: none;
+    border: none;
 }
-.main-navigation li {
+.theme-icon-button .icon-sun,
+.theme-icon-button .icon-sun-solid,
+.theme-icon-button .icon-moon,
+.theme-icon-button .icon-moon-solid {
+    width: 20px;
+    height: 20px;
+    display: none;
+}
+.theme-icon-button .icon-sun-solid,
+.theme-icon-button .icon-moon-solid {
+    position: absolute;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+[data-theme="light"] .theme-icon-button .icon-sun,
+[data-theme="light"] .theme-icon-button .icon-sun-solid {
+    display: inline;
+}
+[data-theme="dark"] .theme-icon-button .icon-moon,
+[data-theme="dark"] .theme-icon-button .icon-moon-solid {
+    display: inline;
+}
+.theme-icon-button:hover .icon-sun-solid,
+.theme-icon-button:hover .icon-moon-solid {
+    opacity: 1;
+}
+.theme-icon-button:hover .icon-sun,
+.theme-icon-button:hover .icon-moon {
+    opacity: 0;
+}
+.theme-icon-button,
+.theme-icon-button span {
+    transition: all 0.3s ease;
+}
+
+
+.dm-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.dm-toggle-btn .icon-message,
+.dm-toggle-btn .icon-message-solid {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    color: var(--gray_-5);
+    transition: opacity 0.3s ease;
+    opacity: 1;
+}
+.dm-toggle-btn .icon-message-solid {
+    opacity: 0;
+}
+.dm-toggle-btn:hover .icon-message-solid {
+    opacity: 1;
+}
+.dm-toggle-btn:hover .icon-message {
+    opacity: 0;
+}
+
+
+/* 7. User Menu */
+.user-menu {
+    position: relative;
+}
+.user-avatar {
+    padding: 0;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--gray_2);
+}
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.user-dropdown {
+    display: none;
+    position: absolute;
+    width: 200px;
+    right: 0;
+    top: 110%;
+    background: var(--gray_3);
+    border: 1px solid var(--gray_1);
+    box-shadow: 0 8px 24px var(--shadow);
+    padding: 8px 0;
+    border-radius: 8px;
+    min-width: 160px;
+    z-index: 999;
+}
+.user-dropdown li {
     list-style: none;
 }
-.main-navigation .language-switcher a {
-    border-radius: 4px;
+.user-dropdown li a {
+    display: block;
+    padding: 8px 16px;
     color: var(--gray_-6);
+    text-decoration: none;
 }
-.main-navigation .language-switcher a:hover {
-    color: var(--gray_-2);
+.user-dropdown li a:hover {
+    background-color: var(--gray_3);
 }
-.main-navigation .language-switcher a.active {
-    color: var(--orange_0);
-    font-weight: bold;
-}
-.main-navigation .language-switcher a.active:hover {
-    color: var(--orange_2);
-    transform: scale(1);
+.user-menu-wrapper.active .user-dropdown {
+    display: block;
 }
 
 /* 3. Logo Animations */
@@ -256,78 +385,6 @@
     background-color: var(--orange_0);
 }
 
-/* 6. Theme Toggle */
-.theme-icon-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    width: 36px;
-    height: 36px;
-    min-height: auto;
-    box-sizing: border-box;
-}
-.theme-icon-button .icon-sun,
-.theme-icon-button .icon-moon {
-    display: none;
-    width: 24px;
-    height: 24px;
-}
-[data-theme="light"] .theme-icon-button .icon-moon {
-    display: inline;
-}
-[data-theme="dark"] .theme-icon-button .icon-sun {
-    display: inline;
-}
-
-/* 7. User Menu */
-.user-menu {
-    position: relative;
-}
-.user-avatar {
-    padding: 0;
-    cursor: pointer;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 2px solid var(--gray_2);
-}
-.user-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-.user-dropdown {
-    display: none;
-    position: absolute;
-    width: 200px;
-    right: 0;
-    top: 110%;
-    background: var(--gray_3);
-    border: 1px solid var(--gray_1);
-    box-shadow: 0 8px 24px var(--shadow);
-    padding: 8px 0;
-    border-radius: 8px;
-    min-width: 160px;
-    z-index: 999;
-}
-.user-dropdown li {
-    list-style: none;
-}
-.user-dropdown li a {
-    display: block;
-    padding: 8px 16px;
-    color: var(--gray_-6);
-    text-decoration: none;
-}
-.user-dropdown li a:hover {
-    background-color: var(--gray_3);
-}
-.user-menu-wrapper.active .user-dropdown {
-    display: block;
-}
-
 /* 8. Catalog Dropdown */
 button.catalog-toggle-button {
     width: 100%;
@@ -351,6 +408,7 @@ button.catalog-toggle-button {
 }
 .catalog-inner {
     max-width: 1280px;
+    min-height: 400px;
     background: var(--gray_5);
     border-bottom: 2px solid var(--gray_1);
     border-left: 2px solid var(--gray_1);

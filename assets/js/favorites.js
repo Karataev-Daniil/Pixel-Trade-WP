@@ -58,3 +58,42 @@ jQuery(document).ready(function($){
         }, 5000);
     }
 });
+
+jQuery(document).ready(function($){
+    $(document).on('click', '.toggle-favorite', function(e){
+        e.preventDefault();
+
+        let button = $(this);
+        let svg = button.find('svg');
+        let product_id = button.data('id');
+
+        // проверяем текущее состояние сердечка
+        let fill = svg.attr('fill');
+        let isActive = fill && fill !== 'none' && fill !== '';
+
+        let action = isActive ? 'remove_from_favorites' : 'add_to_favorites';
+
+        $.post(favorites_ajax.ajax_url, {
+            action: action,
+            product_id: product_id,
+            nonce: favorites_ajax.nonce
+        }, function(response){
+            if(response.success){
+                if(isActive){
+                    // ставим пустое сердечко
+                    svg.attr('fill','none')
+                       .attr('stroke','var(--gray_-6)')
+                       .attr('stroke-width','2')
+                       .attr('stroke-linecap','round')
+                       .attr('stroke-linejoin','round');
+                } else {
+                    // ставим красное сердечко
+                    svg.attr('fill','red')
+                       .attr('stroke','none');
+                }
+            } else {
+                alert(response.data.message);
+            }
+        });
+    });
+});

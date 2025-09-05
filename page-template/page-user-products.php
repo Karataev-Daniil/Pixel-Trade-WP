@@ -1,5 +1,28 @@
 <?php
 /* Template Name: Мои Товары */
+if (is_user_logged_in()) {
+    if (isset($_GET['delete_product'])) {
+        $product_id = intval($_GET['delete_product']);
+        if (current_user_can('delete_post', $product_id)) {
+            wp_trash_post($product_id);
+            wp_safe_redirect(remove_query_arg('delete_product'));
+            exit;
+        }
+    }
+
+    if (isset($_GET['toggle_hidden'])) {
+        $product_id = intval($_GET['toggle_hidden']);
+        if (current_user_can('edit_post', $product_id)) {
+            $post_status = get_post_status($product_id);
+            wp_update_post([
+                'ID' => $product_id,
+                'post_status' => $post_status === 'publish' ? 'draft' : 'publish'
+            ]);
+            wp_safe_redirect(remove_query_arg('toggle_hidden'));
+            exit;
+        }
+    }
+}
 
 get_header();
 
@@ -25,7 +48,6 @@ $args = [
 $products = new WP_Query($args);
 
 $count_all = count_user_posts($current_user_id, 'products', true);
-
 $count_active = (new WP_Query([
     'post_type'      => 'products',
     'author'         => $current_user_id,
@@ -41,28 +63,6 @@ $count_hidden = (new WP_Query([
     'fields'         => 'ids',
     'posts_per_page' => -1,
 ]))->found_posts;
-
-if (isset($_GET['delete_product'])) {
-    $product_id = intval($_GET['delete_product']);
-    if (current_user_can('edit_products', $product_id)) {
-        wp_trash_post($product_id);
-        wp_redirect(remove_query_arg(['delete_product']));
-        exit;
-    }
-}
-
-if (isset($_GET['toggle_hidden'])) {
-    $product_id = intval($_GET['toggle_hidden']);
-    if (current_user_can('edit_products', $product_id)) {
-        $post_status = get_post_status($product_id);
-        wp_update_post([
-            'ID' => $product_id,
-            'post_status' => $post_status === 'publish' ? 'draft' : 'publish'
-        ]);
-        wp_redirect(remove_query_arg(['toggle_hidden']));
-        exit;
-    }
-}
 ?>
 <div class="dashboard__wrapper content-main">
     <div class="container-medium">
@@ -157,13 +157,13 @@ if (isset($_GET['toggle_hidden'])) {
                                         <?= t('Редактировать', 'Edit', 'Editează'); ?>
                                     </a>
                                     
-                                    <a href="?delete_product=<?= the_ID(); ?>"
+                                    <a href="?delete_product=<?= get_the_ID(); ?>"
                                        onclick="return confirm('<?= t('Удалить товар?', 'Delete this product?', 'Șterge produsul?'); ?>')"
                                        class="product-card__action-button accent-button-small button-small">
                                         <?= t('Удалить', 'Delete', 'Șterge'); ?>
                                     </a>
                                     
-                                    <a href="?toggle_hidden=<?= the_ID(); ?>"
+                                    <a href="?toggle_hidden=<?= get_the_ID(); ?>"
                                        class="product-card__action-button secondary-button-small button-small">
                                         <?= $post_status === 'draft'
                                             ? t('Показать', 'Show', 'Arată')

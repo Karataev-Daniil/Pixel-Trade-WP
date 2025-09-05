@@ -79,23 +79,23 @@ add_action('save_post', function ($post_id) {
 function register_product_taxonomy() {
     register_taxonomy('product_cat', 'products', [
         'labels' => [
-            'name' => 'Категории товаров',
+            'name'          => 'Категории товаров',
             'singular_name' => 'Категория товара',
-            'search_items' => 'Поиск категорий',
-            'all_items' => 'Все категории',
-            'edit_item' => 'Редактировать категорию',
-            'update_item' => 'Обновить категорию',
-            'add_new_item' => 'Добавить новую категорию',
+            'search_items'  => 'Поиск категорий',
+            'all_items'     => 'Все категории',
+            'edit_item'     => 'Редактировать категорию',
+            'update_item'   => 'Обновить категорию',
+            'add_new_item'  => 'Добавить новую категорию',
             'new_item_name' => 'Название новой категории',
-            'menu_name' => 'Категории',
+            'menu_name'     => 'Категории',
         ],
-        'hierarchical' => true,
-        'public' => true,
-        'show_in_rest' => true,
+        'hierarchical'      => true,
+        'public'            => true,
+        'show_in_rest'      => true,
         'show_admin_column' => true,
         'rewrite' => [
-            'slug' => 'categories',
-            'with_front' => false,
+            'slug'         => 'categories',
+            'with_front'   => false,
             'hierarchical' => true,
         ],
         'capabilities' => [
@@ -108,53 +108,78 @@ function register_product_taxonomy() {
 }
 add_action('init', 'register_product_taxonomy');
 
-function product_cat_image_field($term) {
-    $image_id = get_term_meta($term->term_id, 'category_image_id', true);
+function product_cat_add_image_fields() { ?>
+    <div class="form-field term-group">
+        <label for="category_image_color">Изображение категории (цветное)</label>
+        <input type="hidden" id="category_image_color" name="category_image_color" value="">
+        <div id="category-image-color-wrapper"></div>
+        <p>
+            <input type="button" class="button button-secondary category_image_upload_button" data-target="category_image_color" value="Выбрать изображение">
+            <input type="button" class="button button-secondary category_image_remove_button" data-target="category_image_color" value="Удалить изображение">
+        </p>
+    </div>
+
+    <div class="form-field term-group">
+        <label for="category_image_outline">Изображение категории (контурное)</label>
+        <input type="hidden" id="category_image_outline" name="category_image_outline" value="">
+        <div id="category-image-outline-wrapper"></div>
+        <p>
+            <input type="button" class="button button-secondary category_image_upload_button" data-target="category_image_outline" value="Выбрать изображение">
+            <input type="button" class="button button-secondary category_image_remove_button" data-target="category_image_outline" value="Удалить изображение">
+        </p>
+    </div>
+<?php }
+add_action('product_cat_add_form_fields', 'product_cat_add_image_fields', 10, 2);
+
+function product_cat_edit_image_fields($term) {
+    $color_id   = get_term_meta($term->term_id, 'category_image_color', true);
+    $outline_id = get_term_meta($term->term_id, 'category_image_outline', true);
     ?>
     <tr class="form-field term-group-wrap">
-        <th scope="row"><label for="category_image">Изображение категории</label></th>
+        <th scope="row"><label for="category_image_color">Изображение категории (цветное)</label></th>
         <td>
-            <input type="hidden" id="category_image" name="category_image" value="<?php echo esc_attr($image_id); ?>">
-            <div id="category-image-wrapper">
-                <?php if ($image_id) : ?>
-                    <?php echo wp_get_attachment_image($image_id, 'thumbnail'); ?>
-                <?php endif; ?>
+            <input type="hidden" id="category_image_color" name="category_image_color" value="<?php echo esc_attr($color_id); ?>">
+            <div id="category-image-color-wrapper">
+                <?php if ($color_id) echo wp_get_attachment_image($color_id, 'thumbnail'); ?>
             </div>
             <p>
-                <input type="button" class="button button-secondary" id="category_image_upload_button" value="Выбрать изображение">
-                <input type="button" class="button button-secondary" id="category_image_remove_button" value="Удалить изображение">
+                <input type="button" class="button button-secondary category_image_upload_button" data-target="category_image_color" value="Выбрать изображение">
+                <input type="button" class="button button-secondary category_image_remove_button" data-target="category_image_color" value="Удалить изображение">
+            </p>
+        </td>
+    </tr>
+    <tr class="form-field term-group-wrap">
+        <th scope="row"><label for="category_image_outline">Изображение категории (контурное)</label></th>
+        <td>
+            <input type="hidden" id="category_image_outline" name="category_image_outline" value="<?php echo esc_attr($outline_id); ?>">
+            <div id="category-image-outline-wrapper">
+                <?php if ($outline_id) echo wp_get_attachment_image($outline_id, 'thumbnail'); ?>
+            </div>
+            <p>
+                <input type="button" class="button button-secondary category_image_upload_button" data-target="category_image_outline" value="Выбрать изображение">
+                <input type="button" class="button button-secondary category_image_remove_button" data-target="category_image_outline" value="Удалить изображение">
             </p>
         </td>
     </tr>
     <?php
 }
-add_action('product_cat_edit_form_fields', 'product_cat_image_field', 10, 2);
+add_action('product_cat_edit_form_fields', 'product_cat_edit_image_fields', 10, 2);
 
-add_action('product_cat_add_form_fields', function() { ?>
-    <div class="form-field term-group">
-        <label for="category_image">Изображение категории</label>
-        <input type="hidden" id="category_image" name="category_image" value="">
-        <div id="category-image-wrapper"></div>
-        <p>
-            <input type="button" class="button button-secondary" id="category_image_upload_button" value="Выбрать изображение">
-            <input type="button" class="button button-secondary" id="category_image_remove_button" value="Удалить изображение">
-        </p>
-    </div>
-<?php }, 10, 2);
+function save_product_cat_images($term_id) {
+    $fields = ['category_image_color', 'category_image_outline'];
 
-function save_product_cat_image($term_id) {
-    if (isset($_POST['category_image']) && '' !== $_POST['category_image']) {
-        update_term_meta($term_id, 'category_image_id', intval($_POST['category_image']));
-    } else {
-        delete_term_meta($term_id, 'category_image_id');
+    foreach ($fields as $field) {
+        if (!empty($_POST[$field])) {
+            update_term_meta($term_id, $field, intval($_POST[$field]));
+        } else {
+            delete_term_meta($term_id, $field);
+        }
     }
 }
-add_action('edited_product_cat', 'save_product_cat_image', 10, 2);
-add_action('created_product_cat', 'save_product_cat_image', 10, 2);
+add_action('edited_product_cat', 'save_product_cat_images', 10, 2);
+add_action('created_product_cat', 'save_product_cat_images', 10, 2);
 
-add_action('product_cat_add_form_fields', 'add_product_cat_translations', 10);
-function add_product_cat_translations() {
-    ?>
+function add_product_cat_translations() { ?>
     <div class="form-field">
         <label for="translation_ro">Название (румынский)</label>
         <input type="text" name="translation_ro" id="translation_ro">
@@ -163,11 +188,10 @@ function add_product_cat_translations() {
         <label for="translation_en">Название (английский)</label>
         <input type="text" name="translation_en" id="translation_en">
     </div>
-    <?php
-}
+<?php }
+add_action('product_cat_add_form_fields', 'add_product_cat_translations', 10);
 
-add_action('product_cat_edit_form_fields', 'edit_product_cat_translations', 10, 2);
-function edit_product_cat_translations($term, $taxonomy) {
+function edit_product_cat_translations($term) {
     $ro = get_term_meta($term->term_id, 'translation_ro', true);
     $en = get_term_meta($term->term_id, 'translation_en', true);
     ?>
@@ -181,6 +205,7 @@ function edit_product_cat_translations($term, $taxonomy) {
     </tr>
     <?php
 }
+add_action('product_cat_edit_form_fields', 'edit_product_cat_translations', 10, 2);
 
 function save_product_cat_translations($term_id) {
     if (isset($_POST['translation_ro'])) {

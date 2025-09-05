@@ -4,13 +4,18 @@ $favorites = get_user_meta(get_current_user_id(), 'favorite_products', true);
 $is_favorite = is_array($favorites) && in_array(get_the_ID(), $favorites);
 
 $author_id = get_post_field('post_author', get_the_ID());
+
 $author_region = get_user_meta($author_id, 'region', true);
 $regions = get_option('available_regions_multi', []);
 $region_name = '';
 
 if ($author_region && !empty($regions)) {
     foreach ($regions as $region) {
-        if ($region['ru'] === $author_region || $region['en'] === $author_region || $region['ro'] === $author_region) {
+        if (
+            $region['ru'] === $author_region || 
+            $region['en'] === $author_region || 
+            $region['ro'] === $author_region
+        ) {
             $region_name = $region['ru']; 
             break;
         }
@@ -18,31 +23,35 @@ if ($author_region && !empty($regions)) {
 }
 ?>
 
-<div class="product-card">
-    <a href="<?php the_permalink(); ?>" class="product-card__link">
-        <div class="product-card__image-wrapper">
+<div class="product-card-row">
+    <a href="<?php the_permalink(); ?>" class="product-card-row__link">
+        <div class="product-card-row__image-wrapper">
             <?php
             $thumb_id = get_post_thumbnail_id(get_the_ID());
             if ($thumb_id) {
-                echo wp_get_attachment_image($thumb_id, 'medium-thumb', false, [
-                    'class' => 'product-card__image',
+                echo wp_get_attachment_image($thumb_id, 'thumbnail', false, [
+                    'class' => '',
                     'alt'   => get_the_title()
                 ]);
             } else {
                 $default_img = get_template_directory_uri() . '/images/product-placeholder.png';
-                echo '<img src="' . esc_url($default_img) . '" class="product-card__image" alt="' . esc_attr(get_the_title()) . '">';
+                echo '<img src="' . esc_url($default_img) . '" alt="' . esc_attr(get_the_title()) . '">';
             }
             ?>
         </div>
-        <h3 class="product-card__title body-small-regular"><?php the_title(); ?></h3>
-        <?php if ($price): ?>
-            <div class="product-card__price uppercase-small">
-                <?php echo number_format((float)$price, 0, '', ','); ?> MDL
-            </div>
-        <?php endif; ?>
-        <?php if ($region_name): ?>
-            <div class="product-card__region body-small-regular">Регион: <span><?php echo esc_html($region_name); ?></span></div>
-        <?php endif; ?>
+        <div class="product-card-row__info">
+            <h3 class="product-card-row__title body-small-regular"><?php the_title(); ?></h3>
+            <?php if ($price): ?>
+                <div class="product-card-row__price uppercase-small">
+                    <?php echo number_format((float)$price, 0, '', ','); ?> MDL
+                </div>
+            <?php endif; ?>
+            <?php if ($region_name): ?>
+                <div class="product-card-row__region body-small-regular">
+                    Регион: <span><?php echo esc_html($region_name); ?></span>
+                </div>
+            <?php endif; ?>
+        </div>
     </a>
 
     <?php if (is_user_logged_in()): ?>
@@ -59,3 +68,5 @@ if ($author_region && !empty($regions)) {
         </button>
     <?php endif; ?>
 </div>
+
+

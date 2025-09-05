@@ -174,31 +174,19 @@ function custom_enqueue_assets() {
 }
 add_action('wp_enqueue_scripts', 'custom_enqueue_assets');
 
-function favorites_enqueue_assets() {
-    wp_enqueue_script(
-        'favorites-js',
-        get_template_directory_uri() . '/assets/js/favorites.js',
-        ['jquery'],
-        null,
-        true
-    );
-    wp_localize_script('favorites-js', 'favorites_ajax', [
-        'ajax_url' => admin_url('admin-ajax.php'),
-        'nonce'    => wp_create_nonce('favorites_nonce')
-    ]);
-}
-add_action('wp_enqueue_scripts', 'favorites_enqueue_assets');
-
-function product_cat_enqueue_scripts($hook) {
+add_action('admin_enqueue_scripts', function ($hook) {
+    // Только для страниц категорий WooCommerce
     if ('edit-tags.php' === $hook || 'term.php' === $hook) {
-        wp_enqueue_media();
-        wp_enqueue_script(
-            'product-cat-media',
-            get_stylesheet_directory_uri() . '/assets/js/product-cat-media.js',
-            ['jquery'],
-            null,
-            true
-        );
+        $screen = get_current_screen();
+        if ($screen && $screen->taxonomy === 'product_cat') {
+            wp_enqueue_media();
+            wp_enqueue_script(
+                'product-cat-media',
+                get_template_directory_uri() . '/assets/js/product-cat-media.js',
+                ['jquery'],
+                null,
+                true
+            );
+        }
     }
-}
-add_action('admin_enqueue_scripts', 'product_cat_enqueue_scripts');
+});

@@ -4,7 +4,6 @@ if (!$product_id) return;
 
 $lang = $GLOBALS['language'] ?? 'ru';
 
-// Заголовки и описания
 $title_translations = [
     'ru' => get_the_title($product_id),
     'en' => get_post_meta($product_id, '_title_en', true),
@@ -17,11 +16,9 @@ $content_translations = [
     'ro' => get_post_meta($product_id, '_description_ro', true),
 ];
 
-// Цена и валюта
 $price = get_post_meta($product_id, 'product_price', true);
 $currency = get_post_meta($product_id, 'product_currency', true) ?: 'lei';
 
-// Функция форматирования цены с валютой
 if (!function_exists('format_price_with_currency')) {
     function format_price_with_currency($price, $currency = 'lei') {
         if (!$price) return '-';
@@ -34,13 +31,11 @@ if (!function_exists('format_price_with_currency')) {
     }
 }
 
-// Галерея
 $gallery_ids = get_post_meta($product_id, 'product_gallery', true);
 $gallery_ids = is_array($gallery_ids) ? array_filter($gallery_ids) : [];
 $thumbnail_id = get_post_thumbnail_id($product_id);
 if ($thumbnail_id && !in_array($thumbnail_id, $gallery_ids)) array_unshift($gallery_ids, $thumbnail_id);
 
-// Автор
 $author_id = get_the_author_meta('ID');
 $current_user_id = get_current_user_id();
 $author_avatar = get_avatar($author_id, 64);

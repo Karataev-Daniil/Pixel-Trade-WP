@@ -10,27 +10,19 @@ document.addEventListener('DOMContentLoaded', function () {
     function setTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         document.cookie = "theme=" + theme + ";path=/;max-age=" + (30*24*60*60);
-
-        const sunIcon = toggleButton.querySelector('.icon-sun');
-        const moonIcon = toggleButton.querySelector('.icon-moon');
-
-        if (theme === 'dark') {
-            sunIcon.style.display = 'inline';
-            moonIcon.style.display = 'none';
-        } else {
-            sunIcon.style.display = 'none';
-            moonIcon.style.display = 'inline';
-        }
     }
 
+    // Получаем текущую тему
     let currentTheme = getCookie('theme') || document.documentElement.getAttribute('data-theme') || 'light';
     setTheme(currentTheme);
 
+    // Переключение темы по клику
     toggleButton.addEventListener('click', () => {
         const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         setTheme(newTheme);
     });
 });
+
 
 
 document.addEventListener('DOMContentLoaded', function () {

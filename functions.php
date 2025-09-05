@@ -17,8 +17,6 @@ require_once get_template_directory() . '/includes/user-settings.php';
 require_once get_template_directory() . '/includes/user-favorites.php';
 require_once get_template_directory() . '/includes/user-messenger/user-messenger.php';
 
-require_once get_template_directory() . '/includes/ajax/filter-products.php';
-
 require_once get_template_directory() . '/includes/admin-approval.php';
 
 require_once get_template_directory() . '/includes/translation-product-ai.php';

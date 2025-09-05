@@ -59,7 +59,6 @@
       </div>
     </footer>
     <div id="simple-dm-root" class="dm-root"></div>
-    <button id="dm-toggle-btn" class="dm-toggle-btn button-medium">Чат</button>
     <?php wp_footer(); ?>
 </body>
 </html>

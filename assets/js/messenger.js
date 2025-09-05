@@ -1,4 +1,5 @@
 (function(){
+  const defaultAvatar = SIMPLE_DM.defaultAvatar;
   const { useState, useEffect, useRef, useCallback } = React;
 
   window.dmApi = async function(path, opts={}){
@@ -41,7 +42,12 @@
       onClick: () => onSelect(thread.id)
     }, [
       React.createElement('div', { key: 'avatar-wrapper', className: 'dm-avatar-wrapper', style: { position: 'relative' } }, [
-        React.createElement('img', { key: 'av', src: otherUser.avatar || '/wp-content/uploads/default-avatar.png', className: 'dm-avatar', alt: otherUser.name || 'Удалённый пользователь' }),
+        React.createElement('img', { 
+          key: 'av', 
+          src: otherUser.avatar || defaultAvatar, 
+          className: 'dm-avatar', 
+          alt: otherUser.name || 'Удалённый пользователь' 
+        }),
         thread.unread_count > 0 && React.createElement('span', { key: 'unread', className: 'dm-unread-badge'}, thread.unread_count)
       ]),
       React.createElement('div', { key: 'meta', className: 'dm-thread-meta' }, [
@@ -51,6 +57,7 @@
       React.createElement('div', { key: 'time', className: 'dm-upd body-small-regular' }, formatDateTime(thread.updated))
     ]);
   }
+
 
   function formatDateTime(ts){
     const d = new Date(ts*1000);
@@ -419,7 +426,7 @@
         !current && React.createElement('div', { className:'dm-placeholder body-medium-regular', key:'placeholder' }, 'Выберите чат'),
         current && React.createElement('div', { key:'chat-header-wrapper' }, [
           React.createElement('div', { key:'chat-header', className:'dm-chat-header' }, [
-            React.createElement('img', { key:'av', src:otherUser.avatar||'/wp-content/uploads/default-avatar.png', className:'dm-avatar-large', alt:otherUser.name||'Удалённый пользователь' }),
+            React.createElement('img', { key:'av', src: otherUser.avatar || SIMPLE_DM.defaultAvatar, className:'dm-avatar-large', alt: otherUser.name || 'Удалённый пользователь' }),
             React.createElement('div', { key:'info', className:'dm-chat-info' }, [
               React.createElement('div', { className:'dm-name title-medium', key:'name' }, otherUser.name||'Удалённый пользователь'),
               React.createElement('div', { className:'dm-start body-small-regular', key:'start' }, 'Начало переписки: '+(messages[0]?new Date(messages[0].created*1000).toLocaleDateString():'-'))
@@ -443,72 +450,88 @@
             if (m.type === 'date') 
               return React.createElement('div', { key: m.id, className: 'dm-date-separator body-small-regular' }, m.date);
           
-              if (m.system) {
-                return React.createElement('div', {
-                  key: m.id,
-                  className: 'dm-message dm-system-message',
-                  'data-system': true
-                }, [
-                  React.createElement('div', { key: 'txt', className: 'dm-message-content' }, m.content),
-                  React.createElement('div', { key: 'sig', className: 'dm-system-signature' }, 
-                    `${new Date(m.created*1000).toLocaleTimeString()} - ${m.event === 'blocked' ? 'системное сообщение: заблокирован' : 'системное сообщение: разблокирован'}`)
-                ]);
-              }
-
+            if (m.system) {
+              return React.createElement('div', {
+                key: m.id,
+                className: 'dm-message dm-system-message',
+                'data-system': true
+              }, [
+                React.createElement('div', { key: 'txt', className: 'dm-message-content' }, m.content),
+                React.createElement('div', { key: 'sig', className: 'dm-system-signature' }, 
+                  `${new Date(m.created*1000).toLocaleTimeString()} - ${m.event === 'blocked' ? 'системное сообщение: заблокирован' : 'системное сообщение: разблокирован'}`)
+              ]);
+            }
+          
             return React.createElement(Message, { key: m.id, m, autoTranslate, onEdit:startEditing, openMenuId, setOpenMenuId });
           })
         ),
-        current && React.createElement(Composer, { key:'composer', onSend:sendMessage, editingMessage, onCancelEdit:cancelEditing, blocked:isBlocked, blockedByMe:iAmBlocker })
+        current && React.createElement(Composer, { key:'composer', onSend:sendMessage, editingMessage, onCancelEdit:cancelEditing, blocked:isBlocked, blockedByMe:iAmBlocker }),
+
+        React.createElement('button', {
+          className: 'dm-close-b',
+          onClick: () => {
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+            const root = document.getElementById('simple-dm-root');
+            if (root) root.classList.remove('active');
+            const overlay = document.querySelector('.dm-overlay');
+            if (overlay) overlay.classList.remove('active');
+          
+            appSetCurrent(null);
+            appSetMessages([]);
+            appSetSince(0);
+            appSetEditingMessage(null);
+          },
+          key: 'close-b'
+        }, '✕')
       ])
     ]);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    const root = document.getElementById('simple-dm-root');
-    const toggleBtn = document.getElementById('dm-toggle-btn');
+      const root = document.getElementById('simple-dm-root');
+      const toggleBtn = document.getElementById('dm-toggle-btn');
 
-    const overlay = document.createElement('div');
-    overlay.className = 'dm-overlay';
-    overlay.style.display = 'none';
-    document.body.appendChild(overlay);
+      if (!root || !toggleBtn) return;
 
-    if (!root || !toggleBtn) return;
+      // Создаём overlay один раз
+      const overlay = document.createElement('div');
+      overlay.className = 'dm-overlay';
+      document.body.appendChild(overlay);
 
-    toggleBtn.addEventListener('click', () => {
-      const isOpening = root.style.display === 'none' || root.style.display === '';
-      if (isOpening) {
+      const openDm = () => {
           const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
           document.body.style.overflow = 'hidden';
           document.body.style.paddingRight = scrollBarWidth + 'px';
-          root.style.display = 'block';
-          overlay.style.display = 'block';
-      } else {
+
+          root.classList.add('active');
+          overlay.classList.add('active');
+      };
+    
+      const closeDm = () => {
           document.body.style.overflow = '';
           document.body.style.paddingRight = '';
-          root.style.display = 'none';
-          overlay.style.display = 'none';
+
+          root.classList.remove('active');
+          overlay.classList.remove('active');
 
           appSetCurrent(null);
           appSetMessages([]);
           appSetSince(0);
           appSetEditingMessage(null);
-      }
-    });
+      };
+    
+      toggleBtn.addEventListener('click', () => {
+          const isOpening = !root.classList.contains('active');
+          isOpening ? openDm() : closeDm();
+      });
+    
+      overlay.addEventListener('click', closeDm);
 
-    overlay.addEventListener('click', () => {
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-      root.style.display = 'none';
-      overlay.style.display = 'none';
-  
-      appSetCurrent(null);
-      appSetMessages([]);
-      appSetSince(0);
-      appSetEditingMessage(null);
-    });
-
-    ReactDOM.createRoot(root).render(React.createElement(App));
+      // Крестик будет внутри React App
+      ReactDOM.createRoot(root).render(React.createElement(App));
   });
+
 
   window.openDmWithUser = async function(userId){
     try{

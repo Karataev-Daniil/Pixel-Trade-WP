@@ -1,56 +1,65 @@
 /* Основной контейнер DM */
 .dm-root {
-    display: none;
     position: fixed;
-    right: 0;
-    bottom: 0;
     top: 0;
+    right: -700px;
     width: 40%;
     min-width: 700px;
     height: 100vh;
     z-index: 9999;
     background-color: var(--gray_4);
-    animation: fadeIn 0.3s ease-in-out;
+    transition: right 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+}
+.dm-root.active {
+    right: 0;
 }
 .dm-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0,0,0,0.5);
-  z-index: 999;
-}
-
-.dm-toggle-btn {
     position: fixed;
-    right: 40px;
-    bottom: 40px;
-    z-index: 9999;
-    padding: 10px 20px;
-    cursor: pointer;
-    background-color: var(--orange_0);
-    color: var(--gray_-5);
-    border-radius: 6px;
-    transition: background 0.4s;
+    top:0; 
+    left:0;
+    width:100vw; 
+    height:100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 9998;
+    display: none;
 }
-.dm-toggle-btn:hover {
-    background-color: var(--orange_1);
+.dm-overlay.active {
+    display: block;
+}
+.dm-close-b {
+    position: absolute;
+    top: 10px;
+    right: -30px;
+    width: 28px;
+    height: 28px;
+    background: #ff4d4f;
+    color: #fff;
+    border-radius: 50%;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 /* Sidebar (Список чатов) */
 .dm-wrap {
     display: flex;
-    border-left: 2px solid var(--gray_1);
     height: 100%;
+    width: 100%;
     font-family: sans-serif;
 }
 .dm-sidebar {
     width: 300px;
+    border-left: 1px solid var(--orange_0);
     border-right: 2px solid var(--gray_1);
     display: flex;
     flex-direction: column;
-    animation: slideIn 0.4s ease-out;
     background-color: var(--gray_3);
 }
 .dm-sidebar-header {

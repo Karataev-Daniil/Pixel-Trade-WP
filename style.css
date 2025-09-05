@@ -21,7 +21,7 @@ header {
 }
 main {
   background: var(--gray_6);
-  padding: 140px 0;
+  padding: 40px 0;
 }
 .content-main {
   flex: 1;
@@ -95,41 +95,111 @@ p {
   margin-bottom: 16px;
 }
 
-.products-list,
-#products-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(250px,1fr));
-  gap: 12px;
+.products-list-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
 }
-#products-list .product-card,
-.products-list .product-card {
-  background-color: var(--gray_5);
-  border: 1px solid var(--gray_3);
-  padding: 8px;
-  border-radius: 12px;
+.products-list-row .product-card-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 8px;
   transition: box-shadow 0.2s;
   position: relative;
 }
-#products-list .product-card__link,
+.products-list-row .product-card-row__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  width: 100%;
+}
+.products-list-row .product-card-row__image-wrapper {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.products-list-row .product-card-row__image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.products-list-row .product-card-row__info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+.products-list-row .product-card-row__title {
+  text-align: left;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  color: var(--gray_-5);
+  line-height: 120%;
+  margin-bottom: 4px;
+}
+.products-list-row .product-card-row__price {
+  font-size: 13px;
+  color: var(--gray_-6);
+  margin-bottom: 2px;
+}
+.products-list-row .product-card-row__region {
+  font-size: 12px;
+  color: var(--gray_-4);
+}
+.products-list-row .product-card-row__region span {
+  color: var(--gray_-3);
+}
+.products-list-row .toggle-favorite {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.products-list-row .toggle-favorite svg {
+  width: 18px;
+  height: 18px;
+}
+
+
+.products-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(208px,1fr));
+  gap: 12px;
+}
+.products-list .product-card {
+  transition: box-shadow 0.2s;
+  position: relative;
+}
 .products-list .product-card__link {
   text-decoration: none;
 }
-#products-list .product-card__image-wrapper,
 .products-list .product-card__image-wrapper {
   width: 100%;
   height: 100%;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  border-radius: 8px;
   margin-bottom: 8px;
 }
-#products-list .product-card__image-wrapper img,
 .products-list .product-card__image-wrapper img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-#products-list .product-card__title,
 .products-list .product-card__title {
   text-align: left;
   display: -webkit-box;
@@ -143,38 +213,33 @@ p {
   line-height: 120%;
   margin-bottom: 8px;
 }
-#products-list .product-card__price,
 .products-list .product-card__price {
-  color: var(--orange_0);
+  color: var(--gray_-6);
   margin-bottom: 8px;
 }
-#products-list .product-card__region,
 .products-list .product-card__region {
   color: var(--gray_-4);
 }
-#products-list .product-card__region span,
 .products-list .product-card__region span {
-  color: var(--orange_0);
+  color: var(--gray_-4);
 }
-#products-list .toggle-favorite,
 .products-list .toggle-favorite {
   position: absolute;
-  top: 16px;
-  left: 16px;
-  width: 42px;
-  height: 42px;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--gray_6);
-  border-radius: 4px;
   padding: 0;
 }
-#products-list .toggle-favorite svg,
 .products-list .toggle-favorite svg {
-  stroke: var(--gray_-6);
   width: 20px;
   height: 20px;
+}
+.products-list .toggle-favorite svg:hover {
+  stroke: var(--red_0);
 }
 
 @media screen and (max-width: 440px) {

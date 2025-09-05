@@ -154,19 +154,26 @@
                     </div>
                   </nav>
               
-                  <!-- Темная тема -->
-                  <button id="theme-toggle-button" class="tertiary-button-small theme-icon-button" aria-label="<?= t('Сменить тему', 'Toggle theme', 'Comută tema'); ?>" type="button">
+                  <button id="theme-toggle-button" class="theme-icon-button">
                     <span class="icon-sun"><?php echo file_get_contents(get_template_directory() . '/images/sun.svg'); ?></span>
+                    <span class="icon-sun-solid"><?php echo file_get_contents(get_template_directory() . '/images/sun-solid.svg'); ?></span>
+                    
                     <span class="icon-moon"><?php echo file_get_contents(get_template_directory() . '/images/moon.svg'); ?></span>
+                    <span class="icon-moon-solid"><?php echo file_get_contents(get_template_directory() . '/images/moon-solid.svg'); ?></span>
                   </button>
-              
+
                   <?php
                   $user = wp_get_current_user();
                   $is_logged_in = is_user_logged_in();
                   ?>
 
-                  <div class="user-menu">
-                    <?php if ($is_logged_in): ?>
+                  <?php if ($is_logged_in): ?>
+                    <button id="dm-toggle-btn" class="dm-toggle-btn" aria-label="<?= t('Открыть чат', 'Open Chat', 'Deschide chat'); ?>">
+                      <span class="icon-message"><?php echo file_get_contents(get_template_directory() . '/images/message.svg'); ?></span>
+                      <span class="icon-message-solid"><?php echo file_get_contents(get_template_directory() . '/images/message-solid.svg'); ?></span>
+                    </button>
+
+                    <div class="user-menu">
                       <?php
                         $avatar_id = get_user_meta($user->ID, 'profile_avatar', true);
                         $avatar_url = $avatar_id ? wp_get_attachment_url($avatar_id) : get_avatar_url($user->ID);
@@ -180,11 +187,10 @@
                         <li class="label-small"><a href="/account/favorites" class="title-smaller"><?= t('Избраное', 'Favorites', 'Favoritele'); ?></a></li>
                         <li class="label-small"><a href="<?= wp_logout_url(home_url()); ?>" class="title-smaller"><?= t('Выход', 'Logout', 'Ieșire'); ?></a></li>
                       </ul>
-                    <?php else: ?>
+                    </div>
+                  <?php else: ?>
                       <a href="/account/login/" class="accent-button-small button-small"><?= t('Войти', 'Login', 'Autentificare'); ?></a>
-                    <?php endif; ?>
-                  </div>
-
+                  <?php endif; ?>
                 </div>
               </div>
             </div>
