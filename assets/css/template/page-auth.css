@@ -1,4 +1,5 @@
 .auth__wrapper {
+    width: 100%;
     max-width: 600px; 
     margin: 40px auto;
 }

@@ -92,3 +92,11 @@ jQuery(document).ready(function($) {
 
     initFirstSlider();
 });
+
+let language = window.language || 'ru';
+
+function t(ru, en, ro) {
+    if (language === 'en') return en;
+    if (language === 'ro') return ro;
+    return ru;
+}

@@ -23,7 +23,7 @@ $avatar_url = $avatar_id ? wp_get_attachment_url($avatar_id) : get_avatar_url($u
 ?>
 
 <div class="user-settings__wrapper content-main">
-    <div class="container">
+    <div class="container-xxsmall">
         <h2 class="user-settings__title display-small">
             <?php echo t('Настройки аккаунта', 'Account Settings', 'Setări cont'); ?>
         </h2>

@@ -11,27 +11,37 @@ function handle_product_edit_form_submission() {
 
     $product_id = intval($_POST['product_id'] ?? 0);
     if (!$product_id || get_post_type($product_id) !== 'products') return;
-
     if (get_current_user_id() !== (int)get_post_field('post_author', $product_id)) {
         wp_die('У вас нет прав для редактирования этого товара.');
     }
 
+    $lang = sanitize_text_field($_POST['product_lang'] ?? 'ru');
+    $title_field   = $lang === 'ru' ? 'product_title' : ($lang === 'en' ? 'title_en' : 'title_ro');
+    $content_field = $lang === 'ru' ? 'product_content' : ($lang === 'en' ? 'description_en' : 'description_ro');
+
+    $title   = sanitize_text_field(trim($_POST[$title_field] ?? ''));
+    $content = sanitize_textarea_field(trim($_POST[$content_field] ?? ''));
+
+    if (!$title) wp_die('Please fill the title.');
+    if (!$content) wp_die('Please fill the content.');
+
+    $price    = floatval($_POST['product_price'] ?? 0) ?: floatval($_POST['product_old_price'] ?? 0);
+    if ($price <= 0) wp_die('Please fill a valid price.');
+
+    $status   = sanitize_text_field($_POST['product_status'] ?? 'draft');
+    $currency = sanitize_text_field($_POST['product_currency'] ?? 'lei');
+    $type     = sanitize_text_field($_POST['product_type'] ?? '');
+
     wp_update_post([
         'ID'           => $product_id,
-        'post_title'   => sanitize_text_field($_POST['product_title'] ?? ''),
-        'post_content' => sanitize_textarea_field($_POST['product_content'] ?? ''),
-        'post_status'  => sanitize_text_field($_POST['product_status'] ?? 'draft'),
+        'post_title'   => $title,
+        'post_content' => $content,
+        'post_status'  => $status,
     ]);
 
-    update_post_meta($product_id, 'product_price', sanitize_text_field($_POST['product_price'] ?? ''));
-
-    if (isset($_POST['product_currency'])) {
-        update_post_meta($product_id, 'product_currency', sanitize_text_field($_POST['product_currency']));
-    }
-
-    if (isset($_POST['product_type'])) {
-        update_post_meta($product_id, 'product_type', sanitize_text_field($_POST['product_type']));
-    }
+    update_post_meta($product_id, 'product_price', $price);
+    update_post_meta($product_id, 'product_currency', $currency);
+    update_post_meta($product_id, 'product_type', $type);
 
     if (!empty($_POST['product_categories']) && is_array($_POST['product_categories'])) {
         $category_ids = array_map('intval', $_POST['product_categories']);
@@ -55,7 +65,6 @@ function handle_product_edit_form_submission() {
     $current_gallery = get_post_meta($product_id, 'product_gallery', true);
     $current_gallery = is_array($current_gallery) ? $current_gallery : [];
     $current_gallery = array_diff($current_gallery, $remove_ids);
-
     foreach ($remove_ids as $remove_id) {
         wp_delete_attachment((int)$remove_id, true);
     }
@@ -63,7 +72,7 @@ function handle_product_edit_form_submission() {
     $new_attachment_ids = [];
     if (!empty($_FILES['product_gallery_input']['name'][0])) {
         add_filter('wp_handle_upload_prefilter', function($file) {
-            $file['name'] = wp_generate_password(12, false, false) . '.' . pathinfo($file['name'], PATHINFO_EXTENSION);
+            $file['name'] = generate_random_filename($file['name']);
             return $file;
         });
 
@@ -71,15 +80,26 @@ function handle_product_edit_form_submission() {
         foreach ($files['name'] as $i => $name) {
             if ($files['error'][$i] !== UPLOAD_ERR_OK) continue;
 
-            $_FILES['single_file_upload'] = [
-                'name'     => $files['name'][$i],
+            $file_array = [
+                'name'     => $name,
                 'type'     => $files['type'][$i],
                 'tmp_name' => $files['tmp_name'][$i],
                 'error'    => $files['error'][$i],
                 'size'     => $files['size'][$i],
             ];
 
-            $attachment_id = media_handle_upload('single_file_upload', $product_id);
+            if ($file_array['size'] > 200 * 1024) {
+                $image = wp_get_image_editor($file_array['tmp_name']);
+                if (!is_wp_error($image)) {
+                    $mime = $file_array['type'];
+                    if ($mime === 'image/jpeg' || $mime === 'image/jpg' || $mime === 'image/webp') {
+                        $image->set_quality(80);
+                    }
+                    $image->save($file_array['tmp_name']);
+                }
+            }
+
+            $attachment_id = media_handle_sideload($file_array, $product_id);
             if (!is_wp_error($attachment_id)) {
                 $new_attachment_ids[] = $attachment_id;
             }
@@ -93,14 +113,10 @@ function handle_product_edit_form_submission() {
     foreach ($gallery_order as $order_id) {
         if (strpos($order_id, 'new-') === 0) {
             $index = (int) str_replace('new-', '', $order_id);
-            if (isset($new_attachment_ids[$index])) {
-                $final_gallery[] = $new_attachment_ids[$index];
-            }
+            if (isset($new_attachment_ids[$index])) $final_gallery[] = $new_attachment_ids[$index];
         } else {
             $id = (int)$order_id;
-            if (in_array($id, $current_gallery)) {
-                $final_gallery[] = $id;
-            }
+            if (in_array($id, $current_gallery)) $final_gallery[] = $id;
         }
     }
 

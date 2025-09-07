@@ -46,8 +46,18 @@ function custom_enqueue_assets() {
     );
 
     wp_localize_script('popup', 'themeVars', [
+        'ajaxurl' => admin_url('admin-ajax.php'),
+        'language' => $GLOBALS['language'] ?? 'ru',
         'imgPath' => get_template_directory_uri() . '/images/'
     ]);
+
+    wp_enqueue_script(
+        'catalog-menu',
+        get_template_directory_uri() . '/assets/js/dropdown-catalog.js',
+        ['jquery'],
+        filemtime(get_template_directory() . '/assets/js/dropdown-catalog.js'),
+        true
+    );
 
 
     wp_enqueue_script(
@@ -75,7 +85,7 @@ function custom_enqueue_assets() {
         );
     }
 
-    if ( is_front_page() ) {
+    if ( is_front_page() || is_page('ru') || is_page('ro') || is_page('en') ) {
         wp_enqueue_style(
             'front-page-style',
             $theme_dir . '/assets/css/template/front-page.css',
@@ -163,7 +173,7 @@ function custom_enqueue_assets() {
         );
     }
 
-    if ( is_page('user-settings') ) {
+    if ( is_page('settings') ) {
         wp_enqueue_style(
             'page-user-settings',
             $theme_dir . '/assets/css/template/page-user-settings.css',

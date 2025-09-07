@@ -113,14 +113,15 @@ $product_type = get_post_meta($product_id, 'product_type', true);
                         </section>
                     <?php endif; ?>
 
-                    <?php if ($current_user_id === $author_id): ?>
+                    <?php if ($current_user_id === $author_id || current_user_can('manage_options')): ?>
                         <section class="actions" aria-label="<?= t('Управление товаром','Manage Product','Gestionați produsul'); ?>">
-                            <a href="<?= esc_url(add_query_arg('edit',1)); ?>" class="button primary-button-small"><?= t('Редактировать','Edit','Editați'); ?></a>
-                            <form method="post" onsubmit="return confirm('<?= t('Вы уверены, что хотите удалить этот товар?','Are you sure you want to delete this product?','Sunteți sigur că doriți să ștergeți acest produs?'); ?>');">
-                                <?php wp_nonce_field('delete_product_action','delete_product_nonce'); ?>
-                                <input type="hidden" name="delete_product_id" value="<?= $product_id; ?>">
-                                <button type="submit" class="button secondary-button-small"><?= t('Удалить','Delete','Ștergeți'); ?></button>
-                            </form>
+                            <a href="<?= esc_url(add_query_arg(['edit' => 1])); ?>" class="button primary-button-small"><?= t('Редактировать','Edit','Editați'); ?></a>
+                                        
+                            <button class="delete-product-btn button secondary-button-small"
+                                data-product-id="<?= $product_id; ?>"
+                                data-nonce="<?= wp_create_nonce('delete_product_' . $product_id); ?>">
+                                <?= t('Удалить','Delete','Ștergeți'); ?>
+                            </button>
                         </section>
                     <?php endif; ?>
                 </aside>

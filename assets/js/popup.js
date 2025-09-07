@@ -66,3 +66,52 @@ function showPopup(options) {
         if (e.target === overlay) document.body.removeChild(overlay);
     });
 }
+
+document.querySelectorAll('.delete-product-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+        e.preventDefault();
+        const productId = btn.dataset.productId;
+        const nonce     = btn.dataset.nonce;
+
+        showPopup({
+            title: t('Подтверждение', 'Confirmation', 'Confirmare'),
+            message: t(
+                'Вы уверены, что хотите удалить этот товар?',
+                'Are you sure you want to delete this product?',
+                'Sunteți sigur că doriți să ștergeți acest produs?'
+            ),
+            type: 'warning',
+            buttons: [
+                {
+                    text: t('Да','Yes','Da'),
+                    className: 'button secondary-button-small',
+                    callback: () => {
+                        fetch(themeVars.ajaxurl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: new URLSearchParams({
+                                action: 'delete_product',
+                                product_id: productId,
+                                nonce: nonce
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            showPopup({
+                                title: data.success ? t('Успешно','Success','Succes') : t('Ошибка','Error','Eroare'),
+                                message: data.data.message,
+                                type: data.success ? 'success' : 'danger',
+                                buttons: [{
+                                    text: t('Ок','Ok','Ok'),
+                                    callback: () => { if(data.success) window.location.href = '/'; },
+                                    className: 'button secondary-button-small'
+                                }]
+                            });
+                        });
+                    }
+                },
+                { text: t('Отмена','Cancel','Anulare'), className: 'button secondary-button-small', callback: () => {} }
+            ]
+        });
+    });
+});

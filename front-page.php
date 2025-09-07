@@ -1,4 +1,5 @@
 <?php
+/* Template Name: Home Page */
 get_header(); 
 ?>
 
@@ -17,7 +18,9 @@ get_header();
                         if (!$term) continue;
 
                         $color_id   = get_term_meta($cat_id, 'category_image_color', true);
-                    
+                        // category_image_color
+                        // category_image_outline
+                        
                         $color_url   = $color_id   ? wp_get_attachment_url($color_id)   : '';
                         
                         $name = t(

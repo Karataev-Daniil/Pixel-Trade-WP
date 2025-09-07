@@ -8,7 +8,7 @@
     overflow: visible;
 }
 .single-products {
-    display: flex;
+    display: block;
 }
 .visually-hidden {
     display: none;

@@ -2,20 +2,21 @@
 global $wpdb;
 add_theme_support('post-thumbnails');
 
+// Register Custom Post Type "Products"
 function register_product_post_type() {
     register_post_type('products', [
         'labels' => [
-            'name' => 'Товары',
-            'singular_name' => 'Товар',
-            'add_new' => 'Добавить новый товар',
-            'edit_item' => 'Редактировать товар',
-            'new_item' => 'Новый товар',
-            'view_item' => 'Посмотреть товар',
-            'search_items' => 'Поиск товаров',
-            'not_found' => 'Товары не найдены',
-            'menu_name' => 'Товары',
+            'name' => 'Products',
+            'singular_name' => 'Product',
+            'add_new' => 'Add New Product',
+            'edit_item' => 'Edit Product',
+            'new_item' => 'New Product',
+            'view_item' => 'View Product',
+            'search_items' => 'Search Products',
+            'not_found' => 'No products found',
+            'menu_name' => 'Products',
         ],
-        'description' => 'Кастомный тип записи для товаров',
+        'description' => 'Custom post type for products',
         'public' => true,
         'show_in_menu' => true,
         'show_in_rest' => true,
@@ -35,8 +36,9 @@ function register_product_post_type() {
 }
 add_action('init', 'register_product_post_type');
 
+// Product Translations (EN / RO)
 add_action('add_meta_boxes', function () {
-    add_meta_box('product_translations', 'Переводы', 'render_product_translations', 'products');
+    add_meta_box('product_translations', 'Translations', 'render_product_translations', 'products');
 });
 
 function render_product_translations($post) {
@@ -45,16 +47,16 @@ function render_product_translations($post) {
     $desc_en = get_post_meta($post->ID, '_description_en', true);
     $desc_ro = get_post_meta($post->ID, '_description_ro', true);
     ?>
-    <label>Title EN</label><br>
+    <label>Title (EN)</label><br>
     <input type="text" name="title_en" value="<?= esc_attr($title_en) ?>" style="width:100%"><br><br>
 
-    <label>Title RO</label><br>
+    <label>Title (RO)</label><br>
     <input type="text" name="title_ro" value="<?= esc_attr($title_ro) ?>" style="width:100%"><br><br>
 
-    <label>Description EN</label><br>
+    <label>Description (EN)</label><br>
     <textarea name="description_en" style="width:100%"><?= esc_textarea($desc_en) ?></textarea><br><br>
 
-    <label>Description RO</label><br>
+    <label>Description (RO)</label><br>
     <textarea name="description_ro" style="width:100%"><?= esc_textarea($desc_ro) ?></textarea>
     <?php
 }
@@ -76,149 +78,7 @@ add_action('save_post', function ($post_id) {
     }
 });
 
-function register_product_taxonomy() {
-    register_taxonomy('product_cat', 'products', [
-        'labels' => [
-            'name'          => 'Категории товаров',
-            'singular_name' => 'Категория товара',
-            'search_items'  => 'Поиск категорий',
-            'all_items'     => 'Все категории',
-            'edit_item'     => 'Редактировать категорию',
-            'update_item'   => 'Обновить категорию',
-            'add_new_item'  => 'Добавить новую категорию',
-            'new_item_name' => 'Название новой категории',
-            'menu_name'     => 'Категории',
-        ],
-        'hierarchical'      => true,
-        'public'            => true,
-        'show_in_rest'      => true,
-        'show_admin_column' => true,
-        'rewrite' => [
-            'slug'         => 'categories',
-            'with_front'   => false,
-            'hierarchical' => true,
-        ],
-        'capabilities' => [
-            'manage_terms' => 'manage_product_categories',
-            'edit_terms'   => 'manage_product_categories',
-            'delete_terms' => 'manage_product_categories',
-            'assign_terms' => 'edit_products',
-        ],
-    ]);
-}
-add_action('init', 'register_product_taxonomy');
-
-function product_cat_add_image_fields() { ?>
-    <div class="form-field term-group">
-        <label for="category_image_color">Изображение категории (цветное)</label>
-        <input type="hidden" id="category_image_color" name="category_image_color" value="">
-        <div id="category-image-color-wrapper"></div>
-        <p>
-            <input type="button" class="button button-secondary category_image_upload_button" data-target="category_image_color" value="Выбрать изображение">
-            <input type="button" class="button button-secondary category_image_remove_button" data-target="category_image_color" value="Удалить изображение">
-        </p>
-    </div>
-
-    <div class="form-field term-group">
-        <label for="category_image_outline">Изображение категории (контурное)</label>
-        <input type="hidden" id="category_image_outline" name="category_image_outline" value="">
-        <div id="category-image-outline-wrapper"></div>
-        <p>
-            <input type="button" class="button button-secondary category_image_upload_button" data-target="category_image_outline" value="Выбрать изображение">
-            <input type="button" class="button button-secondary category_image_remove_button" data-target="category_image_outline" value="Удалить изображение">
-        </p>
-    </div>
-<?php }
-add_action('product_cat_add_form_fields', 'product_cat_add_image_fields', 10, 2);
-
-function product_cat_edit_image_fields($term) {
-    $color_id   = get_term_meta($term->term_id, 'category_image_color', true);
-    $outline_id = get_term_meta($term->term_id, 'category_image_outline', true);
-    ?>
-    <tr class="form-field term-group-wrap">
-        <th scope="row"><label for="category_image_color">Изображение категории (цветное)</label></th>
-        <td>
-            <input type="hidden" id="category_image_color" name="category_image_color" value="<?php echo esc_attr($color_id); ?>">
-            <div id="category-image-color-wrapper">
-                <?php if ($color_id) echo wp_get_attachment_image($color_id, 'thumbnail'); ?>
-            </div>
-            <p>
-                <input type="button" class="button button-secondary category_image_upload_button" data-target="category_image_color" value="Выбрать изображение">
-                <input type="button" class="button button-secondary category_image_remove_button" data-target="category_image_color" value="Удалить изображение">
-            </p>
-        </td>
-    </tr>
-    <tr class="form-field term-group-wrap">
-        <th scope="row"><label for="category_image_outline">Изображение категории (контурное)</label></th>
-        <td>
-            <input type="hidden" id="category_image_outline" name="category_image_outline" value="<?php echo esc_attr($outline_id); ?>">
-            <div id="category-image-outline-wrapper">
-                <?php if ($outline_id) echo wp_get_attachment_image($outline_id, 'thumbnail'); ?>
-            </div>
-            <p>
-                <input type="button" class="button button-secondary category_image_upload_button" data-target="category_image_outline" value="Выбрать изображение">
-                <input type="button" class="button button-secondary category_image_remove_button" data-target="category_image_outline" value="Удалить изображение">
-            </p>
-        </td>
-    </tr>
-    <?php
-}
-add_action('product_cat_edit_form_fields', 'product_cat_edit_image_fields', 10, 2);
-
-function save_product_cat_images($term_id) {
-    $fields = ['category_image_color', 'category_image_outline'];
-
-    foreach ($fields as $field) {
-        if (!empty($_POST[$field])) {
-            update_term_meta($term_id, $field, intval($_POST[$field]));
-        } else {
-            delete_term_meta($term_id, $field);
-        }
-    }
-}
-add_action('edited_product_cat', 'save_product_cat_images', 10, 2);
-add_action('created_product_cat', 'save_product_cat_images', 10, 2);
-
-function add_product_cat_translations() { ?>
-    <div class="form-field">
-        <label for="translation_ro">Название (румынский)</label>
-        <input type="text" name="translation_ro" id="translation_ro">
-    </div>
-    <div class="form-field">
-        <label for="translation_en">Название (английский)</label>
-        <input type="text" name="translation_en" id="translation_en">
-    </div>
-<?php }
-add_action('product_cat_add_form_fields', 'add_product_cat_translations', 10);
-
-function edit_product_cat_translations($term) {
-    $ro = get_term_meta($term->term_id, 'translation_ro', true);
-    $en = get_term_meta($term->term_id, 'translation_en', true);
-    ?>
-    <tr class="form-field">
-        <th scope="row"><label for="translation_ro">Название (румынский)</label></th>
-        <td><input type="text" name="translation_ro" id="translation_ro" value="<?php echo esc_attr($ro); ?>"></td>
-    </tr>
-    <tr class="form-field">
-        <th scope="row"><label for="translation_en">Название (английский)</label></th>
-        <td><input type="text" name="translation_en" id="translation_en" value="<?php echo esc_attr($en); ?>"></td>
-    </tr>
-    <?php
-}
-add_action('product_cat_edit_form_fields', 'edit_product_cat_translations', 10, 2);
-
-function save_product_cat_translations($term_id) {
-    if (isset($_POST['translation_ro'])) {
-        update_term_meta($term_id, 'translation_ro', sanitize_text_field($_POST['translation_ro']));
-    }
-    if (isset($_POST['translation_en'])) {
-        update_term_meta($term_id, 'translation_en', sanitize_text_field($_POST['translation_en']));
-    }
-}
-add_action('edited_product_cat', 'save_product_cat_translations', 10, 2);
-add_action('created_product_cat', 'save_product_cat_translations', 10, 2);
-
-// Счётчик просмотров
+// Product Views Counter
 function increment_product_views($post_id) {
     if (!is_singular('products')) return;
 
@@ -283,8 +143,8 @@ function get_product_views($post_id = null) {
 }
 
 function add_product_views_column($columns) {
-    $columns['product_views'] = 'Просмотры';
-    $columns['product_price'] = 'Цена';
+    $columns['product_views'] = 'Views';
+    $columns['product_price'] = 'Price';
     return $columns;
 }
 add_filter('manage_products_posts_columns', 'add_product_views_column');
@@ -295,15 +155,16 @@ function show_product_views_column($column, $post_id) {
     }
     if ($column == 'product_price') {
         $price = get_post_meta($post_id, 'product_price', true);
-        echo $price ? esc_html($price) . ' ₽' : '—';
+        echo $price ? esc_html($price) : '—';
     }
 }
 add_action('manage_products_posts_custom_column', 'show_product_views_column', 10, 2);
 
+// Product Price Metabox
 function add_product_price_metabox() {
     add_meta_box(
         'product_price_metabox',
-        'Цена товара',
+        'Product Price',
         'render_product_price_metabox',
         'products',
         'side',
@@ -314,11 +175,11 @@ add_action('add_meta_boxes', 'add_product_price_metabox');
 
 function render_product_price_metabox($post) {
     $price = get_post_meta($post->ID, 'product_price', true);
-    $currency = get_post_meta($post->ID, 'product_currency', true) ?: 'RUB'; // по умолчанию рубли
-    $currencies = ['LEI' => 'лей', 'USD' => '$', 'EUR' => '€'];
+    $currency = get_post_meta($post->ID, 'product_currency', true) ?: 'LEI';
+    $currencies = ['LEI' => 'LEI', 'USD' => '$', 'EUR' => '€'];
     wp_nonce_field('save_product_price', 'product_price_nonce');
     ?>
-    <label for="product_price_field">Цена:</label>
+    <label for="product_price_field">Price:</label>
     <div style="display:flex; gap:8px; align-items:center;">
         <input type="number" name="product_price_field" id="product_price_field" value="<?php echo esc_attr($price); ?>" step="0.01" min="0" style="flex:1;" />
         <select name="product_currency_field" id="product_currency_field">
@@ -334,7 +195,6 @@ function save_product_price_metabox($post_id) {
     if (!isset($_POST['product_price_nonce']) || !wp_verify_nonce($_POST['product_price_nonce'], 'save_product_price')) {
         return;
     }
-
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
 
     if (isset($_POST['product_price_field'])) {
@@ -349,10 +209,12 @@ function save_product_price_metabox($post_id) {
 }
 add_action('save_post_products', 'save_product_price_metabox');
 
+
+// Product Type Metabox
 function add_product_type_metabox() {
     add_meta_box(
         'product_type_metabox',
-        'Тип объявления',
+        'Ad Type',
         'render_product_type_metabox',
         'products',
         'side',
@@ -362,11 +224,11 @@ function add_product_type_metabox() {
 add_action('add_meta_boxes', 'add_product_type_metabox');
 
 function render_product_type_metabox($post) {
-    $type = get_post_meta($post->ID, 'product_type', true) ?: 'sell'; // по умолчанию Продам
+    $type = get_post_meta($post->ID, 'product_type', true) ?: 'sell';
     ?>
     <select name="product_type_field" id="product_type_field" style="width:100%;">
-        <option value="sell" <?php selected($type, 'sell'); ?>>Продам</option>
-        <option value="buy" <?php selected($type, 'buy'); ?>>Куплю</option>
+        <option value="sell" <?php selected($type, 'sell'); ?>>For Sale</option>
+        <option value="buy" <?php selected($type, 'buy'); ?>>Wanted</option>
     </select>
     <?php
 }
@@ -380,7 +242,150 @@ function save_product_type_metabox($post_id) {
 }
 add_action('save_post_products', 'save_product_type_metabox');
 
+// Product Taxonomy (Categories with images and translations)
+function register_product_taxonomy() {
+    register_taxonomy('product_cat', 'products', [
+        'labels' => [
+            'name'          => 'Product Categories',
+            'singular_name' => 'Product Category',
+            'search_items'  => 'Search Categories',
+            'all_items'     => 'All Categories',
+            'edit_item'     => 'Edit Category',
+            'update_item'   => 'Update Category',
+            'add_new_item'  => 'Add New Category',
+            'new_item_name' => 'New Category Name',
+            'menu_name'     => 'Categories',
+        ],
+        'hierarchical'      => true,
+        'public'            => true,
+        'show_in_rest'      => true,
+        'show_admin_column' => true,
+        'rewrite' => [
+            'slug'         => 'categories',
+            'with_front'   => false,
+            'hierarchical' => true,
+        ],
+        'capabilities' => [
+            'manage_terms' => 'manage_product_categories',
+            'edit_terms'   => 'manage_product_categories',
+            'delete_terms' => 'manage_product_categories',
+            'assign_terms' => 'edit_products',
+        ],
+    ]);
+}
+add_action('init', 'register_product_taxonomy');
 
+// Category image fields
+function product_cat_add_image_fields() { ?>
+    <div class="form-field term-group">
+        <label for="category_image_color">Category Image (Color)</label>
+        <input type="hidden" id="category_image_color" name="category_image_color" value="">
+        <div id="category-image-color-wrapper"></div>
+        <p>
+            <input type="button" class="button button-secondary category_image_upload_button" data-target="category_image_color" value="Select Image">
+            <input type="button" class="button button-secondary category_image_remove_button" data-target="category_image_color" value="Remove Image">
+        </p>
+    </div>
+
+    <div class="form-field term-group">
+        <label for="category_image_outline">Category Image (Outline)</label>
+        <input type="hidden" id="category_image_outline" name="category_image_outline" value="">
+        <div id="category-image-outline-wrapper"></div>
+        <p>
+            <input type="button" class="button button-secondary category_image_upload_button" data-target="category_image_outline" value="Select Image">
+            <input type="button" class="button button-secondary category_image_remove_button" data-target="category_image_outline" value="Remove Image">
+        </p>
+    </div>
+<?php }
+add_action('product_cat_add_form_fields', 'product_cat_add_image_fields', 10, 2);
+
+function product_cat_edit_image_fields($term) {
+    $color_id   = get_term_meta($term->term_id, 'category_image_color', true);
+    $outline_id = get_term_meta($term->term_id, 'category_image_outline', true);
+    ?>
+    <tr class="form-field term-group-wrap">
+        <th scope="row"><label for="category_image_color">Category Image (Color)</label></th>
+        <td>
+            <input type="hidden" id="category_image_color" name="category_image_color" value="<?php echo esc_attr($color_id); ?>">
+            <div id="category-image-color-wrapper">
+                <?php if ($color_id) echo wp_get_attachment_image($color_id, 'thumbnail'); ?>
+            </div>
+            <p>
+                <input type="button" class="button button-secondary category_image_upload_button" data-target="category_image_color" value="Select Image">
+                <input type="button" class="button button-secondary category_image_remove_button" data-target="category_image_color" value="Remove Image">
+            </p>
+        </td>
+    </tr>
+    <tr class="form-field term-group-wrap">
+        <th scope="row"><label for="category_image_outline">Category Image (Outline)</label></th>
+        <td>
+            <input type="hidden" id="category_image_outline" name="category_image_outline" value="<?php echo esc_attr($outline_id); ?>">
+            <div id="category-image-outline-wrapper">
+                <?php if ($outline_id) echo wp_get_attachment_image($outline_id, 'thumbnail'); ?>
+            </div>
+            <p>
+                <input type="button" class="button button-secondary category_image_upload_button" data-target="category_image_outline" value="Select Image">
+                <input type="button" class="button button-secondary category_image_remove_button" data-target="category_image_outline" value="Remove Image">
+            </p>
+        </td>
+    </tr>
+    <?php
+}
+add_action('product_cat_edit_form_fields', 'product_cat_edit_image_fields', 10, 2);
+
+function save_product_cat_images($term_id) {
+    $fields = ['category_image_color', 'category_image_outline'];
+
+    foreach ($fields as $field) {
+        if (!empty($_POST[$field])) {
+            update_term_meta($term_id, $field, intval($_POST[$field]));
+        } else {
+            delete_term_meta($term_id, $field);
+        }
+    }
+}
+add_action('edited_product_cat', 'save_product_cat_images', 10, 2);
+add_action('created_product_cat', 'save_product_cat_images', 10, 2);
+
+// Category translations
+function add_product_cat_translations() { ?>
+    <div class="form-field">
+        <label for="translation_ro">Name (RO)</label>
+        <input type="text" name="translation_ro" id="translation_ro">
+    </div>
+    <div class="form-field">
+        <label for="translation_en">Name (EN)</label>
+        <input type="text" name="translation_en" id="translation_en">
+    </div>
+<?php }
+add_action('product_cat_add_form_fields', 'add_product_cat_translations', 10);
+
+function edit_product_cat_translations($term) {
+    $ro = get_term_meta($term->term_id, 'translation_ro', true);
+    $en = get_term_meta($term->term_id, 'translation_en', true);
+    ?>
+    <tr class="form-field">
+        <th scope="row"><label for="translation_ro">Name (RO)</label></th>
+        <td><input type="text" name="translation_ro" id="translation_ro" value="<?php echo esc_attr($ro); ?>"></td>
+    </tr>
+    <tr class="form-field">
+        <th scope="row"><label for="translation_en">Name (EN)</label></th>
+        <td><input type="text" name="translation_en" id="translation_en" value="<?php echo esc_attr($en); ?>"></td>
+    </tr>
+    <?php
+}
+add_action('product_cat_edit_form_fields', 'edit_product_cat_translations', 10, 2);
+
+function save_product_cat_translations($term_id) {
+    if (isset($_POST['translation_ro'])) {
+        update_term_meta($term_id, 'translation_ro', sanitize_text_field($_POST['translation_ro']));
+    }
+    if (isset($_POST['translation_en'])) {
+        update_term_meta($term_id, 'translation_en', sanitize_text_field($_POST['translation_en']));
+    }
+}
+add_action('edited_product_cat', 'save_product_cat_translations', 10, 2);
+add_action('created_product_cat', 'save_product_cat_translations', 10, 2);
 
 // function delete_all_product_categories() {
 //     $terms = get_terms(['taxonomy' => 'product_cat', 'hide_empty' => false]);

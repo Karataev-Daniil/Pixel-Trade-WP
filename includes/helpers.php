@@ -1,4 +1,15 @@
 <?php
+function resize_image_url($image, $width = 150, $height = 150) {
+    if (is_numeric($image)) {
+        $image = wp_get_attachment_url($image);
+    }
+
+    if (!$image) return '';
+
+    $path_parts = pathinfo($image);
+    return $path_parts['dirname'] . '/' . $path_parts['filename'] . '-' . $width . 'x' . $height . '.' . $path_parts['extension'];
+}
+
 function format_price_mdl_with_conversions($price_mdl) {
     $price_number = floatval($price_mdl);
 
@@ -9,4 +20,30 @@ function format_price_mdl_with_conversions($price_mdl) {
     $price_usd  = round($price_number * $rate_usd);
 
     return "<b>{$price_number} лей</b> <div><p>/ ≈ {$price_euro} €</p> <p>/ ≈ {$price_usd} $</p></div>";
+}
+
+function sort_categories_by_hierarchy($categories) {
+    if (empty($categories)) return [];
+
+    $categories_by_id = [];
+    foreach ($categories as $term) {
+        $categories_by_id[$term->term_id] = $term;
+    }
+
+    $sorted = [];
+
+    $leaf = null;
+    foreach ($categories as $term) {
+        if (!array_filter($categories, fn($t) => $t->parent === $term->term_id)) {
+            $leaf = $term;
+            break;
+        }
+    }
+
+    while ($leaf) {
+        $sorted[] = $leaf->term_id;
+        $leaf = isset($categories_by_id[$leaf->parent]) ? $categories_by_id[$leaf->parent] : null;
+    }
+
+    return array_reverse($sorted);
 }

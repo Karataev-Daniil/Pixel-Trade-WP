@@ -2,7 +2,7 @@
 .dm-root {
     position: fixed;
     top: 0;
-    right: -700px;
+    right: -700vh;
     width: 40%;
     min-width: 700px;
     height: 100vh;
