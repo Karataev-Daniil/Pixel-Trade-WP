@@ -6,9 +6,9 @@ get_header();
 <div class="auth__wrapper content-main">
     <div class="container-xxsmall">
         <div class="register-form">
-            <h2 class="auth__title display-small">
+            <h1 class="auth__title display-small">
                 <?php echo t('Регистрация', 'Registration', 'Înregistrare'); ?>
-            </h2>
+            </h1>
 
             <?php if (isset($_GET['register']) && $_GET['register'] === 'success') : ?>
                 <div id="register-popup" class="popup">

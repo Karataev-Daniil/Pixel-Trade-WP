@@ -85,6 +85,15 @@ function custom_enqueue_assets() {
         );
     }
 
+    if ( is_page('favorites') ) {
+        wp_enqueue_style(
+            'page-favorites-style',
+            $theme_dir . '/assets/css/template/page-favorites.css',
+            [],
+            filemtime($theme_path . '/assets/css/template/page-favorites.css')
+        );
+    }
+
     if ( is_front_page() || is_page('ru') || is_page('ro') || is_page('en') ) {
         wp_enqueue_style(
             'front-page-style',

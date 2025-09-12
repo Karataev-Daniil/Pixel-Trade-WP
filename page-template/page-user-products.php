@@ -67,9 +67,9 @@ $count_hidden = (new WP_Query([
 <div class="dashboard__wrapper content-main">
     <div class="container-medium">
         <div class="dashboard__header">
-            <h2 class="dashboard__title display-small">
+            <h1 class="dashboard__title display-small">
                 <?php echo t('Мои товары', 'My Products', 'Produsele mele'); ?>
-            </h2>
+            </h1>
             <a href="?add_product=true" class="dashboard__add-button primary-button-medium button-medium">
                 <?php echo t('Добавить товар', 'Add Product', 'Adaugă produs'); ?>
             </a>

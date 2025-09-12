@@ -24,9 +24,9 @@ $avatar_url = $avatar_id ? wp_get_attachment_url($avatar_id) : get_avatar_url($u
 
 <div class="user-settings__wrapper content-main">
     <div class="container-xxsmall">
-        <h2 class="user-settings__title display-small">
+        <h1 class="user-settings__title display-small">
             <?php echo t('Настройки аккаунта', 'Account Settings', 'Setări cont'); ?>
-        </h2>
+        </h1>
     
         <form method="post" enctype="multipart/form-data" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
             <?php wp_nonce_field('save_user_settings', 'user_settings_nonce'); ?>

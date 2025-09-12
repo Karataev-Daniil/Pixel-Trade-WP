@@ -6,9 +6,12 @@ get_header();
 <div class="main__wrapper content-main">
     <div class="container-medium">
         <main>
+            <!-- <h1 class="display-large">
+                <?= t('PixelTrade — маркетплейс в Молдове', 'PixelTrade — Marketplace in Moldova', 'PixelTrade — Piață online în Moldova'); ?>
+            </h1> -->
             <?php
-            $featured_categories = [565, 555, 638, 527, 592, 618, 550, 569];
-
+            $featured_categories = [668, 804, 853, 1015, 909, 976, 1036, 1064, 730];
+            // 947,
             if (!empty($featured_categories)):
             ?>
             <section class="featured-categories">
@@ -16,13 +19,13 @@ get_header();
                     <?php foreach ($featured_categories as $cat_id):
                         $term = get_term($cat_id, 'product_cat');
                         if (!$term) continue;
-
-                        $color_id   = get_term_meta($cat_id, 'category_image_color', true);
+                    
+                        $color_id = get_term_meta($cat_id, 'category_image_color', true);
                         // category_image_color
                         // category_image_outline
-                        
-                        $color_url   = $color_id   ? wp_get_attachment_url($color_id)   : '';
-                        
+
+                        $color_url = $color_id ? wp_get_attachment_url($color_id) : '';
+
                         $name = t(
                             $term->name,
                             get_term_meta($cat_id, 'translation_en', true),
@@ -31,10 +34,13 @@ get_header();
                     
                         $link = get_term_link($term);
                     ?>
-                    <a href="<?= esc_url($link); ?>" class="category-card">
+                    <a href="<?= esc_url($link); ?>" 
+                       class="category-card category-<?= esc_attr($term->slug); ?>">
                         <div class="category-card__image">
                             <?php if ($color_url): ?>
-                                <img class="category-card__img color" src="<?= esc_url($color_url); ?>" alt="<?= esc_attr($term->name); ?>">
+                                <img class="category-card__img color" 
+                                     src="<?= esc_url($color_url); ?>" 
+                                     alt="<?= esc_attr($term->name); ?>">
                             <?php endif; ?>
                         </div>
                         <span class="title-smaller"><?= esc_html($name); ?></span>

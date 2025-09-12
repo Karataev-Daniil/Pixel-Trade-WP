@@ -108,9 +108,16 @@
 .language-switcher.open .language-options {
     display: block;
 }
+.language-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 .language-toggle .lang-label {
     padding: 8px 12px;
     text-decoration: none;
+    max-height: 20px;
+    line-height: 20px;
     color: var(--gray_-6);
     white-space: nowrap;
     transition: background 0.2s ease;
@@ -137,6 +144,7 @@
 }
 .flag {
     font-size: 1.2em;
+    max-height: 20px;
 }
 
 /* 6. Theme Toggle */
@@ -401,19 +409,15 @@ button.catalog-toggle-button {
 .catalog-dropdown {
     position: absolute;
     top: 143px;
-    left: 4px;
-    right: 4px;
+    left: 0;
+    right: 0;
     display: none;
     z-index: 50;
 }
 .catalog-inner {
     max-width: 1280px;
     min-height: 400px;
-    background: var(--gray_5);
-    border-bottom: 2px solid var(--gray_1);
-    border-left: 2px solid var(--gray_1);
-    border-right: 2px solid var(--gray_1);
-    border-radius: 0 0 6px 6px;
+    max-height: 80vh;
     display: flex;
     gap: 16px;
     padding: 0;
@@ -424,12 +428,10 @@ button.catalog-toggle-button {
     padding: 16px 8px 16px 16px;
     list-style: none;
     margin: 0;
-    flex: 0 0 224px;
+    flex: 0 0 350px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    background-color: var(--gray_3);
-    border-radius: 0 0 0 6px;
     gap: 8px;
 }
 .catalog-main__item {
@@ -447,10 +449,30 @@ button.catalog-toggle-button {
 .catalog-subcategories {
     width: 100%;
     padding: 16px 16px 16px 0;
-    flex: 1; 
+    min-height: 500px;
+    max-height: 500px;
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 8px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.catalog-subcategories::-webkit-scrollbar {
+    width: 8px;
+}
+.catalog-subcategories::-webkit-scrollbar-track {
+    background: var(--gray_5);
+}
+.catalog-subcategories::-webkit-scrollbar-thumb {
+    background-color: var(--gray_-3);
+    border: 2px solid var(--gray_-3);
+    border-radius: 8px;
+}
+.catalog-subcategories::-webkit-scrollbar-thumb:hover {
+    background-color: var(--gray_-2);
+    border: 2px solid var(--gray_-2);
 }
 .catalog-subcategories__item {
     display: none;
@@ -495,6 +517,8 @@ button.catalog-toggle-button {
 }
 .catalog-dropdown.is-open {
     display: flex;
+    background-color: var(--gray_5);
+    border-bottom: 2px solid var(--gray_1);
     gap: 16px;
 }
 .catalog-overlay {

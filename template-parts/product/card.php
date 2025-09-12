@@ -16,9 +16,22 @@ if ($author_region && !empty($regions)) {
         }
     }
 }
+
+$terms = get_the_terms(get_the_ID(), 'product_cat');
+$cat_ids = [];
+if ($terms && !is_wp_error($terms)) {
+    foreach ($terms as $term) {
+        $parent = $term->parent ? get_term($term->parent, 'product_cat') : $term;
+        if ($parent) $cat_ids[] = $parent->term_id;
+    }
+}
+$cat_ids_str = implode(',', $cat_ids);
 ?>
 
-<div class="product-card">
+<div class="product-card" 
+    data-id="<?= get_the_ID(); ?>" 
+    data-date="<?= get_the_date('Y-m-d H:i:s'); ?>" 
+    data-categories="<?= esc_attr($cat_ids_str); ?>">
     <a href="<?php the_permalink(); ?>" class="product-card__link">
         <div class="product-card__image-wrapper">
             <?php

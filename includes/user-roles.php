@@ -1,5 +1,4 @@
 <?php
-// user-roles.php
 function remove_custom_roles() {
     remove_role('seller');
     remove_role('buyer');
@@ -29,12 +28,9 @@ function add_product_caps_to_admin() {
     if ($role) {
         $caps = [
             'edit_product', 'read_product', 'delete_product',
-            'edit_products', 'edit_others_products', 'publish_products',
-            'read_private_products',
-            'delete_products', 'delete_private_products',
-            'delete_published_products', 'delete_others_products',
-            'edit_private_products', 'edit_published_products',
-            'manage_product_categories'
+            'edit_products', 'edit_others_products', 'publish_products', 'read_private_products',
+            'delete_products', 'delete_private_products', 'delete_published_products', 'delete_others_products',
+            'edit_private_products', 'edit_published_products', 'manage_product_categories'
         ];
         foreach ($caps as $cap) {
             $role->add_cap($cap);
@@ -48,12 +44,9 @@ function add_product_caps_to_seller() {
     if ($role) {
         $caps = [
             'edit_product', 'read_product', 'delete_product',
-            'edit_products', 'edit_others_products', 'publish_products',
-            'read_private_products',
-            'delete_products', 'delete_private_products',
-            'delete_published_products', 'delete_others_products',
-            'edit_private_products', 'edit_published_products',
-            'manage_product_categories'
+            'edit_products', 'edit_others_products', 'publish_products', 'read_private_products',
+            'delete_products', 'delete_private_products', 'delete_published_products', 'delete_others_products',
+            'edit_private_products', 'edit_published_products', 'manage_product_categories'
         ];
         foreach ($caps as $cap) {
             $role->add_cap($cap);
@@ -62,27 +55,25 @@ function add_product_caps_to_seller() {
 }
 add_action('init', 'add_product_caps_to_seller', 20);
 
-function hide_admin_bar_for_sellers() {
-    if (current_user_can('seller') && !current_user_can('manage_options')) {
+add_action('after_setup_theme', function() {
+    if (!current_user_can('manage_options')) {
         show_admin_bar(false);
     }
-}
-add_action('after_setup_theme', 'hide_admin_bar_for_sellers');
+});
 
 add_action('admin_init', function() {
-    if (current_user_can('seller') || current_user_can('buyer')) {
-        if ( ! ( defined('DOING_AJAX') && DOING_AJAX ) 
-            && ! ( defined('REST_REQUEST') && REST_REQUEST ) 
-            && ! ( isset($_SERVER['PHP_SELF']) && strpos($_SERVER['PHP_SELF'], 'admin-post.php') !== false )
-        ) {
-            wp_redirect(home_url());
-            exit;
-        }
+    if ((current_user_can('seller') || current_user_can('buyer')) 
+        && ! ( defined('DOING_AJAX') && DOING_AJAX ) 
+        && ! ( defined('REST_REQUEST') && REST_REQUEST ) 
+        && ! ( isset($_SERVER['PHP_SELF']) && strpos($_SERVER['PHP_SELF'], 'admin-post.php') !== false )
+    ) {
+        wp_redirect(home_url());
+        exit;
     }
 });
 
 add_action('admin_menu', function() {
-    if(current_user_can('seller')) {
+    if (current_user_can('seller') || current_user_can('buyer')) {
         global $menu, $submenu;
         $menu = [];
         $submenu = [];

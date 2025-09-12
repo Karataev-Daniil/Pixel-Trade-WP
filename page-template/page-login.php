@@ -6,9 +6,9 @@ get_header();
 <div class="auth__wrapper content-main">
     <div class="container-xxsmall">
         <div class="login-form">
-            <h2 class="auth__title display-small">
+            <h1 class="auth__title display-small">
                 <?php echo t('Вход', 'Login', 'Autentificare'); ?>
-            </h2>
+            </h1>
 
             <?php if (isset($_GET['login']) && $_GET['login'] === 'failed') : ?>
                 <p class="body-small-semibold" style="color: red;">

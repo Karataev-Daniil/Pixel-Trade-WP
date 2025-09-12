@@ -1,4 +1,4 @@
-.home h2, .home h3, .home h4 {
+.home h1, .home h2, .home h3, .home h4 {
   margin: 0 0 20px;
 }
 .sidebar-block {
@@ -9,58 +9,99 @@
 }
 .categories-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(255px,1fr));
+  grid-template-columns: repeat(10, 1fr);
   gap: 12px;
 }
+
+/* Общий стиль карточки */
 .category-card {
   position: relative;
   display: flex;
-  padding: 12px;
-  min-height: 90px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 16px;
+  min-height: 110px;
+
   color: var(--gray_-6);
   background-color: var(--gray_4);
-  border-radius: 8px;
+  border-radius: 12px;
+
   text-decoration: none;
   box-sizing: border-box;
   overflow: hidden;
-  transition: background-color 0.4s ease, transform 0.3s ease, box-shadow 0.4s ease;
+
+  transition: background-color 0.4s ease, 
+              transform 0.3s ease, 
+              box-shadow 0.4s ease;
+  cursor: pointer;
 }
+
 .category-card span {
-  max-width: 100px;
+  font-weight: 600;
+  font-size: 1rem;
+  max-width: 120px;
   transition: color 0.4s ease, text-shadow 0.4s ease;
 }
 .category-card__image {
   position: absolute;
   bottom: -5px;
   right: -5px;
-  max-width: 80px;
-  max-height: fit-content;
-  overflow: visible;
+  max-width: 140px;
+  pointer-events: none;
   transition: transform 0.4s ease;
 }
 .category-card__image img {
   width: 100%;
   height: auto;
-  object-fit: cover;
-  transition: transform 0.4s ease, opacity 0.4s ease, filter 0.4s ease;
+  object-fit: contain;
+
+  filter: brightness(0.95) saturate(1.1) contrast(1.05)
+          drop-shadow(0 5px 10px rgba(0, 0, 0, 0.25));
+  transition: transform 0.4s ease, 
+              opacity 0.4s ease, 
+              filter 0.4s ease;
 }
 .category-card:hover {
-  background-color: var(--orange_5);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, var(--orange_4), var(--orange_5));
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 .category-card:hover span {
   color: var(--gray_-3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
-.category-card:hover .category-card__image img.outline {
-  opacity: 0;
-  transform: scale(1.1);
-  filter: brightness(0.9) blur(1px);
-}
-.category-card:hover .category-card__image img.color {
-  transform: scale(1.1);
-  filter: brightness(1.2);
+.category-card:hover .category-card__image img {
+  transform: scale(1.1) rotate(-2deg);
+  filter: brightness(1) saturate(1.2) 
+          drop-shadow(0 8px 16px var(--shadow));
 }
 
+.category-avtomobili { grid-column: span 3; }
+.category-avtomobili .category-card__image { top: -40px; max-width: 220px; }
+
+.category-detskiy-mir { grid-column: span 2; }
+.category-detskiy-mir .category-card__image { right: -20px; bottom: -20px; max-width: 140px; }
+
+.category-dom-i-interer { grid-column: span 2; }
+.category-dom-i-interer .category-card__image { right: -40px; bottom: -30px; max-width: 170px; }
+
+.category-zootovary { grid-column: span 2; }
+.category-zootovary .category-card__image { right: -25px; bottom: -35px; max-width: 170px;}
+
+.category-krasota-i-zdorove { grid-column: span 2; }
+.category-krasota-i-zdorove .category-card__image { right: -40px; bottom: -80px; max-width: 170px; }
+
+.category-nedvizhimost { grid-column: span 3; }
+.category-nedvizhimost .category-card__image { bottom: -120px; max-width: 180px; }
+
+.category-odezhda-obuv-i-aksessuary { grid-column: span 2; }
+.category-odezhda-obuv-i-aksessuary .category-card__image { right: -10px; bottom: -10px; max-width: 120px; }
+
+.category-sport-i-otdyh { grid-column: span 2; }
+.category-sport-i-otdyh .category-card__image { max-width: 140px; }
+
+.category-elektronika { grid-column: span 2; }
+.category-elektronika .category-card__image { right: 0; bottom: 0; max-width: 110px; }
 
 .content-columns {
   display: flex; 

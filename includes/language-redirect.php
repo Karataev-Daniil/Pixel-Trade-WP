@@ -7,7 +7,7 @@ add_action('init', function() {
     );
 
     add_rewrite_rule(
-        '^(ru|en|ro)/categories/([^/]+)/?$',
+        '^(ru|en|ro)/categories/(.+)/?$',
         'index.php?product_cat=$matches[2]',
         'top'
     );

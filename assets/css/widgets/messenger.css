@@ -244,19 +244,6 @@
     border-radius: 0;
 }
 
-.dm-write-btn {
-    padding: 6px 12px;
-    background: var(--orange_0);
-    color: var(--gray_6);
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.4s;
-}
-.dm-write-btn:hover {
-    background: var(--orange_1);
-}
-
 /* Кнопки перевода */
 .dm-translate-btn {
     margin-left: 8px;

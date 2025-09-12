@@ -1,0 +1,12 @@
+<svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @font-face {
+      font-family: 'Inter';
+      src: url('https://fonts.gstatic.com/s/inter/v12/UcCO3Fwr4ywm3lQ9bKXj.ttf') format('truetype');
+    }
+    text { font-family: 'Inter', sans-serif; }
+  </style>
+  <rect width="50" height="50" fill="transparent" rx="8" ry="8"/>
+  <text x="-3" y="40" font-family="Inter" font-size="44" font-weight="700" fill="#FFFFFF">P</text>
+  <text x="23" y="40" font-family="Inter" font-size="44" font-weight="700" fill="#EB7E33">T</text>
+</svg>

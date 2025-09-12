@@ -52,7 +52,7 @@
       ]),
       React.createElement('div', { key: 'meta', className: 'dm-thread-meta' }, [
         React.createElement('div', { key: 'name', className: 'dm-name title-medium' }, otherUser.name || 'Удалённый пользователь'),
-        React.createElement('div', { key: 'last', className: 'dm-last body-small-regular' }, thread.last_message ? thread.last_message.slice(0,40)+'…' : 'Нет сообщений')
+        React.createElement('div', { key: 'last', className: 'dm-last body-small-regular' }, thread.last_message ? thread.last_message.slice(0,40) : 'Нет сообщений')
       ]),
       React.createElement('div', { key: 'time', className: 'dm-upd body-small-regular' }, formatDateTime(thread.updated))
     ]);
@@ -490,11 +490,10 @@
 
   document.addEventListener('DOMContentLoaded', () => {
       const root = document.getElementById('simple-dm-root');
-      const toggleBtn = document.getElementById('dm-toggle-btn');
+      const mainBtn = document.getElementById('dm-toggle-btn-header');
 
-      if (!root || !toggleBtn) return;
+      if (!root || !mainBtn) return;
 
-      // Создаём overlay один раз
       const overlay = document.createElement('div');
       overlay.className = 'dm-overlay';
       document.body.appendChild(overlay);
@@ -507,7 +506,7 @@
           root.classList.add('active');
           overlay.classList.add('active');
       };
-    
+
       const closeDm = () => {
           document.body.style.overflow = '';
           document.body.style.paddingRight = '';
@@ -520,18 +519,24 @@
           appSetSince(0);
           appSetEditingMessage(null);
       };
-    
-      toggleBtn.addEventListener('click', () => {
-          const isOpening = !root.classList.contains('active');
-          isOpening ? openDm() : closeDm();
-      });
-    
+
       overlay.addEventListener('click', closeDm);
 
-      // Крестик будет внутри React App
+      mainBtn.addEventListener('click', openDm);
+
+      document.body.addEventListener('click', (e) => {
+          const btn = e.target.closest('.dm-write-btn');
+          if (!btn) return;
+
+          const userId = btn.dataset.user;
+          if (!userId) return;
+
+          appSetCurrent(userId);
+          mainBtn.click();
+      });
+
       ReactDOM.createRoot(root).render(React.createElement(App));
   });
-
 
   window.openDmWithUser = async function(userId){
     try{

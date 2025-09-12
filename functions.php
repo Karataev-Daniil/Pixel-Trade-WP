@@ -32,3 +32,26 @@ require_once get_template_directory() . '/includes/language-redirect.php';
 
 // AJAX Handlers
 require_once get_template_directory() . '/includes/ajax-products.php';
+
+add_action('wp_ajax_load_more_favorites', 'load_more_favorites_callback');
+add_action('wp_ajax_nopriv_load_more_favorites', 'load_more_favorites_callback');
+
+function load_more_favorites_callback() {
+    if (!isset($_POST['ids']) || !is_array($_POST['ids'])) wp_die();
+
+    $ids = array_map('intval', $_POST['ids']);
+    $query = new WP_Query([
+        'post_type' => 'products',
+        'post__in' => $ids,
+        'orderby' => 'post__in',
+        'posts_per_page' => -1
+    ]);
+
+    if ($query->have_posts()) {
+        while ($query->have_posts()): $query->the_post();
+            get_template_part('template-parts/product/card-row-large');
+        endwhile;
+        wp_reset_postdata();
+    }
+    wp_die();
+}

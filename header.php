@@ -36,7 +36,7 @@
     <meta name="twitter:image" content="<?= get_template_directory_uri(); ?>/assets/img/og-default.jpg" />
 
     <!-- Favicon -->
-    <link rel="icon" href="<?= get_template_directory_uri(); ?>/assets/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" id="favicon-dark" href="<?= get_template_directory_uri(); ?>/images/favicon-light.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="<?= get_template_directory_uri(); ?>/assets/img/apple-touch-icon.png">
 
     <?php wp_head(); ?>
@@ -73,28 +73,24 @@
             
               <!-- Переключатели -->
               <div class="header-top-right">
-<?php
-$languages = ['ru' => '🇷🇺', 'en' => '🇬🇧', 'ro' => '🇷🇴'];
-$current_path = trim($_SERVER['REQUEST_URI'], '/');
-$parts = explode('/', $current_path);
+                <?php
+                $languages = ['ru' => '🇷🇺', 'en' => '🇬🇧', 'ro' => '🇷🇴'];
+                $current_path = trim($_SERVER['REQUEST_URI'], '/');
+                $parts = explode('/', $current_path);
 
-$current_lang = in_array($parts[0], array_keys($languages)) ? $parts[0] : 'ru';
+                $current_lang = in_array($parts[0], array_keys($languages)) ? $parts[0] : 'ru';
 
-if (in_array($parts[0], array_keys($languages))) {
-    array_shift($parts);
-}
-$path_without_lang = implode('/', $parts);
+                if (in_array($parts[0], array_keys($languages))) {
+                    array_shift($parts);
+                }
+                $path_without_lang = implode('/', $parts);
 
-// Задаём глобальный язык
-$GLOBALS['language'] = $current_lang;
-?>
-
-
-
+                $GLOBALS['language'] = $current_lang;
+                ?>
                 <nav class="language-switcher">
                   <button class="language-toggle">
                     <span class="flag"><?= esc_html($languages[$current_lang]) ?></span>
-                    <span class="lang-label"><?= esc_html(strtoupper($current_lang)) ?></span>
+                    <span class="lang-label label-small"><?= esc_html(strtoupper($current_lang)) ?></span>
                   </button>
                   <div class="language-options">
                     <?php foreach ($languages as $lang => $flag): ?>
@@ -103,7 +99,7 @@ $GLOBALS['language'] = $current_lang;
                          class="language-button"
                          title="<?= esc_attr(strtoupper($lang)) ?>">
                         <span class="flag"><?= esc_html($flag) ?></span>
-                        <span class="lang-label"><?= esc_html(strtoupper($lang)) ?></span>
+                        <span class="lang-label label-small"><?= esc_html(strtoupper($lang)) ?></span>
                       </a>
                     <?php endforeach; ?>
                   </div>
@@ -123,7 +119,7 @@ $GLOBALS['language'] = $current_lang;
                 $is_logged_in = is_user_logged_in();
                 ?>
                 <?php if ($is_logged_in): ?>
-                  <button id="dm-toggle-btn" class="dm-toggle-btn" aria-label="<?= t('Открыть чат', 'Open Chat', 'Deschide chat'); ?>">
+                  <button id="dm-toggle-btn-header" class="dm-toggle-btn" aria-label="<?= t('Открыть чат', 'Open Chat', 'Deschide chat'); ?>">
                     <span class="icon-message"><?php echo file_get_contents(get_template_directory() . '/images/message.svg'); ?></span>
                     <span class="icon-message-solid"><?php echo file_get_contents(get_template_directory() . '/images/message-solid.svg'); ?></span>
                   </button>
