@@ -352,3 +352,25 @@ p {
     margin: 40px 0;
   }
 }
+
+.form-message {
+  padding: 8px;
+  display: inline-block;
+  min-height: 24px;
+}
+.form-message.success { 
+  border-left: 3px solid var(--success_0);
+  color: var(--success_0); 
+}
+.form-message.error { 
+  border-left: 3px solid var(--danger_0);
+  color: var(--danger_0); 
+}
+.form-message.warning { 
+  border-left: 3px solid var(--warning_0); 
+  color: var(--warning_0); 
+}
+.form-message.info { 
+  border-left: 3px solid var(--aqua_0); 
+  color: var(--aqua_0); 
+}

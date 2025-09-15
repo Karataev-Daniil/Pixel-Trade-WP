@@ -54,15 +54,24 @@ get_header();
             <div class="content-columns">
                 <div class="product-grid" style="flex:1;">
                     <section class="recommended-products">
-                        <h2 class="display-small"><?= t('Рекомендованные товары', 'Recommended Products', 'Produse recomandate'); ?></h2>
-                        <div class="products-list">
+                        <h2 class="display-small">
+                            <?= t('Рекомендации для вас', 'Recommendations for you', 'Recomandări pentru tine'); ?>
+                        </h2>
+                        <div class="products-list" id="recommended-products">
                             <?php
-                            $query = new WP_Query([
-                                'post_type' => 'products',
-                                'posts_per_page' => 12,
-                                'orderby' => 'date',
-                                'order' => 'DESC',
-                            ]);
+                            // Берём сразу 36 товаров (3 страницы по 12)
+                            if (function_exists('get_recommended_products_for_user')) {
+                                $query = get_recommended_products_for_user(36);
+                            } else {
+                                // fallback
+                                $query = new WP_Query([
+                                    'post_type'      => 'products',
+                                    'posts_per_page' => 36,
+                                    'orderby'        => 'date',
+                                    'order'          => 'DESC',
+                                ]);
+                            }
+                        
                             if ($query->have_posts()):
                                 while ($query->have_posts()): $query->the_post();
                                     get_template_part('template-parts/product/card'); 
@@ -73,7 +82,32 @@ get_header();
                             endif;
                             ?>
                         </div>
+                        
+                        <?php if ($query->found_posts > 36): ?>
+                            <button id="load-more-products" data-offset="36"><?= t('Загрузить ещё', 'Load more', 'Încarcă mai mult'); ?></button>
+                        <?php endif; ?>
                     </section>
+                        
+                    <script>
+                    jQuery(document).ready(function($){
+                        $('#load-more-products').on('click', function(){
+                            var btn = $(this);
+                            var offset = btn.data('offset');
+                        
+                            $.post('<?php echo admin_url("admin-ajax.php"); ?>', {
+                                action: 'load_more_products',
+                                offset: offset
+                            }, function(response){
+                                if(response.trim() === '') {
+                                    btn.hide(); // больше товаров нет
+                                } else {
+                                    $('#recommended-products').append(response);
+                                    btn.data('offset', offset + 36); // обновляем смещение
+                                }
+                            });
+                        });
+                    });
+                    </script>
                 </div>
 
                 <aside class="sidebar">
@@ -81,13 +115,17 @@ get_header();
                         <h3 class="title-medium"><?= t('Последние избранные', 'Latest Favorites', 'Favorite recente'); ?></h3>
                         <?php
                         if (is_user_logged_in()) {
-                            $favorites = get_user_meta(get_current_user_id(), 'favorite_products', true);
+                            $user_id = get_current_user_id();
+                            $favorites = function_exists('favorites_get') ? array_slice(favorites_get($user_id, 'product'), 0, 5) : [];
+                        
                             if ($favorites):
                                 $query = new WP_Query([
                                     'post_type' => 'products',
-                                    'post__in'  => array_slice($favorites, -5),
+                                    'post__in'  => $favorites,
+                                    'orderby'   => 'post__in',
                                     'posts_per_page' => 5,
                                 ]);
+                            
                                 if ($query->have_posts()): ?>
                                     <ul class="products-list-row">
                                         <?php while ($query->have_posts()): $query->the_post();
@@ -107,7 +145,7 @@ get_header();
                     </section>
 
                     <section class="sidebar-block">
-                        <h3 class="title-medium"><?= t('Новые поступления', 'New Arrivals', 'Noutăți'); ?></h3>
+                        <h3 class="title-medium"><?= t('Новые объявления', 'New Listings', 'Anunțuri noi'); ?></h3>
                         <?php
                         $query = new WP_Query([
                             'post_type' => 'products',

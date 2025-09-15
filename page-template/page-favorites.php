@@ -21,8 +21,9 @@ if (!is_user_logged_in()) : ?>
     exit;
 endif;
 
-// Получаем избранные товары пользователя
-$favorites = get_user_meta(get_current_user_id(), 'favorite_products', true);
+// Получаем избранные товары и профили пользователя из новой таблицы
+$favorites_products = favorites_get(get_current_user_id(), 'product');
+$favorites_profiles = favorites_get(get_current_user_id(), 'profile');
 ?>
 
 <div class="favorites-products__wrapper content-main">
@@ -31,29 +32,34 @@ $favorites = get_user_meta(get_current_user_id(), 'favorite_products', true);
             <div class="favorites-products">
                 <h1 class="display-medium"><?= t('Избранное', 'Favorites', 'Favorite'); ?></h1>
 
-                <?php if (empty($favorites)) : ?>
+                <?php if (empty($favorites_products) && empty($favorites_profiles)) : ?>
                     <p class="body-medium-regular">
-                        <?= t('У вас пока нет избранных товаров.', 'You have no favorite products yet.', 'Nu aveți încă produse favorite.'); ?>
+                        <?= t('У вас пока нет избранных товаров или профилей.', 'You have no favorite products or profiles yet.', 'Nu aveți încă produse sau profiluri favorite.'); ?>
                     </p>
                 <?php else : ?>
 
                     <div class="favorites-main-tabs">
-                        <button class="main-tab title-largest active" data-section="ads">
-                            <?= t('Объявления', 'Ads', 'Anunțuri'); ?>
-                        </button>
-                        <button class="main-tab title-largest" data-section="profiles">
-                            <?= t('Профили', 'Profiles', 'Profiluri'); ?>
-                        </button>
+                        <?php if (!empty($favorites_products)) : ?>
+                            <button class="main-tab title-largest active" data-section="ads">
+                                <?= t('Объявления', 'Ads', 'Anunțuri'); ?>
+                            </button>
+                        <?php endif; ?>
+                        <?php if (!empty($favorites_profiles)) : ?>
+                            <button class="main-tab title-largest <?= empty($favorites_products) ? 'active' : ''; ?>" data-section="profiles">
+                                <?= t('Профили', 'Profiles', 'Profiluri'); ?>
+                            </button>
+                        <?php endif; ?>
                     </div>
 
-                    <section class="favorites-section" data-section="ads">
+                    <?php if (!empty($favorites_products)) : ?>
+                    <section class="favorites-section <?= empty($favorites_products) ? 'hidden' : ''; ?>" data-section="ads">
                         <?php
                         $all_posts = [];
                         $category_counts = [];
 
                         $query = new WP_Query([
                             'post_type' => 'products',
-                            'post__in'  => $favorites,
+                            'post__in'  => $favorites_products,
                             'posts_per_page' => -1,
                             'orderby' => 'date',
                             'order' => 'DESC'
@@ -93,8 +99,13 @@ $favorites = get_user_meta(get_current_user_id(), 'favorite_products', true);
                             </div>
 
                             <div class="favorites-sort">
-                                <button class="sort-btn active" data-sort="new">
-                                    <?= t('Сначала новые', 'Newest first', 'Mai întâi noi'); ?>
+                                <button class="sort-btn label-small active" data-sort="new" aria-label="<?= t('Сортировка товаров', 'Sort products', 'Sortare produse'); ?>">
+                                    <svg aria-hidden="true" class="sort-icon" width="24" height="24" viewBox="0 0 24 24">
+                                      <path class="sort-arrow-up" d="M12 2L4 10h16L12 2z" fill="currentColor"/>
+                                      <path class="sort-arrow-down" d="M12 22l8-8H4l8 8z" fill="currentColor"/>
+                                    </svg>
+
+                                    <span class="sort-label"><?= t('Сначала новые', 'Newest first', 'Mai întâi noi'); ?></span>
                                 </button>
                             </div>
 
@@ -122,19 +133,35 @@ $favorites = get_user_meta(get_current_user_id(), 'favorite_products', true);
 
                                 <?php if (count($all_posts) > 10): ?>
                                     <button id="load-more" 
+                                        class="primary-button-small button-small"
                                         data-offset="10" 
                                         data-ids='<?= json_encode($all_posts); ?>'>
-                                        <?= t('Загрузить ещё', 'Load more', 'Încarcă mai mult'); ?> (<?= count($all_posts) - 10; ?>)
+                                        <?= t('Загрузить ещё', 'Load more', 'Încarcă mai mult'); ?> <?= count($all_posts) - 10; ?>
                                     </button>
                                 <?php endif; ?>
                             </div>
                         <?php endif; ?>
                     </section>
+                    <?php endif; ?>
 
-                    <section class="favorites-section hidden" data-section="profiles">
+                    <?php if (!empty($favorites_profiles)) : ?>
+                    <section class="favorites-section <?= !empty($favorites_products) ? 'hidden' : ''; ?>" data-section="profiles">
                         <h2><?= t('Профили', 'Profiles', 'Profiluri'); ?></h2>
-                        <p><?= t('Тут можно вывести избранные профили пользователей.', 'Here you can display favorite user profiles.', 'Aici puteți afișa profilurile utilizatorilor preferați.'); ?></p>
+                        <ul class="profiles-list">
+                            <?php foreach ($favorites_profiles as $profile_id): ?>
+                                <?php 
+                                $user = get_userdata($profile_id);
+                                if ($user): ?>
+                                    <li class="profile-card">
+                                        <a href="<?= esc_url(get_author_posts_url($user->ID)); ?>">
+                                            <?= esc_html($user->display_name); ?>
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </ul>
                     </section>
+                    <?php endif; ?>
 
                 <?php endif; ?>
             </div>
@@ -146,10 +173,11 @@ $favorites = get_user_meta(get_current_user_id(), 'favorite_products', true);
 document.addEventListener("DOMContentLoaded", () => {
     const productList = document.getElementById("favorites-list");
     const sortBtn = document.querySelector(".favorites-sort .sort-btn");
-    const spinner = document.querySelector(".spinner");
-    const loadMoreBtn = document.getElementById("load-more");
     const categoryWrapper = document.querySelector(".favorites-categories");
-    let allItems = Array.from(productList.querySelectorAll(".product-card-row-large"));
+    const mainTabs = document.querySelectorAll(".favorites-main-tabs .main-tab");
+    const sections = document.querySelectorAll(".favorites-section");
+    const loadMoreBtn = document.getElementById("load-more");
+    const spinner = document.querySelector(".spinner");
 
     function updateCategoryFilter() {
         if (!categoryWrapper) return;
@@ -159,12 +187,18 @@ document.addEventListener("DOMContentLoaded", () => {
             tab.onclick = () => {
                 categoryTabs.forEach(t => t.classList.remove("active"));
                 tab.classList.add("active");
-                let selectedCat = tab.dataset.category.toString();
 
-                let items = Array.from(document.querySelectorAll(".product-card-row-large"));
+                const selectedCat = tab.dataset.category.toString();
+                const items = Array.from(document.querySelectorAll(".product-card-row-large"));
+
                 items.forEach(item => {
-                    let cats = (item.dataset.categories || '').split(",").map(c => c.trim());
-                    item.style.display = (selectedCat === "all" || cats.includes(selectedCat)) ? "" : "none";
+                    const cats = (item.dataset.categories || '').split(",").map(c => c.trim());
+
+                    if (selectedCat === "all" || cats.includes(selectedCat)) {
+                        item.classList.remove("hidden");
+                    } else {
+                        item.classList.add("hidden");
+                    }
                 });
             };
         });
@@ -173,38 +207,57 @@ document.addEventListener("DOMContentLoaded", () => {
     updateCategoryFilter();
 
     if (sortBtn) {
+        const arrowUp = sortBtn.querySelector(".sort-arrow-up");
+        const arrowDown = sortBtn.querySelector(".sort-arrow-down");
+
         sortBtn.addEventListener("click", () => {
-            let items = Array.from(productList.querySelectorAll(".product-card-row-large"));
-            let sort = sortBtn.dataset.sort;
+            const items = Array.from(productList.querySelectorAll(".product-card-row-large"));
+            const sort = sortBtn.dataset.sort;
 
             items.sort((a, b) => {
-                let da = new Date(a.dataset.date);
-                let db = new Date(b.dataset.date);
+                const da = new Date(a.dataset.date);
+                const db = new Date(b.dataset.date);
                 return sort === "new" ? db - da : da - db;
             });
 
-            items.forEach(i => productList.appendChild(i));
+            items.forEach(item => {
+                item.style.opacity = 0;
+                setTimeout(() => productList.appendChild(item), 200);
+                setTimeout(() => item.style.opacity = 1, 220);
+            });
+
+            const sortLabel = sortBtn.querySelector(".sort-label");
 
             if (sort === "new") {
+                arrowUp.classList.add("active");
+                arrowDown.classList.remove("active");
                 sortBtn.dataset.sort = "old";
-                sortBtn.textContent = "<?= t('Сначала старые', 'Oldest first', 'Mai întâi vechi'); ?>";
+                sortLabel.textContent = "<?= t('Сначала старые', 'Oldest first', 'Mai întâi vechi'); ?>";
             } else {
+                arrowUp.classList.remove("active");
+                arrowDown.classList.add("active");
                 sortBtn.dataset.sort = "new";
-                sortBtn.textContent = "<?= t('Сначала новые', 'Newest first', 'Mai întâi noi'); ?>";
+                sortLabel.textContent = "<?= t('Сначала новые', 'Newest first', 'Mai întâi noi'); ?>";
             }
         });
     }
 
+    mainTabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+            mainTabs.forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+
+            const section = tab.dataset.section;
+            sections.forEach(s => s.classList.toggle("hidden", s.dataset.section !== section));
+        });
+    });
+
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener("click", () => {
-            let offset = parseInt(loadMoreBtn.dataset.offset);
-            let ids = JSON.parse(loadMoreBtn.dataset.ids);
-            let nextIds = ids.slice(offset, offset + 10);
-
-            if (!nextIds.length) {
-                loadMoreBtn.remove();
-                return;
-            }
+            const offset = parseInt(loadMoreBtn.dataset.offset);
+            const ids = JSON.parse(loadMoreBtn.dataset.ids);
+            const nextIds = ids.slice(offset, offset + 10);
+            if (!nextIds.length) return loadMoreBtn.remove();
 
             spinner.classList.remove("hidden");
 
@@ -219,12 +272,10 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(res => res.text())
             .then(html => {
                 productList.insertAdjacentHTML("beforeend", html);
-                offset += nextIds.length;
-                loadMoreBtn.dataset.offset = offset;
-
+                loadMoreBtn.dataset.offset = offset + nextIds.length;
                 updateCategoryFilter();
 
-                let remaining = ids.length - offset;
+                const remaining = ids.length - (offset + nextIds.length);
                 if (remaining > 0) {
                     loadMoreBtn.textContent = "<?= t('Загрузить ещё', 'Load more', 'Încarcă mai mult'); ?> (" + remaining + ")";
                 } else {
@@ -234,21 +285,6 @@ document.addEventListener("DOMContentLoaded", () => {
             .finally(() => spinner.classList.add("hidden"));
         });
     }
-
-    const mainTabs = document.querySelectorAll(".favorites-main-tabs .main-tab");
-    const sections = document.querySelectorAll(".favorites-section");
-
-    mainTabs.forEach(tab => {
-        tab.addEventListener("click", () => {
-            mainTabs.forEach(t => t.classList.remove("active"));
-            tab.classList.add("active");
-
-            let section = tab.dataset.section;
-            sections.forEach(s => {
-                s.classList.toggle("hidden", s.dataset.section !== section);
-            });
-        });
-    });
 });
 </script>
 

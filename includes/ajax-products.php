@@ -25,34 +25,3 @@ function get_subcategories_ajax() {
 
     wp_send_json($result);
 }
-
-add_action('wp_ajax_load_more_products', 'load_more_products_ajax');
-add_action('wp_ajax_nopriv_load_more_products', 'load_more_products_ajax');
-
-function load_more_products_ajax() {
-    $paged = isset($_GET['paged']) ? intval($_GET['paged']) : 1;
-    $cat_id = isset($_GET['cat_id']) ? intval($_GET['cat_id']) : 0;
-
-    $args = [
-        'post_type' => 'product',
-        'posts_per_page' => 24,
-        'paged' => $paged,
-        'tax_query' => [
-            [
-                'taxonomy' => 'product_cat',
-                'field' => 'term_id',
-                'terms' => $cat_id,
-            ]
-        ]
-    ];
-
-    $products_query = new WP_Query($args);
-
-    if ($products_query->have_posts()) :
-        while ($products_query->have_posts()) : $products_query->the_post();
-            get_template_part('template-parts/product/card');
-        endwhile;
-    endif;
-    wp_reset_postdata();
-    wp_die();
-}

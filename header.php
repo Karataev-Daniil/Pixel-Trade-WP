@@ -119,7 +119,7 @@
                 $is_logged_in = is_user_logged_in();
                 ?>
                 <?php if ($is_logged_in): ?>
-                  <button id="dm-toggle-btn-header" class="dm-toggle-btn" aria-label="<?= t('Открыть чат', 'Open Chat', 'Deschide chat'); ?>">
+                  <button id="dm-toggle-btn-header" class="dm-toggle-btn button-medium" aria-label="<?= t('Открыть чат', 'Open Chat', 'Deschide chat'); ?>">
                     <span class="icon-message"><?php echo file_get_contents(get_template_directory() . '/images/message.svg'); ?></span>
                     <span class="icon-message-solid"><?php echo file_get_contents(get_template_directory() . '/images/message-solid.svg'); ?></span>
                   </button>

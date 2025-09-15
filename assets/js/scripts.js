@@ -12,18 +12,29 @@ document.addEventListener('DOMContentLoaded', function () {
         document.cookie = "theme=" + theme + ";path=/;max-age=" + (30*24*60*60);
     }
 
-    // Получаем текущую тему
     let currentTheme = getCookie('theme') || document.documentElement.getAttribute('data-theme') || 'light';
     setTheme(currentTheme);
 
-    // Переключение темы по клику
     toggleButton.addEventListener('click', () => {
         const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         setTheme(newTheme);
     });
 });
 
+function setFieldMessage(id, message = '', type = '') {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = message;
+    el.classList.remove('error', 'warning', 'success');
+    if (type) el.classList.add(type);
+}
 
+function clearFieldMessage(id) {
+    const el = document.getElementById('message_' + id) || document.getElementById(id);
+    if (!el) return;
+    el.textContent = '';
+    el.classList.remove('error', 'warning', 'success');
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     const searchField = document.querySelector('.search-field');
@@ -95,8 +106,8 @@ jQuery(document).ready(function($) {
 
 let language = window.language || 'ru';
 
-function t(ru, en, ro) {
-    if (language === 'en') return en;
-    if (language === 'ro') return ro;
+window.t = function(ru, en, ro) {
+    if (window.language === 'en') return en;
+    if (window.language === 'ro') return ro;
     return ru;
-}
+};

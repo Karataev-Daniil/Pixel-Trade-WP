@@ -195,9 +195,6 @@
 .dm-msg.mine .dm-bubble {
     background: var(--orange_2);
 }
-.dm-bubble:hover {
-    transform: scale(1.02);
-}
 
 .dm-ts {
     display: flex;
@@ -242,6 +239,9 @@
 .dm-send {
     cursor: pointer;
     border-radius: 0;
+}
+.dm-system-message {
+    margin: 6px 0;
 }
 
 /* Кнопки перевода */

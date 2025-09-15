@@ -1,21 +1,6 @@
 const MAX_IMAGES = 10;
 let newImageIndex = 0;
 
-function setFieldMessage(id, message = '', type = '') {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = message;
-    el.classList.remove('error', 'warning', 'success');
-    if (type) el.classList.add(type);
-}
-
-function clearFieldMessage(id) {
-    const el = document.getElementById('message_' + id) || document.getElementById(id);
-    if (!el) return;
-    el.textContent = '';
-    el.classList.remove('error', 'warning', 'success');
-}
-
 function updateCounter(el) {
     const counter = el.closest('.tab-content').querySelector('.form-hint');
     if (!counter) return;

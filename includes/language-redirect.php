@@ -53,24 +53,46 @@ add_filter('term_link', function($url, $term, $taxonomy) {
 }, 10, 3);
 
 add_action('template_redirect', function() {
+    if (is_admin() || (defined('DOING_AJAX') && DOING_AJAX) || (defined('REST_REQUEST') && REST_REQUEST)) {
+        return;
+    }
+
     $languages = ['ru','en','ro'];
-    $uri_parts = explode('/', trim($_SERVER['REQUEST_URI'], '/'));
+    $uri = trim($_SERVER['REQUEST_URI'], '/');
+    $uri_path = parse_url($uri, PHP_URL_PATH);
+    $uri_parts = explode('/', $uri_path);
     $first_part = $uri_parts[0] ?? '';
 
-    if ($_SERVER['REQUEST_URI'] === '/' || $_SERVER['REQUEST_URI'] === '') {
+    $search_page_slug = 'my-products';
+
+    if (isset($_GET['s']) && !empty($_GET['s']) && in_array($search_page_slug, $uri_parts)) {
+        return;
+    }
+
+    if ($uri_path === '') {
         $lang = $_COOKIE['language'] ?? 'ru';
         $lang = in_array($lang, $languages) ? $lang : 'ru';
-
         wp_redirect(home_url("/$lang/"), 301);
         exit;
     }
 
     if ($first_part && !in_array($first_part, $languages)) {
-        wp_redirect(home_url('/ru/' . implode('/', $uri_parts)), 301);
+        wp_redirect(home_url('/ru/' . $uri_path), 301);
         exit;
     }
 
     $GLOBALS['language'] = $first_part ?: 'ru';
-
     setcookie('language', $GLOBALS['language'], time() + 30*DAY_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN);
+});
+
+
+add_filter('request', function($query_vars) {
+    if (isset($_GET['s']) && !empty($_GET['s'])) {
+        $page_slug = 'my-products';
+        $current_slug = $query_vars['pagename'] ?? '';
+        if ($current_slug === $page_slug) {
+            $query_vars['s'] = sanitize_text_field($_GET['s']);
+        }
+    }
+    return $query_vars;
 });

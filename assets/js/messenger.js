@@ -173,13 +173,21 @@
     }, [editingMessage]);
 
     const send = async () => {
-      if(!value.trim()) return;
-      if(blocked && !blockedByMe){
-        alert('Вы не можете отправлять сообщения — чат заблокирован.');
-        return;
-      }
-      await onSend(value, editingMessage?.id);
-      setValue('');
+        if(!value.trim()) return;
+        if(blocked && !blockedByMe){
+            showPopup({ 
+                title: t('Ошибка','Error','Eroare'), 
+                message: t(
+                    'Вы не можете отправлять сообщения — чат заблокирован.',
+                    'You cannot send messages — chat is blocked.',
+                    'Nu puteți trimite mesaje — chatul este blocat.'
+                ),
+                type: 'warning'
+            });
+            return;
+        }
+        await onSend(value, editingMessage?.id);
+        setValue('');
     };
 
     return React.createElement('div', { className:'dm-composer' }, [
@@ -350,38 +358,84 @@
     useEffect(()=>{ globalOpenThread = openThread; return ()=>{ globalOpenThread=null; } }, [openThread]);
 
     const blockUser = useCallback(async () => {
-      if (!current) return;
-      const currentThread = threads?.find(t => t.id === current);
-      if (!currentThread) return;
+        if (!current) return;
+        const currentThread = threads?.find(t => t.id === current);
+        if (!currentThread) return;
 
-      const isBlocked = !!currentThread.blocked;
-      const iAmBlocker = Number(currentThread.blocked_by) === Number(SIMPLE_DM.currentUser.id);
+        const isBlocked = !!currentThread.blocked;
+        const iAmBlocker = Number(currentThread.blocked_by) === Number(SIMPLE_DM.currentUser.id);
 
-      if (isBlocked) {
-        if (!iAmBlocker) {
-          alert('Вы не можете разблокировать — чат заблокирован другим пользователем.');
-          return;
+        if (isBlocked) {
+            if (!iAmBlocker) {
+                showPopup({
+                    title: t('Ошибка','Error','Eroare'),
+                    message: t(
+                        'Вы не можете разблокировать — чат заблокирован другим пользователем.',
+                        'You cannot unblock — chat is blocked by another user.',
+                        'Nu puteți debloca — chatul este blocat de alt utilizator.'
+                    ),
+                    type: 'warning'
+                });
+                return;
+            }
+            showPopup({
+                title: t('Подтверждение','Confirmation','Confirmare'),
+                message: t('Разблокировать чат?','Unblock chat?','Deblocați chatul?'),
+                type: 'info',
+                buttons: [
+                    { text: t('Отмена','Cancel','Anulare'), callback: () => {}, className:'secondary' },
+                    { text: t('Ок','Ok','Ok'), callback: async () => {
+                        try {
+                            await dmApi(`threads/${current}/block`, { method: 'DELETE' });
+                            await loadThreads();
+                        } catch (err) {
+                            showPopup({ 
+                                title: t('Ошибка','Error','Eroare'), 
+                                message: t('Ошибка при разблокировке: ','Error unblocking: ','Eroare la deblocare: ') + err.message, 
+                                type: 'danger' 
+                            });
+                        }
+                    }, className:'primary'}
+                ]
+            });
+        } else {
+            showPopup({
+                title: t('Подтверждение','Confirmation','Confirmare'),
+                message: t(
+                    'Вы уверены, что хотите заблокировать пользователя?',
+                    'Are you sure you want to block this user?',
+                    'Sigur doriți să blocați acest utilizator?'
+                ),
+                type: 'info',
+                buttons: [
+                    { 
+                        text: t('Нет','No','Nu'), 
+                        callback: () => {}, 
+                        className:'secondary-button-small' 
+                    },
+                    { 
+                        text: t('Да','Yes','Da'), 
+                        callback: async () => {
+                            try {
+                                await dmApi(`threads/${current}/block`, { method: 'POST' });
+                                await loadThreads();
+                            } catch (err) {
+                                showPopup({ 
+                                    title: t('Ошибка','Error','Eroare'), 
+                                    message: t(
+                                        'Ошибка при блокировке: ',
+                                        'Error blocking: ',
+                                        'Eroare la blocare: '
+                                    ) + err.message, 
+                                    type: 'danger' 
+                                });
+                            }
+                        }, 
+                        className:'secondary-button-small'
+                    }
+                ]
+            });
         }
-        if (!confirm('Разблокировать чат?')) return;
-      
-        try {
-          await dmApi(`threads/${current}/block`, { method: 'DELETE' });
-          await loadThreads(); 
-        } catch (err) {
-          console.error('Ошибка при разблокировке:', err);
-          alert('Ошибка при разблокировке: ' + err.message);
-        }
-      } else {
-        if (!confirm('Вы уверены, что хотите заблокировать пользователя?')) return;
-      
-        try {
-          await dmApi(`threads/${current}/block`, { method: 'POST' });
-          await loadThreads();
-        } catch (err) {
-          console.error('Ошибка при блокировке:', err);
-          alert('Ошибка при блокировке: ' + err.message);
-        }
-      }
     }, [current, threads, loadThreads]);
 
     const messagesWithDates = [];
@@ -399,22 +453,39 @@
     const currentThread = threads.find(t=>t.id===current);
     const otherUser = currentThread?.other_user || {};
 
-    const deleteCurrentThread = async ()=>{
-      if(!current) return;
-      if(!confirm('Вы уверены, что хотите удалить чат и все его сообщения?')) return;
-      try{
-        const res = await dmApi(`threads/${current}`, { method:'DELETE' });
-        setThreads(prev => prev.filter(t=>t.id!==current));
-        setCurrent(null);
-        setMessages([]);
-        setSince(0);
-        setEditingMessage(null);
-        setMoreMenuOpen(false);
-        alert('Чат успешно удалён');
-      } catch(err){
-        console.error('Ошибка при удалении чата:', err);
-        alert('Ошибка при удалении чата: ' + err.message);
-      }
+    const deleteCurrentThread = async ()=> {
+        if(!current) return;
+
+        showPopup({
+            title: t('Подтверждение','Confirmation','Confirmare'),
+            message: t('Вы уверены, что хотите удалить чат и все его сообщения?','Are you sure you want to delete the chat and all messages?','Sigur doriți să ștergeți chatul și toate mesajele?'),
+            type: 'info',
+            buttons: [
+                { text: t('Отмена','Cancel','Anulare'), callback: () => {}, className:'secondary' },
+                { text: t('Ок','Ok','Ok'), callback: async () => {
+                    try{
+                        const res = await dmApi(`threads/${current}`, { method:'DELETE' });
+                        setThreads(prev => prev.filter(t=>t.id!==current));
+                        setCurrent(null);
+                        setMessages([]);
+                        setSince(0);
+                        setEditingMessage(null);
+                        setMoreMenuOpen(false);
+                        showPopup({ 
+                            title: t('Успех','Success','Succes'), 
+                            message: t('Чат успешно удалён','Chat successfully deleted','Chat șters cu succes'), 
+                            type: 'success' 
+                        });
+                    } catch(err){
+                        showPopup({ 
+                            title: t('Ошибка','Error','Eroare'), 
+                            message: t('Ошибка при удалении чата: ','Error deleting chat: ','Eroare la ștergerea chatului: ') + err.message, 
+                            type: 'danger' 
+                        });
+                    }
+                }, className:'primary'}
+            ]
+        });
     };
 
     const isBlocked = !!currentThread?.blocked;
@@ -451,15 +522,19 @@
               return React.createElement('div', { key: m.id, className: 'dm-date-separator body-small-regular' }, m.date);
           
             if (m.system) {
-              return React.createElement('div', {
-                key: m.id,
-                className: 'dm-message dm-system-message',
-                'data-system': true
-              }, [
-                React.createElement('div', { key: 'txt', className: 'dm-message-content' }, m.content),
-                React.createElement('div', { key: 'sig', className: 'dm-system-signature' }, 
-                  `${new Date(m.created*1000).toLocaleTimeString()} - ${m.event === 'blocked' ? 'системное сообщение: заблокирован' : 'системное сообщение: разблокирован'}`)
-              ]);
+                const sysMsg = m.event === 'blocked' 
+                    ? t('системное сообщение: чат заблокирован', 'system message: chat blocked', 'mesaj de sistem: chat blocat')
+                    : t('системное сообщение: чат разблокирован', 'system message: chat unblocked', 'mesaj de sistem: chat deblocat');
+
+                return React.createElement('div', {
+                    key: m.id,
+                    className: 'dm-message dm-system-message',
+                    'data-system': true
+                }, [
+                    React.createElement('div', { key: 'txt', className: 'dm-message-content' }, m.content),
+                    React.createElement('div', { key: 'sig', className: 'dm-system-signature' }, 
+                        `${new Date(m.created*1000).toLocaleTimeString()} - ${sysMsg}`)
+                ]);
             }
           
             return React.createElement(Message, { key: m.id, m, autoTranslate, onEdit:startEditing, openMenuId, setOpenMenuId });
@@ -488,7 +563,7 @@
     ]);
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
       const root = document.getElementById('simple-dm-root');
       const mainBtn = document.getElementById('dm-toggle-btn-header');
 
@@ -497,6 +572,33 @@
       const overlay = document.createElement('div');
       overlay.className = 'dm-overlay';
       document.body.appendChild(overlay);
+
+      async function updateUnreadCount() {
+          try {
+              const threads = await dmApi('threads');
+              const unreadTotal = threads.reduce((sum, t) => sum + (t.unread_count || 0), 0);
+
+              let badge = mainBtn.querySelector('.dm-unread-total');
+
+              if (unreadTotal > 0) {
+                  if (!badge) {
+                      badge = document.createElement('span');
+                      badge.className = 'dm-unread-total';
+                      mainBtn.appendChild(badge);
+                  }
+                  badge.textContent = unreadTotal;
+              } else {
+                  if (badge) {
+                      badge.remove();
+                  }
+              }
+          } catch (err) {
+              console.warn('Ошибка получения количества непрочитанных сообщений:', err);
+          }
+      }
+
+      updateUnreadCount();
+      setInterval(updateUnreadCount, 10000);
 
       const openDm = () => {
           const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -521,7 +623,6 @@
       };
 
       overlay.addEventListener('click', closeDm);
-
       mainBtn.addEventListener('click', openDm);
 
       document.body.addEventListener('click', (e) => {

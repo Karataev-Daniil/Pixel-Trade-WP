@@ -1,9 +1,17 @@
 <?php
+global $wpdb;
 $current_user_id = get_current_user_id();
 $post_id = get_the_ID();
 $price = get_post_meta($post_id, 'product_price', true);
-$favorites = get_user_meta($current_user_id, 'favorite_products', true);
-$is_favorite = is_array($favorites) && in_array($post_id, $favorites);
+
+$favorites = $wpdb->get_col($wpdb->prepare(
+    "SELECT object_id FROM {$wpdb->prefix}favorites WHERE user_id = %d AND object_type = %s",
+    $current_user_id,
+    'product'
+));
+
+$is_favorite = in_array($post_id, $favorites);
+
 
 $author_id = get_post_field('post_author', $post_id);
 $author_name = get_the_author_meta('display_name', $author_id);

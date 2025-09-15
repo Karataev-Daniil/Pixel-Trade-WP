@@ -1,7 +1,8 @@
 <?php
 $price = get_post_meta(get_the_ID(), 'product_price', true);
-$favorites = get_user_meta(get_current_user_id(), 'favorite_products', true);
-$is_favorite = is_array($favorites) && in_array(get_the_ID(), $favorites);
+$user_id = get_current_user_id();
+$favorites = function_exists('favorites_get') ? favorites_get($user_id, 'product') : [];
+$is_favorite = in_array(get_the_ID(), $favorites);
 
 $author_id = get_post_field('post_author', get_the_ID());
 $author_region = get_user_meta($author_id, 'region', true);
@@ -62,7 +63,10 @@ $cat_ids_str = implode(',', $cat_ids);
         <button class="toggle-favorite" data-id="<?= get_the_ID(); ?>">
             <svg width="24" height="24" viewBox="0 0 24 24"
                  fill="<?= $is_favorite ? 'red' : 'none' ?>"
-                 <?= $is_favorite ? 'stroke="none"' : 'stroke="var(--gray_-6)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"' ?>
+                 stroke="<?= $is_favorite ? 'none' : 'var(--gray_-6)' ?>"
+                 stroke-width="<?= $is_favorite ? '0' : '2' ?>"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
                  xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 
                          4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 

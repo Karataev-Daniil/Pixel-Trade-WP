@@ -5,9 +5,7 @@ add_action('wp_enqueue_scripts', function(){
     wp_enqueue_script('react-dom', 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js', ['react'], null, true);
     wp_enqueue_script('dm-app', get_stylesheet_directory_uri() . '/assets/js/messenger.js', ['react', 'react-dom'], null, true);
 
-    $lang = isset($_COOKIE['language'])
-        ? sanitize_text_field($_COOKIE['language'])
-        : (get_user_meta(get_current_user_id(), 'preferred_lang', true) ?: 'ru');
+    $lang = $GLOBALS['language'] ?? 'ru';
 
     wp_localize_script('dm-app', 'SIMPLE_DM', [
         'rest' => rest_url('dm/v1/'),

@@ -21,7 +21,6 @@ function get_term_name_translated($term, $lang) {
 }
 
 if (is_tax('product_cat')) {
-    // Категория товара
     $current_cat = get_queried_object();
     if ($current_cat->parent) {
         $ancestors = array_reverse(get_ancestors($current_cat->term_id, 'product_cat'));
@@ -33,10 +32,8 @@ if (is_tax('product_cat')) {
     echo ' &raquo; <span class="link-small-default">'.esc_html(get_term_name_translated($current_cat,$lang)).'</span>';
 
 } elseif (is_singular('products')) {
-    // Страница продукта
     $terms = get_the_terms($product_id, 'product_cat');
     if ($terms && !is_wp_error($terms)) {
-        // Находим самую глубокую категорию
         $deepest_term = null;
         $max_depth = -1;
         foreach ($terms as $term) {

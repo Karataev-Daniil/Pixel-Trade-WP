@@ -229,6 +229,21 @@
 .dm-toggle-btn:hover .icon-message {
     opacity: 0;
 }
+.dm-unread-total {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 12px;
+    line-height: 100%;
+    background-color: var(--orange_0);
+    color: var(--gray_-6);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+}
 
 
 /* 7. User Menu */

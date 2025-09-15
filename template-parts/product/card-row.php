@@ -1,7 +1,8 @@
 <?php
 $price = get_post_meta(get_the_ID(), 'product_price', true);
-$favorites = get_user_meta(get_current_user_id(), 'favorite_products', true);
-$is_favorite = is_array($favorites) && in_array(get_the_ID(), $favorites);
+$user_id = get_current_user_id();
+$favorites = function_exists('favorites_get') ? favorites_get($user_id, 'product') : [];
+$is_favorite = in_array(get_the_ID(), $favorites);
 
 $author_id = get_post_field('post_author', get_the_ID());
 
