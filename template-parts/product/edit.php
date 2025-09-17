@@ -71,17 +71,18 @@ $language    = $GLOBALS['language'] ?? 'ru';
                             $title_val = $lang === 'ru' ? $title : esc_attr(get_post_meta($product_id, "_title_{$lang}", true));
                             $desc_val  = $lang === 'ru' ? $content : esc_textarea(get_post_meta($product_id, "_description_{$lang}", true));
                             ?>
-                            <div class="tab-content <?php if ($language === $lang) echo 'active'; ?>" id="tab-<?php echo $lang; ?>">
+                            <div class="tab-content <?php if ($language === $lang) echo 'active'; ?>" data-lang="<?php echo $lang; ?>" id="tab-<?php echo $lang; ?>">
                                 <label class="label-large" for="title_<?php echo $lang; ?>"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
                                 <input type="text" id="title_<?php echo $lang; ?>" name="<?php echo $title_key; ?>" class="form-input input-secondary body-medium-regular" value="<?php echo $title_val; ?>">
 
                                 <label class="label-large" for="desc_<?php echo $lang; ?>"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
-                                <textarea id="desc_<?php echo $lang; ?>" name="<?php echo $desc_key; ?>" rows="5" maxlength="300" oninput="updateCharCount(this)" class="form-textarea input-tertiary body-medium-regular"><?php echo $desc_val; ?></textarea>
+                                <textarea id="desc_<?php echo $lang; ?>" name="<?php echo $desc_key; ?>" rows="12" maxlength="2000" oninput="updateCharCount(this)" class="form-textarea input-tertiary body-medium-regular"><?php echo $desc_val; ?></textarea>
                                 <small class="form-hint body-small-regular">0 / 2000</small>
                             </div>
                         <?php endforeach; ?>
 
                         <div class="content-setting">
+                            <div id="translation-message" class="form-message body-small-regular"></div>
                             <div class="dropdown">
                                 <button id="translation-action-button" class="secondary-button-small" type="button">
                                     <?php echo t('Действия', 'Actions', 'Acțiuni'); ?>
@@ -98,7 +99,6 @@ $language    = $GLOBALS['language'] ?? 'ru';
                                     </button>
                                 </div>
                             </div>
-                            <div id="translation-message" class="form-message body-small-regular"></div>
                         </div>
                     </section>
                         

@@ -88,12 +88,13 @@
 }
 .product-card .product-gallery-carousel .slick-slide > div {
     width: 350px;
+    display: flex;
+    position: relative;
+    overflow: hidden;
 }
 .product-card .product-gallery-carousel .slick-slide > div::after {
-    transform: translate(21.5%, 21%);
-    height: 262px;
-    width: 350px;
-    left: 20%;
+    height: 100%;
+    width: 100%;
     content: "";
     position: absolute;
     inset: 0;
@@ -230,7 +231,10 @@
 
 /* Контент и цена */
 .product-card .content {
-    margin: 0 0 64px;
+    margin: 0 0 40px;
+}
+.product-card .content p {
+    margin: 0 0 24px;
 }
 .product-card .price {
     display: flex;
@@ -508,39 +512,13 @@
     100% { transform: rotate(360deg); }
 }
 
-.form-progress {
-    height: 100%;
-    position: relative;
-    grid-column: 3 / 4;
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background: var(--gray_6);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 4px;
+  z-index: 100;
 }
-.form-progress__steps {
-    top: 70px;
-    margin: 70px 0 0;
-    position: sticky;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 24px;
-    border: 1px solid var(--gray_3);
-    background-color: var(--gray_5);
-    color: var(--gray_-5);
-    border-radius: 4px;
-}
-.form-progress__step {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.form-progress__step .form-progress__circle {
-    display: block;
-    box-sizing: border-box;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 1px solid var(--gray_1);
-    transition: background-color 0.3s, ;
-}
-.form-progress__step.filled .form-progress__circle {
-    background-color: var(--green_0);
-    border: none;
-}
+.dropdown.open .dropdown-content { display: block; }

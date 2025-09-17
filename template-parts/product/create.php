@@ -13,8 +13,7 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                     <h1 class="product-create__title display-large">
                         <?php echo t('Создать объявление', 'Create Listing', 'Creează Anunț'); ?>
                     </h1>
-                
-                    <!-- Тип объявления -->
+
                     <section class="form-group form-group--type">
                         <label class="form-label label-large" for="product_type">
                             <?php echo t('Тип объявления', 'Listing type', 'Tip anunț'); ?>
@@ -28,8 +27,7 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                         </small>
                         <div class="form-message body-small-regular" id="message_product_type"></div>
                     </section>
-                
-                    <!-- Categories -->
+
                     <fieldset class="form-group form-group--categories">
                         <div class="category-selectors" id="category-selectors" data-restored="1">
                             <?php
@@ -52,8 +50,7 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                         </small>
                         <div class="form-message body-small-regular" id="message_selected_categories"></div>
                     </fieldset>
-                            
-                    <!-- Language tabs -->
+
                     <section class="form-group form-group--tabs tabs">
                         <?php $language = $GLOBALS['language']; ?>
                         <input type="hidden" name="product_lang" id="product_lang_input" value="<?php echo esc_attr($language); ?>">
@@ -79,7 +76,7 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                                    data-lang="<?php echo $lang; ?>">
                         
                             <label class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
-                            <textarea name="<?php echo $fields['content']; ?>" rows="5" class="form-textarea input-tertiary body-medium-regular"
+                            <textarea name="<?php echo $fields['content']; ?>" rows="12" class="form-textarea input-tertiary body-medium-regular"
                                       placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>"
                                       data-lang="<?php echo $lang; ?>"></textarea>
                             <small class="form-hint body-small-regular">0 / 2000</small>
@@ -87,6 +84,7 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                         <?php endforeach; ?>
                         
                         <div class="content-setting">
+                            <div id="translation-message" class="form-message body-small-regular"></div>
                             <div class="dropdown">
                                 <button id="translation-action-button" class="secondary-button-small" type="button">
                                     <?php echo t('Действия', 'Actions', 'Acțiuni'); ?>
@@ -103,11 +101,9 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                                     </button>
                                 </div>
                             </div>
-                            <div id="translation-message" class="form-message body-small-regular"></div>
                         </div>
                     </section>
-                        
-                    <!-- Gallery -->
+
                     <section class="form-group form-group--gallery">
                         <label class="form-label label-large"><?php echo t('Изображения', 'Images', 'Imagini'); ?></label>
                         <div id="gallery_preview" class="gallery-preview">
@@ -130,8 +126,7 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                         <input type="hidden" name="main_thumbnail_id" id="main_thumbnail_id" value="">
                         <div class="form-message body-small-regular" id="message_product_gallery"></div>
                     </section>
-                        
-                    <!-- Price and Status -->
+
                     <section class="form-group form-group--price">
                         <div class="form-group__left">
                             <label class="form-label label-large"><?php echo t('Цена', 'Price', 'Preț'); ?></label>
@@ -159,15 +154,13 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                             <div class="form-message body-small-regular" id="message_product_status"></div>
                         </div>
                     </section>
-                        
-                    <!-- Submit -->
+
                     <div class="form-group">
                         <button type="submit" name="submit_product" class="form-submit primary-button-large">
                             <?php echo t('Создать', 'Create', 'Creează'); ?>
                         </button>
                     </div>
                 </form>
-
             </section>
         </main>
     </div>

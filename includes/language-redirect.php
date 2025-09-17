@@ -84,15 +84,3 @@ add_action('template_redirect', function() {
     $GLOBALS['language'] = $first_part ?: 'ru';
     setcookie('language', $GLOBALS['language'], time() + 30*DAY_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN);
 });
-
-
-add_filter('request', function($query_vars) {
-    if (isset($_GET['s']) && !empty($_GET['s'])) {
-        $page_slug = 'my-products';
-        $current_slug = $query_vars['pagename'] ?? '';
-        if ($current_slug === $page_slug) {
-            $query_vars['s'] = sanitize_text_field($_GET['s']);
-        }
-    }
-    return $query_vars;
-});

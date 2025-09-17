@@ -98,26 +98,10 @@
     background-color: var(--orange_5);
 }
 .input-secondary + label {
-    /* position: absolute; */
-    /* top: 29px; */
-    /* left: 19px; */
-    /* transform: translateY(-50%); */
     color: var(--text_ter);
     transition: 0.3s;
     pointer-events: none;
-    /* font-weight: 400; */
-    /* font-size: 16px; */
-    /* line-height: 22px; */
 }
-/* .input-secondary:focus + label,
-.input-secondary:not(:placeholder-shown) + label {
-    top: 16px;
-    font-size: 12px;
-    line-height: 17px;
-    color: var(--text_pr);
-} */
-
-/* Tertiary Input */
 .input-tertiary {
     width: 100%;
     min-height: 40px;
@@ -157,13 +141,6 @@
     outline: 1px solid var(--orange_-1);
     background-color: var(--orange_5);
 }
-.input-tertiary + label {
-
-}
-.input-tertiary:focus + label,
-.input-tertiary:not(:placeholder-shown) + label {
-
-}
 
 .input-tertiary::-webkit-scrollbar {
     width: 16px;
@@ -181,8 +158,6 @@
     background-color: var(--gray_2);
 }
 
-
-/* Tertiary Select */
 .select-tertiary {
     min-width: 250px;
     min-height: 40px;
@@ -194,7 +169,7 @@
     color: var(--gray_-6);
     border-radius: 6px;
 
-    appearance: none; /* Убираем стандартную стрелку */
+    appearance: none;
     background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="5"><polygon points="0,0 10,0 5,5" fill="%23666"/></svg>');
     background-repeat: no-repeat;
     background-position: right 12px center;
@@ -202,7 +177,25 @@
 
     transition: background-color 0.3s ease, border-color 0.3s ease, outline-color 0.3s ease;
 
+    scrollbar-width: thin;
+    scrollbar-color: var(--orange_-1) var(--gray_6);
 }
+.select-tertiary::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.select-tertiary::-webkit-scrollbar-track {
+    background: var(--gray_6);
+    border-radius: 6px;
+}
+.select-tertiary::-webkit-scrollbar-thumb {
+    background-color: var(--orange_4);
+    border-radius: 6px;
+}
+.select-tertiary::-webkit-scrollbar-thumb:hover {
+    background-color: var(--orange_1);
+}
+
 .select-tertiary:hover {
     border: 1px solid var(--orange_-1);
     outline: 1px solid var(--orange_-1);
@@ -216,9 +209,74 @@
     border-color: var(--gray_6);
     background-color: var(--orange_5);
 }
-
 .select-tertiary.has-value:hover {
     border-color: var(--orange_-1);
     outline-color: var(--orange_-1);
     background-color: var(--orange_5);
+}
+
+.checkbox-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    font-size: 16px;
+    color: var(--gray_-6);
+    transition: color 0.3s ease;
+}
+.checkbox-block input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--gray_0);
+    border-radius: 6px;
+    background-color: var(--orange_6);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    position: relative;
+    cursor: pointer;
+}
+.checkbox-block:hover input[type="checkbox"] {
+    border-color: var(--orange_-1);
+    background-color: var(--orange_5);
+}
+.checkbox-block input[type="checkbox"]:focus {
+    outline: none;
+    border-color: var(--orange_0);
+    background-color: var(--orange_5);
+}
+.checkbox-block input[type="checkbox"]:checked {
+    background-color: var(--orange_0);
+    border-color: var(--orange_0);
+}
+.checkbox-block input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 7px;
+    width: 4px;
+    height: 10px;
+    border: solid var(--gray_-6);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+.checkbox-block span {
+    display: inline-block;
+    line-height: 1;
+    transition: color 0.3s ease;
+}
+.checkbox-block:hover span {
+    color: var(--orange_-1);
+}
+.checkbox-block input[type="checkbox"]:disabled {
+    background-color: var(--gray_3);
+    border-color: var(--gray_3);
+    cursor: not-allowed;
+}
+.checkbox-block input[type="checkbox"]:disabled + span {
+    color: var(--gray_0);
+    cursor: not-allowed;
 }

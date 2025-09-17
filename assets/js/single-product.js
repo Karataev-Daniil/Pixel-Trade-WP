@@ -1,5 +1,6 @@
 const MAX_IMAGES = 10;
 let newImageIndex = 0;
+let translationChecked = false;
 
 function updateCounter(el) {
     const counter = el.closest('.tab-content').querySelector('.form-hint');
@@ -90,7 +91,6 @@ window.checkGalleryLimit = function(input) {
         preview.insertBefore(div, preview.querySelector('.btn-upload') || null);
     });
 
-    // Обновляем input.files только с новыми файлами
     const dt = new DataTransfer();
     toAdd.forEach(f => dt.items.add(f));
     input.files = dt.files;
@@ -98,6 +98,33 @@ window.checkGalleryLimit = function(input) {
     updateGalleryOrder();
 }
 
+function checkTranslationsBeforeSubmit() {
+    const tabs = document.querySelectorAll('.tab-content');
+    const translationMessage = document.getElementById('translation-message');
+    if (!translationMessage) return true;
+
+    let missingTranslations = [];
+
+    tabs.forEach(tab => {
+        const lang = tab.id.split('-')[1];
+        const title = tab.querySelector('input');
+        const content = tab.querySelector('textarea');
+
+        if (title && content && !title.value.trim() && !content.value.trim()) {
+            missingTranslations.push(lang);
+        }
+    });
+
+    if (missingTranslations.length && !translationChecked) {
+        translationMessage.textContent = `У вас нет переводов для языков: ${missingTranslations.join(', ')}. Сгенерируйте их — это бесплатно!`;
+        translationMessage.classList.remove('error', 'warning', 'success');
+        translationMessage.classList.add('info');
+        translationChecked = true;
+        return false;
+    }
+
+    return true;
+}
 
 function clearMessageForField(fieldIdOrName) {
     const msgEl = document.getElementById('message_' + fieldIdOrName) || 
@@ -111,7 +138,7 @@ function clearMessageForField(fieldIdOrName) {
         const translationMessage = document.getElementById('translation-message');
         if (translationMessage) {
             translationMessage.textContent = '';
-            translationMessage.classList.remove('error', 'warning', 'success');
+            translationMessage.classList.remove('error', 'warning', 'success', 'info');
         }
     }
 }
@@ -125,7 +152,7 @@ function validateForm() {
     const errorField = document.getElementById('translation-message');
     if (!errorField) return false;
     errorField.textContent = '';
-    errorField.classList.remove('error', 'warning', 'success');
+    errorField.classList.remove('error', 'warning', 'success', 'info');
 
     const title = activeTab.querySelector('input');
     const content = activeTab.querySelector('textarea');
@@ -185,6 +212,13 @@ function validateForm() {
         if (firstInvalid.focus) setTimeout(() => firstInvalid.focus(), 300);
     }
 
+    const missingTranslations = checkTranslations();
+
+    if (missingTranslations.length && !translationChecked) {
+        translationChecked = true;
+        return false;
+    }
+
     return !hasErrors;
 }
 
@@ -193,7 +227,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('input, textarea, select').forEach(el => {
         const id = el.id || el.name;
-        el.addEventListener('input', () => clearMessageForField(id));
+        el.addEventListener('input', () => {
+            clearMessageForField(id);
+            translationChecked = false;
+        });
         el.addEventListener('change', () => clearMessageForField(id));
     });
 
@@ -256,15 +293,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const lang = btn.dataset.tab.split('-')[1];
             const langInput = document.getElementById('product_lang_input');
             if (langInput) langInput.value = lang;
+            checkTranslations();
         });
     });
 
     const form = document.getElementById('create-product-form') || document.getElementById('edit-product-form');
     if (form) {
         form.addEventListener('submit', function(e) {
-            if (!validateForm()) e.preventDefault();
+            if (!checkTranslationsBeforeSubmit()) {
+                e.preventDefault(); // блокируем отправку первый раз
+            }
         });
     }
+
+    checkTranslations();
 });
 
 function getImageUrl(imgId) {

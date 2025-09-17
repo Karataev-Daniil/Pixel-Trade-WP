@@ -3,278 +3,170 @@
 
 if (!is_user_logged_in()) {
     get_header();
-    echo '<div class="container my-products-wrapper">
-            <p class="body-medium-regular">
-                Пожалуйста, <a href="' . wp_login_url() . '" class="link-medium-underline">войдите</a>, чтобы просмотреть свои товары.
-            </p>
-          </div>';
+    ?>
+    <div class="container my-products-wrapper">
+        <p class="body-medium-regular">
+            <?php echo t('Пожалуйста,','Please,','Vă rugăm,'); ?>
+            <a href="<?php echo esc_url(wp_login_url()); ?>" class="link-medium-underline">
+                <?php echo t('войдите','login','autentificați-vă'); ?>
+            </a>
+            <?php echo t('чтобы просмотреть свои товары.','to view your products.','pentru a vedea produsele dvs.'); ?>
+        </p>
+    </div>
+    <?php
     get_footer();
-    exit;
+    return;
 }
 
 get_header();
-
 $current_user_id = get_current_user_id();
-$filter = $_GET['filter'] ?? 'all';
-$category = intval($_GET['category'] ?? 0);
-$search   = sanitize_text_field($_GET['s'] ?? '');
-$paged    = max(1, get_query_var('paged', 1));
+$author_info = get_userdata($current_user_id);
 
 $status_map = [
-    'all'        => ['publish','draft','pending'],
-    'active'     => ['publish'],
-    'hidden'     => ['draft'],
-    'inactive'   => ['expired'],
-    'blocked'    => ['blocked'],
-    'draft'      => ['draft']
+    'publish'  => t('Активные','Active','Active'),
+    'draft'    => t('Скрытые','Hidden','Ascunse'),
+    'pending'  => t('Неактивные','Inactive','Inactive'),
+    'private'  => t('Заблокированные','Blocked','Blocate')
 ];
 
-// WP_Query для товаров пользователя
-$args = [
-    'post_type'      => 'products',
-    'posts_per_page' => 10,
-    'author'         => $current_user_id,
-    'post_status'    => $status_map[$filter] ?? ['publish','draft','pending'],
-    'paged'          => $paged,
-];
-
-if ($search) {
-    $args['s'] = $search; // поиск по названию
-}
-
-if ($category) {
-    $args['tax_query'] = [[
-        'taxonomy' => 'product_cat',
-        'field'    => 'term_id',
-        'terms'    => $category,
-        'include_children' => true
-    ]];
-}
-
-$products = new WP_Query($args);
-
-// Подсчет товаров по статусам
-$count_map = [];
-foreach ($status_map as $key => $statuses) {
-    $count_map[$key] = (new WP_Query([
+$status_counts = [];
+foreach ($status_map as $status_key => $label) {
+    $query = new WP_Query([
         'post_type' => 'products',
+        'post_status' => $status_key,
         'author' => $current_user_id,
-        'post_status' => $statuses,
+        'posts_per_page' => -1,
         'fields' => 'ids',
-        'posts_per_page' => -1
-    ]))->found_posts;
-}
-
-// Функция для сокращенного пути категории
-function get_term_path_short($post_id, $taxonomy = 'product_cat', $separator = ' &raquo; ') {
-    $terms = wp_get_post_terms($post_id, $taxonomy);
-    if (is_wp_error($terms) || empty($terms)) return '-';
-
-    $main_term = null;
-    $max_depth = -1;
-
-    foreach ($terms as $term) {
-        $ancestors = get_ancestors($term->term_id, $taxonomy);
-        if (count($ancestors) > $max_depth) {
-            $max_depth = count($ancestors);
-            $main_term = $term;
-            $main_ancestors = array_reverse($ancestors);
-        }
-    }
-
-    if (!$main_term) return '-';
-
-    $path = [];
-    if (!empty($main_ancestors)) {
-        $root = get_term($main_ancestors[0], $taxonomy);
-        if ($root && !is_wp_error($root)) {
-            $path[] = $root->name;
-        }
-    }
-
-    $path[] = $main_term->name;
-    return implode($separator, $path);
-}
-
-// Вывод категорий с количеством товаров
-function display_categories_with_count($parent = 0, $level = 0, $current = 0, $user_id = 0) {
-    $terms = get_terms([
-        'taxonomy' => 'product_cat',
-        'hide_empty' => false,
-        'parent' => $parent
     ]);
+    $status_counts[$status_key] = $query->found_posts;
+}
 
-    foreach ($terms as $term) {
-        $count = new WP_Query([
-            'post_type' => 'products',
-            'author' => $user_id,
-            'post_status' => ['publish','draft','pending'],
-            'tax_query' => [[
-                'taxonomy' => 'product_cat',
-                'field' => 'term_id',
-                'terms' => $term->term_id,
-                'include_children' => false
-            ]],
-            'fields' => 'ids',
-            'posts_per_page' => -1
-        ]);
-        $count = $count->found_posts;
+$all_cats = get_terms([
+    'taxonomy' => 'product_cat',
+    'hide_empty' => false,
+]);
 
-        if ($count == 0) continue;
-
-        echo '<option value="' . $term->term_id . '" ' . selected($current, $term->term_id, false) . '>' 
-             . str_repeat('— ', $level) . $term->name . ' (' . $count . ')</option>';
-
-        display_categories_with_count($term->term_id, $level + 1, $current, $user_id);
+$user_products_by_cat = [];
+$user_posts = get_posts([
+    'post_type' => 'products',
+    'author' => $current_user_id,
+    'post_status' => ['publish','draft','pending','private'],
+    'posts_per_page' => -1,
+    'fields' => 'ids'
+]);
+if($user_posts){
+    global $wpdb;
+    $placeholders = implode(',', array_fill(0, count($user_posts), '%d'));
+    $sql = "SELECT term_taxonomy_id, COUNT(*) as cnt 
+            FROM {$wpdb->term_relationships} 
+            WHERE object_id IN ($placeholders)
+            GROUP BY term_taxonomy_id";
+    $prepared = $wpdb->prepare($sql, $user_posts);
+    $rows = $wpdb->get_results($prepared);
+    foreach ($rows as $row){
+        $term_id = $wpdb->get_var($wpdb->prepare(
+            "SELECT term_id FROM {$wpdb->term_taxonomy} WHERE term_taxonomy_id=%d",
+            $row->term_taxonomy_id
+        ));
+        $user_products_by_cat[$term_id] = (int)$row->cnt;
     }
 }
+
+function render_user_cats_options($cats, $counts, $parent = 0, $depth = 0){
+    foreach ($cats as $cat){
+        if ($cat->parent != $parent) continue;
+        $count = isset($counts[$cat->term_id]) ? $counts[$cat->term_id] : 0;
+        if($count > 0){
+            $prefix = str_repeat('- ',$depth);
+            echo '<option value="'.esc_attr($cat->term_id).'">'.esc_html($prefix.$cat->name).' ('.$count.')</option>';
+        }
+        render_user_cats_options($cats, $counts, $cat->term_id, $depth+1);
+    }
+}
+
+$ajax_nonce = wp_create_nonce('my_products_nonce');
 ?>
 
 <div class="container-medium my-products-wrapper">
     <main>
-        <h1 class="display-small"><?= t('Мои товары', 'My Products', 'Produsele mele'); ?></h1>
+        <h1 class="display-small">
+            <?php printf(t('Здравствуйте! %s','Hello! %s','Salut! %s'), esc_html($author_info->display_name)); ?>
+        </h1>
 
-        <!-- Фильтр по статусу -->
-        <div class="products-filters body-medium-regular">
-            <?php foreach ($count_map as $key => $count): ?>
-                <a href="?filter=<?= $key ?>" class="link-medium-underline <?= $filter === $key ? 'active' : '' ?>">
-                    <?= ucfirst($key) ?> (<?= $count ?>)
-                </a>
-            <?php endforeach; ?>
-        </div>
-
-        <!-- Фильтр по категориям -->
-        <form method="get" class="category-filter body-medium-regular">
-            <select name="category" onchange="this.form.submit()">
-                <option value="0"><?= t('Все категории', 'All categories', 'Toate categoriile'); ?></option>
-                <?php display_categories_with_count(0, 0, $category, $current_user_id); ?>
-            </select>
-            <input type="hidden" name="filter" value="<?= esc_attr($filter) ?>">
-        </form>
-
-        <!-- Поиск -->
-        <form method="get" class="search-products body-medium-regular" action="<?= esc_url(get_permalink()); ?>">
-            <input type="text" name="s" value="<?= esc_attr($search) ?>" placeholder="<?= t('Найти в моих объявлениях', 'Search my products', 'Caută în produsele mele'); ?>">
-            <input type="hidden" name="filter" value="<?= esc_attr($filter) ?>">
-            <input type="hidden" name="category" value="<?= esc_attr($category) ?>">
-            <button type="submit" class="button-medium"><?= t('Поиск', 'Search', 'Caută'); ?></button>
-        </form>
-
-        <!-- Таблица товаров -->
-        <?php if ($products->have_posts()): ?>
-            <form method="post" class="products-table-form">
-                <table class="my-products-table body-medium-regular">
-                    <thead>
-                        <tr>
-                            <th><input type="checkbox" id="select-all"></th>
-                            <th><?= t('Фото', 'Image', 'Imagine'); ?></th>
-                            <th><?= t('Название / Категории', 'Title / Categories', 'Titlu / Categorii'); ?></th>
-                            <th><?= t('Статус / Дата', 'Status / Date', 'Status / Dată'); ?></th>
-                            <th><?= t('Действия', 'Actions', 'Acțiuni'); ?></th>
-                            <th><?= t('Просмотры', 'Views', 'Vizualizări'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php while ($products->have_posts()): $products->the_post(); 
-                        $post_status = get_post_status();
-                    ?>
-                        <tr>
-                            <td><input type="checkbox" name="product_ids[]" value="<?= get_the_ID(); ?>"></td>
-                            <td>
-                                <?php 
-                                    $thumb = get_the_post_thumbnail_url(get_the_ID(), 'thumbnail') ?: get_template_directory_uri() . '/images/product-placeholder.png';
-                                    echo '<img src="'.esc_url($thumb).'" alt="'.esc_attr(get_the_title()).'" class="product-thumb">';
-                                ?>
-                            </td>
-                            <td>
-                                <strong class="title-medium"><?= get_the_title(); ?></strong><br>
-                                <span class="categories body-small-regular">
-                                    <?= get_term_path_short(get_the_ID(), 'product_cat', ' &raquo; '); ?>
-                                </span>
-                            </td>
-                            <td>
-                                <span class="body-small-regular"><?= ucfirst($post_status); ?></span><br>
-                                <span class="body-small-regular"><?= get_the_date('d M Y, H:i'); ?></span>
-                            </td>
-                            <td class="actions">
-                                <a href="<?= add_query_arg('edit', '1', get_permalink()); ?>" class="link-small-underline"><?= t('Редактировать', 'Edit', 'Editează'); ?></a>
-                                <a href="?toggle_hidden=<?= get_the_ID(); ?>" class="link-small-underline"><?= $post_status === 'draft' ? t('Показать', 'Show', 'Arată') : t('Скрыть', 'Hide', 'Ascunde'); ?></a>
-                                <a href="?delete_product=<?= get_the_ID(); ?>" onclick="return confirm('<?= t('Удалить товар?', 'Delete this product?', 'Șterge produsul?'); ?>')" class="link-small-underline"><?= t('Удалить', 'Delete', 'Șterge'); ?></a>
-                            </td>
-                            <td>
-                                <button type="button" class="view-stats-btn button-small" data-id="<?= get_the_ID(); ?>"><?= t('Просмотры', 'Views', 'Vizualizări'); ?></button>
-                            </td>
-                        </tr>
-                    <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </form>
-
-            <!-- Пагинация -->
-            <div class="pagination body-medium-regular">
-                <?= paginate_links([
-                    'total'   => $products->max_num_pages,
-                    'current' => $paged,
-                    'format'  => '?paged=%#%&filter=' . $filter . '&category=' . $category . '&s=' . urlencode($search) . '&lang=' . $GLOBALS['language']
-                ]); ?>
+        <div class="filters-wrapper body-medium-regular my-filters-wrapper">
+            <div class="filters-wrapper body-medium-regular my-filters-wrapper">
+                <div class="tabs-status">
+                    <span class="status-tab label-larger active" data-status="all">
+                        <?php echo t('Все','All','Toate'); ?> 
+                        <span class="count" data-status="all">
+                            <?php 
+                            $all_count = array_sum($status_counts);
+                            echo $all_count; 
+                            ?>
+                        </span>
+                    </span>
+                    <?php foreach ($status_map as $key => $label): ?>
+                        <span class="status-tab label-larger" data-status="<?php echo esc_attr($key); ?>">
+                            <?php echo esc_html($label); ?> 
+                            <span class="count" data-status="<?php echo esc_attr($key); ?>">
+                                <?php echo isset($status_counts[$key]) ? $status_counts[$key] : 0; ?>
+                            </span>
+                        </span>
+                    <?php endforeach; ?>
+                </div>
             </div>
 
-        <?php else: ?>
-            <p class="body-medium-regular"><?= t('У вас пока нет товаров.', 'You don’t have any products yet.', 'Nu ai încă produse.'); ?></p>
-        <?php endif; ?>
+                
+            <div class="filters-controls">
+                <div class="filters-left">
+                    <label class="select-all-wrapper checkbox-block">
+                        <input type="checkbox" id="select-all-products">
+                    </label>
+
+                    <div id="bulk-actions" class="product-actions" style="display:none;">
+                        <span class="action-btn" data-action="republish" title="Переопубликовать">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2a10 10 0 1 0 10 10h-2a8 8 0 1 1-8-8v4l5-5-5-5v4z"/>
+                            </svg>
+                        </span>
+                        <span class="action-btn" data-action="hide" title="Скрыть">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 12c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5z"/>
+                                <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </span>
+                        <span class="action-btn" data-action="delete" title="Удалить">
+                            <svg viewBox="0 0 24 24">
+                                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+                                <line x1="6" y1="18" x2="18" y2="6" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </span>
+                    </div>
+
+                    <select class="filter-category select-tertiary label-medium">
+                        <option value="all"><?php echo t('Все категории','All categories','Toate categoriile'); ?></option>
+                        <?php render_user_cats_options($all_cats, $user_products_by_cat); ?>
+                    </select>
+
+                    <input type="text" class="filter-search input-secondary label-medium" placeholder="<?php echo t('Найти в моих объявлениях','Search in my listings','Caută în anunțurile mele'); ?>">
+                </div>
+
+                <select class="filter-sort select-tertiary label-medium">
+                    <option value="date_new"><?php echo t('По дате (новые)','By date (new)','După dată (noi)'); ?></option>
+                    <option value="date_old"><?php echo t('По дате (старые)','By date (old)','După dată (vechi)'); ?></option>
+                    <option value="price_low"><?php echo t('По цене (дешевле)','By price (low)','După preț (mic)'); ?></option>
+                    <option value="price_high"><?php echo t('По цене (дороже)','By price (high)','După preț (mare)'); ?></option>
+                </select>
+            </div>
+        </div>
+
+        <table class="my-products-table body-medium-regular">
+            <tbody id="products-list">
+                <tr><td colspan="5"><?php echo t('Загрузка товаров...','Loading products...','Se încarcă produsele...'); ?></td></tr>
+            </tbody>
+        </table>
+        <div id="pagination" style="margin-top:20px;text-align:center;"></div>
     </main>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const selectAll = document.getElementById('select-all');
-    selectAll?.addEventListener('change', function() {
-        document.querySelectorAll('.my-products-table tbody input[type="checkbox"]').forEach(cb => cb.checked = selectAll.checked);
-    });
-
-    const bulkBtn = document.getElementById('bulk-action-apply');
-    bulkBtn?.addEventListener('click', function() {
-        const action = document.getElementById('bulk-action-select').value;
-        if(!action) return alert('<?= t("Выберите действие", "Select action", "Selectați acțiunea"); ?>');
-
-        const selectedIds = Array.from(document.querySelectorAll('.my-products-table tbody input[type="checkbox"]:checked')).map(cb => cb.value);
-        if(!selectedIds.length) return alert('<?= t("Выберите хотя бы один товар", "Select at least one product", "Selectați cel puțin un produs"); ?>');
-
-        if(action === 'delete' && !confirm('<?= t("Удалить выбранные товары?", "Delete selected products?", "Șterge produsele selectate?"); ?>')) return;
-
-        fetch('<?= admin_url("admin-ajax.php"); ?>', {
-            method: 'POST',
-            headers: { 'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8' },
-            body: 'action=bulk_products&ids=' + selectedIds.join(',') + '&task=' + action
-        }).then(r=>r.json()).then(res=>{
-            if(res.success) location.reload();
-            else alert(res.data || 'Error');
-        });
-    });
-
-    const popup = document.getElementById('views-popup');
-    const popupBody = document.getElementById('views-popup-body');
-    document.querySelectorAll('.view-stats-btn').forEach(btn=>{
-        btn.addEventListener('click', function() {
-            const id = btn.dataset.id;
-            popup.style.display = 'flex';
-            popupBody.innerHTML = '<?= t("Загрузка...", "Loading...", "Se încarcă..."); ?>';
-
-            fetch('<?= admin_url("admin-ajax.php"); ?>?action=get_product_views&id=' + id)
-            .then(r=>r.text()).then(html=>{
-                popupBody.innerHTML = html;
-            });
-        });
-    });
-
-    document.querySelectorAll('.close-popup').forEach(el=>{
-        el.addEventListener('click', ()=>popup.style.display='none');
-    });
-    popup.addEventListener('click', e=>{ if(e.target===popup) popup.style.display='none'; });
-});
-</script>
-
-<?php
-wp_reset_postdata();
-get_footer();
-?>
+<?php get_footer(); ?>

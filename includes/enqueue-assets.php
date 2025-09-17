@@ -83,7 +83,27 @@ function custom_enqueue_assets() {
             null,
             true
         );
+    
+        wp_enqueue_script(
+            'my-products',
+            $theme_dir . '/assets/js/my-products.js',
+            ['jquery'],
+            filemtime($theme_path . '/assets/js/my-products.js'),
+            true
+        );
+    
+        wp_localize_script('my-products', 'MY_PRODUCTS_AJAX', [
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce'   => wp_create_nonce('my_products_nonce'),
+            'language'=> $lang,
+        ]);
+    
+        wp_localize_script('my-products', 'MY_PRODUCTS_TEXT', [
+            'loading'   => t('Загрузка товаров...','Loading products...','Se încarcă produsele...'),
+            'not_found' => t('Товары не найдены.','Products not found.','Produse negăsite.'),
+        ]);
     }
+
 
     if ( is_page('favorites') ) {
         wp_enqueue_style(
@@ -148,10 +168,11 @@ function custom_enqueue_assets() {
             filemtime($theme_path . '/assets/js/product-translations.js'),
             true
         );
-
+   
         wp_localize_script('product-translations', 'translationVars', [
-            'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce'   => wp_create_nonce('generate_translations_nonce'),
+            'ajaxUrl'   => admin_url('admin-ajax.php'),
+            'nonce'     => wp_create_nonce('generate_translations_nonce'),
+            'activeTab' => $lang,
         ]);
 
         wp_enqueue_script(

@@ -3,90 +3,61 @@
     width: 100%;
 }
 .my-products-wrapper h1 {
-    margin-bottom: 20px;
+    margin-bottom: 80px;
     color: var(--gray_-6);
 }
 
-.products-filters {
+.filters-wrapper {
+    margin-bottom: 20px;
+}
+.tabs-status {
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
+    gap: 24px;
     margin-bottom: 20px;
 }
-.products-filters a {
-    padding: 8px 16px;
-    border-radius: 8px;
-    text-decoration: none;
-    background-color: var(--gray_2);
+.status-tab {
+    display: flex;
     color: var(--gray_-6);
-    transition: all 0.2s ease;
-}
-.products-filters a.active,
-.products-filters a:hover {
-    background-color: var(--orange_0);
-    color: #fff;
-}
-
-.category-filter,
-.search-products {
-    margin-bottom: 20px;
-}
-.category-filter select,
-.search-products input[type="text"] {
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--gray_1);
-    outline: none;
-    margin-right: 10px;
-}
-.search-products button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    background-color: var(--orange_0);
-    color: #fff;
     cursor: pointer;
-    transition: background 0.2s ease;
+    gap: 8px;
+    transition: color 0.3s ease, border-bottom 0.3s ease;
 }
-.search-products button:hover {
-    background-color: var(--orange_1);
+.status-tab:hover {
+    color: var(--gray_-4);
+    border-bottom: 2px solid var(--gray_-4);
 }
-
-.bulk-actions {
+.status-tab.active {
+    color: var(--orange_0);
+    border-bottom: 2px solid var(--orange_0);
+}
+.status-tab.active:hover {
+    color: var(--orange_-1);
+    border-bottom: 2px solid var(--orange_-1);
+}
+.filter-category {
+    min-width: fit-content;
+}
+.filters-controls {
     display: flex;
-    gap: 10px;
+    justify-content: space-between;
+    align-items: start;
+    gap: 8px;
+}
+.filters-left {
+    display: flex;
     align-items: center;
-    margin-bottom: 20px;
-}
-.bulk-actions select {
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--gray_1);
-}
-.bulk-actions button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    background-color: var(--orange_0);
-    color: #fff;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-.bulk-actions button:hover {
-    background-color: var(--orange_1);
+    gap: 8px;
 }
 
 /* Таблица товаров */
 .my-products-table {
     width: 100%;
     border-collapse: collapse;
-    background-color: var(--gray_5);
-    border-radius: 12px;
     overflow: hidden;
 }
 .my-products-table th,
 .my-products-table td {
-    padding: 12px 10px;
+    padding: 8px 4px;
     text-align: left;
     border-bottom: 1px solid var(--gray_2);
     vertical-align: middle;
@@ -95,13 +66,19 @@
     background-color: var(--gray_3);
 }
 .my-products-table tbody tr:hover {
-    background-color: var(--gray_2);
+    background-color: var(--gray_4);
 }
 .my-products-table img.product-thumb {
-    width: 60px;
-    height: 60px;
+    aspect-ratio: 27 / 20;
+    height: 86px;
     object-fit: cover;
     border-radius: 6px;
+}
+.my-products-table .product-draft {
+    background-color: var(--gray_5);
+}
+.my-products-table tbody tr.selected {
+    background-color: var(--orange_4);
 }
 
 .my-products-table .categories {
@@ -117,18 +94,37 @@
     text-decoration: underline;
 }
 
-.my-products-table .actions a {
-    display: inline-block;
-    margin-right: 8px;
-    color: var(--gray_-6);
-    text-decoration: none;
-    padding: 4px 8px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+#bulk-actions .action-btn {
+    background-color: var(--gray_5);
 }
-.my-products-table .actions a:hover {
-    background-color: var(--orange_0);
-    color: #fff;
+.product-actions .action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin-right: 6px;
+    cursor: pointer;
+    border-radius: 4px;
+    background-color: var(--gray_6);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.product-actions .action-btn:hover {
+    background-color: var(--orange_5);
+    transform: scale(1.1);
+}
+.product-actions .action-btn svg {
+    width: 24px;
+    height: 24px;
+}
+.product-actions .action-btn svg * {
+    fill: var(--gray_-6);
+    stroke: var(--gray_-6);
+    transition: fill 0.3s ease, stroke 0.3s ease;
+}
+.product-actions .action-btn:hover svg * {
+    fill: var(--orange_-1);
+    stroke: var(--orange_-1);
 }
 
 .view-stats-btn {

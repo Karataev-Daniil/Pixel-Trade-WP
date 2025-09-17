@@ -20,6 +20,7 @@ require_once get_template_directory() . '/includes/user-delete-product.php';
 require_once get_template_directory() . '/includes/user-settings.php';
 require_once get_template_directory() . '/includes/user-favorites.php';
 require_once get_template_directory() . '/includes/user-messenger/user-messenger.php';
+require_once get_template_directory() . '/includes/user-products-dashboard.php';
 
 // Admin / Moderation
 require_once get_template_directory() . '/includes/admin-approval.php';
@@ -42,7 +43,6 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
     $user_id = is_user_logged_in() ? get_current_user_id() : null;
     $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'];
 
-    // Последние просмотры
     $where = $user_id
         ? $wpdb->prepare('user_id = %d', $user_id)
         : $wpdb->prepare('ip_address = %s', $ip);
@@ -57,7 +57,6 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
     $viewed_ids = wp_list_pluck($viewed, 'product_id');
     $exclude_ids = array_slice($viewed_ids, 0, 10 + $offset);
 
-    // Топ категории
     $cats = [];
     foreach ($viewed_ids as $pid) {
         $terms = wp_get_post_terms($pid, 'product_cat');
@@ -70,7 +69,6 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
     arsort($cats);
     $cat_ids = array_keys($cats);
 
-    // Персональные рекомендации
     $recommended = [];
     if ($cat_ids) {
         $query = new WP_Query([
@@ -91,7 +89,6 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
         }
     }
 
-    // Популярные товары
     $remaining = $limit - count($recommended);
     if ($remaining > 0) {
         $exclude_ids = array_merge($exclude_ids, $recommended);
@@ -110,7 +107,6 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
         $recommended = array_merge($recommended, array_slice($popular_ids, 0, $remaining));
     }
 
-    // Случайные товары для добора
     $remaining = $limit - count($recommended);
     if ($remaining > 0) {
         $exclude_ids = array_merge($exclude_ids, $recommended);
@@ -151,3 +147,10 @@ function load_more_products_ajax() {
 
     wp_die();
 }
+
+add_action('save_post_products', function($post_id, $post, $update){
+    $author_id = $post->post_author;
+    if ($author_id) {
+        my_products_clear_cache($author_id);
+    }
+}, 10, 3);
