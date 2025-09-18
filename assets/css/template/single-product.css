@@ -256,7 +256,17 @@
     margin: 0 0 36px;
 }
 
-
+.dynamic-features-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 250px));
+    align-items: end;
+    gap: 24px;
+}
+.dynamic-field-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 /* ркдактор поста */
 .product-create__title,
 .product-edit__title {
@@ -284,11 +294,7 @@
     flex-direction: column;
     gap: 16px;
 }
-.form-group--type,
-.form-group--tabs,
-.form-group--gallery,
-.form-group--price,
-.form-group--categories {
+.form-group {
     margin: 0 0 80px;
 }
 .product-create .form-group--type,

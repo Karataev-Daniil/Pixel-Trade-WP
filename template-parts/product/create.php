@@ -1,6 +1,14 @@
 <?php
 $current_user_id = $args['current_user_id'] ?? get_current_user_id();
 ?>
+<script>
+const existingDynamicFields = <?php
+    echo json_encode(
+        isset($product_id) ? get_post_meta($product_id, 'dynamic_features', true) : []
+    );
+?> || {};
+</script>
+
 
 <div class="product__wrapper create content-main">
     <div class="container-medium">
@@ -50,6 +58,12 @@ $current_user_id = $args['current_user_id'] ?? get_current_user_id();
                         </small>
                         <div class="form-message body-small-regular" id="message_selected_categories"></div>
                     </fieldset>
+
+                    <section class="form-group form-group--dynamic-features" id="dynamic-features-container">
+                        <h2><?php echo t('Дополнительные характеристики', 'Additional features', 'Caracteristici suplimentare'); ?></h2>
+                        <div class="dynamic-features-fields" id="dynamic-features-fields" ></div>
+                        <input type="hidden" name="dynamic_fields" id="dynamic_fields_input">
+                    </section>
 
                     <section class="form-group form-group--tabs tabs">
                         <?php $language = $GLOBALS['language']; ?>

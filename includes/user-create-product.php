@@ -54,6 +54,19 @@ function handle_create_product() {
     update_post_meta($post_id, 'product_currency', $currency);
     update_post_meta($post_id, 'product_type', $type);
 
+if (!empty($_POST['dynamic_fields'])) {
+    $dynamic_fields = json_decode(stripslashes($_POST['dynamic_fields']), true);
+    if (is_array($dynamic_fields)) {
+        // Сохраняем каждое поле отдельным meta_key:
+        foreach ($dynamic_fields as $meta_key => $meta_value) {
+            update_post_meta($post_id, $meta_key, sanitize_text_field($meta_value));
+        }
+        // И при желании — общим массивом:
+        update_post_meta($post_id, 'dynamic_features', array_map('sanitize_text_field', $dynamic_fields));
+    }
+}
+
+
     if (!function_exists('media_handle_upload')) {
         require_once ABSPATH . 'wp-admin/includes/image.php';
         require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -63,12 +76,10 @@ function handle_create_product() {
     $attachment_ids = [];
     if (!empty($_FILES['product_gallery']['name'][0])) {
         $files = $_FILES['product_gallery'];
-
         foreach ($files['name'] as $i => $name) {
             if ($files['error'][$i] !== UPLOAD_ERR_OK) continue;
 
             $random_name = generate_random_filename($files['name'][$i]);
-
             $file_array = [
                 'name'     => $random_name,
                 'type'     => $files['type'][$i],

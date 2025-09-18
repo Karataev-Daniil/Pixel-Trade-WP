@@ -387,6 +387,319 @@ function save_product_cat_translations($term_id) {
 add_action('edited_product_cat', 'save_product_cat_translations', 10, 2);
 add_action('created_product_cat', 'save_product_cat_translations', 10, 2);
 
+function get_product_category_features() {
+    return [
+        670 => [ // Легковые автомобили
+            'body_type' => [
+                'label' => ['ru'=>'Тип кузова','en'=>'Body type','ro'=>'Tip caroserie'],
+                'options' => [
+                    ['ru'=>'Седан','en'=>'Sedan','ro'=>'Sedan'],
+                    ['ru'=>'Хэтчбек','en'=>'Hatchback','ro'=>'Hatchback'],
+                    ['ru'=>'Универсал','en'=>'Station Wagon','ro'=>'Break'],
+                    ['ru'=>'SUV','en'=>'SUV','ro'=>'SUV'],
+                    ['ru'=>'Купе','en'=>'Coupe','ro'=>'Coupe'],
+                    ['ru'=>'Кабриолет','en'=>'Convertible','ro'=>'Decapotabil'],
+                    ['ru'=>'Минивэн','en'=>'Minivan','ro'=>'Minivan'],
+                    ['ru'=>'Пикап','en'=>'Pickup','ro'=>'Pickup'],
+                ]
+            ],
+            'brand' => [
+                'label' => ['ru'=>'Марка','en'=>'Brand','ro'=>'Marcă'],
+                'options' => [
+                    ['ru'=>'BMW','en'=>'BMW','ro'=>'BMW'],
+                    ['ru'=>'Mercedes','en'=>'Mercedes','ro'=>'Mercedes'],
+                    ['ru'=>'Audi','en'=>'Audi','ro'=>'Audi'],
+                    ['ru'=>'Toyota','en'=>'Toyota','ro'=>'Toyota'],
+                    ['ru'=>'Volkswagen','en'=>'Volkswagen','ro'=>'Volkswagen'],
+                    ['ru'=>'Honda','en'=>'Honda','ro'=>'Honda'],
+                    ['ru'=>'Ford','en'=>'Ford','ro'=>'Ford'],
+                    ['ru'=>'Chevrolet','en'=>'Chevrolet','ro'=>'Chevrolet'],
+                    ['ru'=>'Nissan','en'=>'Nissan','ro'=>'Nissan'],
+                    ['ru'=>'Hyundai','en'=>'Hyundai','ro'=>'Hyundai'],
+                ]
+            ],
+            'model' => [
+                'label' => ['ru'=>'Модель','en'=>'Model','ro'=>'Model'],
+                'options' => []
+            ],
+            'year' => [
+                'label' => ['ru'=>'Год выпуска','en'=>'Year','ro'=>'An'],
+                'options' => array_map(function($y){ return ['ru'=>(string)$y,'en'=>(string)$y,'ro'=>(string)$y]; }, range(date('Y'), 1990))
+            ],
+            'fuel_type' => [
+                'label'=>['ru'=>'Тип топлива','en'=>'Fuel type','ro'=>'Tip combustibil'],
+                'options'=>[
+                    ['ru'=>'Бензин','en'=>'Petrol','ro'=>'Benzină'],
+                    ['ru'=>'Дизель','en'=>'Diesel','ro'=>'Motorină'],
+                    ['ru'=>'Электро','en'=>'Electric','ro'=>'Electric'],
+                    ['ru'=>'Гибрид','en'=>'Hybrid','ro'=>'Hibrid'],
+                    ['ru'=>'Газ','en'=>'Gas','ro'=>'Gaz'],
+                ]
+            ],
+            'transmission'=>[
+                'label'=>['ru'=>'Коробка передач','en'=>'Transmission','ro'=>'Cutie de viteze'],
+                'options'=>[
+                    ['ru'=>'Автомат','en'=>'Automatic','ro'=>'Automată'],
+                    ['ru'=>'Механика','en'=>'Manual','ro'=>'Manuală'],
+                    ['ru'=>'Вариатор (CVT)','en'=>'CVT','ro'=>'CVT'],
+                ]
+            ],
+            'drive'=>[
+                'label'=>['ru'=>'Привод','en'=>'Drive','ro'=>'Tracțiune'],
+                'options'=>[
+                    ['ru'=>'Передний','en'=>'Front','ro'=>'Față'],
+                    ['ru'=>'Задний','en'=>'Rear','ro'=>'Spate'],
+                    ['ru'=>'Полный','en'=>'All-wheel','ro'=>'Integral'],
+                ]
+            ],
+            'color'=>[
+                'label'=>['ru'=>'Цвет','en'=>'Color','ro'=>'Culoare'],
+                'options'=>[
+                    ['ru'=>'Черный','en'=>'Black','ro'=>'Negru'],
+                    ['ru'=>'Белый','en'=>'White','ro'=>'Alb'],
+                    ['ru'=>'Серый','en'=>'Gray','ro'=>'Gri'],
+                    ['ru'=>'Синий','en'=>'Blue','ro'=>'Albastru'],
+                    ['ru'=>'Красный','en'=>'Red','ro'=>'Roșu'],
+                    ['ru'=>'Зеленый','en'=>'Green','ro'=>'Verde'],
+                    ['ru'=>'Желтый','en'=>'Yellow','ro'=>'Galben'],
+                    ['ru'=>'Коричневый','en'=>'Brown','ro'=>'Maro'],
+                    ['ru'=>'Оранжевый','en'=>'Orange','ro'=>'Portocaliu'],
+                    ['ru'=>'Фиолетовый','en'=>'Purple','ro'=>'Violet'],
+                ]
+            ],
+            'mileage'=>[
+                'label'=>['ru'=>'Пробег','en'=>'Mileage','ro'=>'Kilometraj'],
+                'options'=>[]
+            ],
+            'condition'=>[
+                'label'=>['ru'=>'Состояние','en'=>'Condition','ro'=>'Stare'],
+                'options'=>[
+                    ['ru'=>'Новый','en'=>'New','ro'=>'Nou'],
+                    ['ru'=>'Б/у','en'=>'Used','ro'=>'Second-hand'],
+                ]
+            ],
+            'owners_count'=>[
+                'label'=>['ru'=>'Количество владельцев','en'=>'Owners count','ro'=>'Număr proprietari'],
+                'options'=>[
+                    ['ru'=>'1','en'=>'1','ro'=>'1'],
+                    ['ru'=>'2','en'=>'2','ro'=>'2'],
+                    ['ru'=>'3','en'=>'3','ro'=>'3'],
+                    ['ru'=>'4','en'=>'4','ro'=>'4'],
+                    ['ru'=>'5 и более','en'=>'5+','ro'=>'5+'],
+                ]
+            ],
+            'doors_count'=>[
+                'label'=>['ru'=>'Количество дверей','en'=>'Doors count','ro'=>'Număr uși'],
+                'options'=>[
+                    ['ru'=>'2','en'=>'2','ro'=>'2'],
+                    ['ru'=>'3','en'=>'3','ro'=>'3'],
+                    ['ru'=>'4','en'=>'4','ro'=>'4'],
+                    ['ru'=>'5','en'=>'5','ro'=>'5'],
+                ]
+            ],
+            'seats_count'=>[
+                'label'=>['ru'=>'Количество мест','en'=>'Seats count','ro'=>'Număr locuri'],
+                'options'=>[
+                    ['ru'=>'2','en'=>'2','ro'=>'2'],
+                    ['ru'=>'4','en'=>'4','ro'=>'4'],
+                    ['ru'=>'5','en'=>'5','ro'=>'5'],
+                    ['ru'=>'7','en'=>'7','ro'=>'7'],
+                    ['ru'=>'8+','en'=>'8+','ro'=>'8+'],
+                ]
+            ],
+            'trim'=>[
+                'label'=>['ru'=>'Комплектация','en'=>'Trim','ro'=>'Nivel echipare'],
+                'options'=>[
+                    ['ru'=>'Базовая','en'=>'Basic','ro'=>'Basic'],
+                    ['ru'=>'Средняя','en'=>'Medium','ro'=>'Medie'],
+                    ['ru'=>'Полная','en'=>'Full','ro'=>'Completă'],
+                    ['ru'=>'Спортивная','en'=>'Sport','ro'=>'Sport'],
+                ]
+            ],
+            'climate_control'=>[
+                'label'=>['ru'=>'Климат-контроль','en'=>'Climate control','ro'=>'Climatizare'],
+                'options'=>[
+                    ['ru'=>'Есть','en'=>'Yes','ro'=>'Da'],
+                    ['ru'=>'Нет','en'=>'No','ro'=>'Nu'],
+                ]
+            ],
+            'power_windows'=>[
+                'label'=>['ru'=>'Электростеклоподъемники','en'=>'Power windows','ro'=>'Geamuri electrice'],
+                'options'=>[
+                    ['ru'=>'Передние','en'=>'Front','ro'=>'Față'],
+                    ['ru'=>'Передние и задние','en'=>'Front & Rear','ro'=>'Față & Spate'],
+                    ['ru'=>'Нет','en'=>'No','ro'=>'Nu'],
+                ]
+            ],
+            'multimedia'=>[
+                'label'=>['ru'=>'Мультимедиа','en'=>'Multimedia','ro'=>'Multimedia'],
+                'options'=>[
+                    ['ru'=>'Bluetooth','en'=>'Bluetooth','ro'=>'Bluetooth'],
+                    ['ru'=>'Навигация','en'=>'Navigation','ro'=>'Navigație'],
+                    ['ru'=>'USB','en'=>'USB','ro'=>'USB'],
+                    ['ru'=>'Apple CarPlay','en'=>'Apple CarPlay','ro'=>'Apple CarPlay'],
+                    ['ru'=>'Android Auto','en'=>'Android Auto','ro'=>'Android Auto'],
+                    ['ru'=>'CD','en'=>'CD','ro'=>'CD'],
+                    ['ru'=>'Нет','en'=>'None','ro'=>'Niciunul'],
+                ]
+            ],
+            'airbags'=>[
+                'label'=>['ru'=>'Подушки безопасности','en'=>'Airbags','ro'=>'Airbaguri'],
+                'options'=>[
+                    ['ru'=>'Водитель','en'=>'Driver','ro'=>'Șofer'],
+                    ['ru'=>'Пассажир','en'=>'Passenger','ro'=>'Pasager'],
+                    ['ru'=>'Боковые','en'=>'Side','ro'=>'Laterale'],
+                    ['ru'=>'Шторки','en'=>'Curtain','ro'=>'Perdele'],
+                    ['ru'=>'Полный комплект','en'=>'Full','ro'=>'Complet'],
+                ]
+            ],
+            'tire_condition'=>[
+                'label'=>['ru'=>'Состояние шин','en'=>'Tire condition','ro'=>'Stare anvelope'],
+                'options'=>[
+                    ['ru'=>'Новые','en'=>'New','ro'=>'Noi'],
+                    ['ru'=>'Хорошее','en'=>'Good','ro'=>'Bune'],
+                    ['ru'=>'Среднее','en'=>'Average','ro'=>'Mediu'],
+                    ['ru'=>'Изношенные','en'=>'Worn','ro'=>'Uzate'],
+                ]
+            ],
+            'has_gbo'=>[
+                'label'=>['ru'=>'Газобаллонное оборудование','en'=>'Has GBO','ro'=>'Are GBO'],
+                'options'=>[
+                    ['ru'=>'Да','en'=>'Yes','ro'=>'Da'],
+                    ['ru'=>'Нет','en'=>'No','ro'=>'Nu'],
+                ]
+            ],
+            'fog_lights'=>[
+                'label'=>['ru'=>'Противотуманные фары','en'=>'Fog lights','ro'=>'Lumini de ceață'],
+                'options'=>[
+                    ['ru'=>'Да','en'=>'Yes','ro'=>'Da'],
+                    ['ru'=>'Нет','en'=>'No','ro'=>'Nu'],
+                ]
+            ],
+            'tinted_windows'=>[
+                'label'=>['ru'=>'Тонированные стекла','en'=>'Tinted windows','ro'=>'Geamuri tonate'],
+                'options'=>[
+                    ['ru'=>'Да','en'=>'Yes','ro'=>'Da'],
+                    ['ru'=>'Нет','en'=>'No','ro'=>'Nu'],
+                ]
+            ],
+            'alarm'=>[
+                'label'=>['ru'=>'Сигнализация','en'=>'Alarm','ro'=>'Alarmă'],
+                'options'=>[
+                    ['ru'=>'Да','en'=>'Yes','ro'=>'Da'],
+                    ['ru'=>'Нет','en'=>'No','ro'=>'Nu'],
+                ]
+            ],
+        ],
+    ];
+}
+
+
+function add_dynamic_features_metabox() {
+    add_meta_box(
+        'dynamic_features_metabox',
+        'Дополнительные характеристики',
+        'render_dynamic_features_metabox',
+        'products',
+        'normal',
+        'default'
+    );
+}
+add_action('add_meta_boxes', 'add_dynamic_features_metabox');
+
+function render_dynamic_features_metabox($post) {
+    $features    = get_product_category_features();
+    $post_cats   = wp_get_post_terms($post->ID, 'product_cat', ['fields' => 'ids']);
+    $language    = $GLOBALS['language'] ?? 'ru';
+    $allowed_cats = array_intersect(array_keys($features), $post_cats);
+
+    if (!$allowed_cats) {
+        echo '<p>' . __('Дополнительные характеристики недоступны для этой категории', 'text-domain') . '</p>';
+        return;
+    }
+
+    echo '<div id="dynamic-features-container">';
+
+    $saved_values = get_post_meta($post->ID, 'dynamic_features', true);
+    if (!is_array($saved_values)) $saved_values = [];
+
+    foreach ($allowed_cats as $cat_id) {
+        echo '<div class="category-features" data-cat-id="'.esc_attr($cat_id).'" style="border:1px solid #ccc;padding:10px;margin-bottom:10px">';
+        echo '<strong>' . __('Категория ID', 'text-domain') . ' ' . esc_html($cat_id) . '</strong>';
+
+        foreach ($features[$cat_id] as $key => $field) {
+            // создаём такой же ключ, как на фронте
+            $js_key = '_' . strtolower(str_replace(' ', '-', preg_replace('/[^a-zA-Z0-9а-яёА-ЯЁ_\s]/u','',$key)));
+            $value  = $saved_values[$js_key] ?? '';
+
+            echo '<p>';
+            echo '<label style="font-weight:bold;">'.esc_html($field['label'][$language] ?? $field['label']['ru']).'</label>';
+
+            if (!empty($field['options'])) {
+                echo '<select class="dynamic-feature" data-key="'.esc_attr($js_key).'" style="width:100%">';
+                echo '<option value="">— ' . __('Выберите', 'text-domain') . ' —</option>';
+                foreach ($field['options'] as $opt) {
+                    $opt_value = $opt[$language] ?? $opt['ru'];
+                    $selected  = ($value == $opt_value) ? 'selected' : '';
+                    echo '<option value="'.esc_attr($opt_value).'" '.$selected.'>'.esc_html($opt_value).'</option>';
+                }
+                echo '</select>';
+            } else {
+                echo '<input type="text" class="dynamic-feature" data-key="'.esc_attr($js_key).'" value="'.esc_attr($value).'" style="width:100%">';
+            }
+
+            echo '</p>';
+        }
+
+        echo '</div>';
+    }
+
+    echo '<input type="hidden" name="dynamic_fields" id="dynamic_fields_input" value="'.esc_attr(json_encode($saved_values)).'">';
+    echo '</div>';
+
+    // JS для обновления скрытого поля
+    ?>
+    <script>
+    document.addEventListener("DOMContentLoaded", function(){
+        const container = document.getElementById("dynamic-features-container");
+        const hiddenInput = document.getElementById("dynamic_fields_input");
+        if(container && hiddenInput){
+            container.addEventListener("change", function(e){
+                if(e.target.classList.contains("dynamic-feature")){
+                    const allFields = container.querySelectorAll(".dynamic-feature");
+                    const data = {};
+                    allFields.forEach(f => {
+                        const key = f.dataset.key;
+                        if(key) data[key] = f.value;
+                    });
+                    hiddenInput.value = JSON.stringify(data);
+                }
+            });
+        }
+    });
+    </script>
+    <?php
+}
+
+function save_dynamic_features_metabox($post_id){
+    if(defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+    // проверяем пост-тип через get_post_type, так надёжнее
+    if (get_post_type($post_id) !== 'products') return;
+
+    if(!empty($_POST['dynamic_fields'])){
+        $dynamic_fields = json_decode(wp_unslash($_POST['dynamic_fields']), true);
+        if(is_array($dynamic_fields)){
+            $sanitized = [];
+            foreach($dynamic_fields as $k => $v){
+                $sanitized[$k] = sanitize_text_field($v);
+            }
+            update_post_meta($post_id, 'dynamic_features', $sanitized);
+        }
+    }
+}
+add_action('save_post_products', 'save_dynamic_features_metabox');
+
+
 // function delete_all_product_categories() {
 //     $terms = get_terms(['taxonomy' => 'product_cat', 'hide_empty' => false]);
 //     foreach ($terms as $term) {

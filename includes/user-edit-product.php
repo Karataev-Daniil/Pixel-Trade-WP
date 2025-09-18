@@ -11,6 +11,7 @@ function handle_product_edit_form_submission() {
 
     $product_id = intval($_POST['product_id'] ?? 0);
     if (!$product_id || get_post_type($product_id) !== 'products') return;
+
     if (get_current_user_id() !== (int)get_post_field('post_author', $product_id)) {
         wp_die('У вас нет прав для редактирования этого товара.');
     }
@@ -61,10 +62,24 @@ function handle_product_edit_form_submission() {
         require_once ABSPATH . 'wp-admin/includes/media.php';
     }
 
+    if(!empty($_POST['dynamic_fields'])){
+        $dynamic_fields = json_decode(wp_unslash($_POST['dynamic_fields']), true);
+        if(is_array($dynamic_fields)){
+            foreach ($dynamic_fields as $key => $value) {
+                $dynamic_fields[$key] = is_array($value) 
+                    ? array_map('sanitize_text_field', $value) 
+                    : sanitize_text_field($value);
+            }
+
+            update_post_meta($product_id, 'dynamic_features', $dynamic_fields);
+        }
+    }
+
     $remove_ids = array_filter(array_map('intval', explode(',', $_POST['remove_gallery_ids_input'] ?? '')));
     $current_gallery = get_post_meta($product_id, 'product_gallery', true);
     $current_gallery = is_array($current_gallery) ? $current_gallery : [];
     $current_gallery = array_diff($current_gallery, $remove_ids);
+
     foreach ($remove_ids as $remove_id) {
         wp_delete_attachment((int)$remove_id, true);
     }
@@ -131,4 +146,4 @@ function handle_product_edit_form_submission() {
     wp_redirect(get_permalink($product_id));
     exit;
 }
-add_action('init', 'handle_product_edit_form_submission');
+add_action('admin_post_edit_product', 'handle_product_edit_form_submission');

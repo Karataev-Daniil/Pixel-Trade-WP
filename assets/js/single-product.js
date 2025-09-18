@@ -301,12 +301,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (form) {
         form.addEventListener('submit', function(e) {
             if (!checkTranslationsBeforeSubmit()) {
-                e.preventDefault(); // блокируем отправку первый раз
+                e.preventDefault();
             }
         });
     }
-
-    checkTranslations();
 });
 
 function getImageUrl(imgId) {

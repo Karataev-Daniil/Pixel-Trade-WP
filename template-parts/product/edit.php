@@ -17,6 +17,16 @@ $selected_terms = wp_get_post_terms($product_id, 'product_cat');
 $sorted_term_ids = function_exists('sort_categories_by_hierarchy') ? sort_categories_by_hierarchy($selected_terms) : [];
 $language    = $GLOBALS['language'] ?? 'ru';
 ?>
+<script>
+window.existingDynamicFields = <?php
+    $dynamic_features = get_post_meta($product_id, 'dynamic_features', true);
+    if (!is_array($dynamic_features)) $dynamic_features = [];
+    echo json_encode($dynamic_features, JSON_UNESCAPED_UNICODE);
+?>;
+</script>
+
+
+
 
 <div class="product__wrapper edit content-main">
     <div class="container-medium">
@@ -55,6 +65,14 @@ $language    = $GLOBALS['language'] ?? 'ru';
                         </div>
                         <input type="hidden" id="selected_categories_input" name="product_categories[]" value="">
                     </fieldset>
+
+                    <section class="form-group form-group--dynamic-features" id="dynamic-features-container">
+                        <label class="label-large">
+                            <?php echo t('Дополнительные характеристики', 'Additional features', 'Caracteristici suplimentare'); ?>
+                        </label>
+                        <div class="dynamic-features-fields" id="dynamic-features-fields"></div>
+                        <input type="hidden" id="dynamic_fields_input" name="dynamic_fields" value="">
+                    </section>
                         
                     <!-- Языковые вкладки -->
                     <section class="form-group form-group--tabs tabs">

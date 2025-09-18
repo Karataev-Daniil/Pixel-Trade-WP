@@ -151,14 +151,15 @@ function custom_enqueue_assets() {
         wp_enqueue_script(
             'category-selector',
             $theme_dir . '/assets/js/category-selector.js',
-            [],
+            ['jquery'],
             filemtime($theme_path . '/assets/js/category-selector.js'),
             true
         );
 
         wp_localize_script('category-selector', 'categorySelectorVars', [
-            'ajaxUrl'  => admin_url('admin-ajax.php'),
-            'language' => $lang,
+            'ajaxUrl'          => admin_url('admin-ajax.php'),
+            'language'         => $lang,
+            'categoryFeatures' => function_exists('get_product_category_features') ? get_product_category_features() : []
         ]);
 
         wp_enqueue_script(
@@ -168,7 +169,7 @@ function custom_enqueue_assets() {
             filemtime($theme_path . '/assets/js/product-translations.js'),
             true
         );
-   
+
         wp_localize_script('product-translations', 'translationVars', [
             'ajaxUrl'   => admin_url('admin-ajax.php'),
             'nonce'     => wp_create_nonce('generate_translations_nonce'),
@@ -182,13 +183,13 @@ function custom_enqueue_assets() {
             null,
             true
         );
-
+        
         wp_localize_script('single-product-scripts', 'singleProductData', [
             'translations' => [
-                'selectCategory' => t('Выберите категорию', 'Select category', 'Selectați categoria'),
-                'labelLevel0'    => t('Категория', 'Category', 'Categorie'),
-                'labelLevel1'    => t('Подкатегория', 'Subcategory', 'Subcategorie'),
-                'labelLevel2'    => t('Под-подкатегория', 'Sub-subcategory', 'Sub-subcategorie'),
+                'selectCategory' => function_exists('t') ? t('Выберите категорию', 'Select category', 'Selectați categoria') : 'Select category',
+                'labelLevel0'    => function_exists('t') ? t('Категория', 'Category', 'Categorie') : 'Category',
+                'labelLevel1'    => function_exists('t') ? t('Подкатегория', 'Subcategory', 'Subcategorie') : 'Subcategory',
+                'labelLevel2'    => function_exists('t') ? t('Под-подкатегория', 'Sub-subcategory', 'Sub-subcategorie') : 'Sub-subcategory',
             ],
             'language' => $lang,
         ]);

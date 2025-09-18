@@ -90,7 +90,7 @@
 }
 .input-secondary:not(:focus):not(:placeholder-shown) {
     border-color: var(--gray_6);
-    background-color: var(--orange_5);
+    /* background-color: var(--orange_5); */
 }
 .input-secondary:not(:placeholder-shown):hover {
     border: 1px solid var(--orange_-1);
@@ -134,7 +134,7 @@
 }
 .input-tertiary:not(:focus):not(:placeholder-shown) {
     border-color: var(--gray_6);
-    background-color: var(--orange_5);
+    /* background-color: var(--orange_5); */
 }
 .input-tertiary:not(:placeholder-shown):hover {
     border: 1px solid var(--orange_-1);
