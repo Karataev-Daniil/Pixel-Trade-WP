@@ -11,7 +11,7 @@ $thumbnail   = get_post_thumbnail_id($product_id);
 $gallery     = get_post_meta($product_id, 'product_gallery', true);
 $gallery     = is_array($gallery) ? $gallery : [];
 $price       = get_post_meta($product_id, 'product_price', true);
-$currency    = get_post_meta($product_id, 'product_currency', true) ?: 'lei';
+$currency    = strtolower(get_post_meta($product_id, 'product_currency', true) ?: 'lei');
 $type        = get_post_meta($product_id, 'product_type', true) ?: 'sell';
 $selected_terms = wp_get_post_terms($product_id, 'product_cat');
 $sorted_term_ids = function_exists('sort_categories_by_hierarchy') ? sort_categories_by_hierarchy($selected_terms) : [];
@@ -24,9 +24,6 @@ window.existingDynamicFields = <?php
     echo json_encode($dynamic_features, JSON_UNESCAPED_UNICODE);
 ?>;
 </script>
-
-
-
 
 <div class="product__wrapper edit content-main">
     <div class="container-medium">
@@ -163,16 +160,21 @@ window.existingDynamicFields = <?php
                     <!-- Цена + статус -->
                     <div class="form-group form-group--price">
                         <div class="form-group__left">
-                            <label class="form-label label-large" for="product_price"><?php echo t('Цена', 'Price', 'Preț'); ?></label>
+                            <label class="form-label label-large" for="product_price">
+                                <?php echo t('Цена', 'Price', 'Preț'); ?>
+                            </label>
                             <div class="price-input-wrapper">
-                                <input type="number" step="0.01" name="product_price" id="product_price" value="<?php echo esc_attr($price); ?>" class="form-input input-secondary body-medium-regular"
-                                placeholder="<?php echo t('Укажите цену', 'Enter the price', 'Introduceți prețul'); ?>" 
-                                min="0.01" max="1000000">
-
-                                <select name="product_currency" id="product_currency" class="form-select select-tertiary body-medium-regular">
-                                    <option value="lei" <?php selected($currency, 'lei'); ?>>Леи</option>
-                                    <option value="usd" <?php selected($currency, 'usd'); ?>>$</option>
-                                    <option value="eur" <?php selected($currency, 'eur'); ?>>€</option>
+                                <input type="number" step="0.01" name="product_price" id="product_price"
+                                    value="<?php echo esc_attr($price); ?>"
+                                    class="form-input input-secondary body-medium-regular"
+                                    placeholder="<?php echo t('Укажите цену', 'Enter the price', 'Introduceți prețul'); ?>"
+                                    min="0.01" max="1000000">
+                                                    
+                                <select name="product_currency"
+                                    class="form-select select-tertiary body-medium-regular">
+                                    <option value="lei" <?php selected($currency, 'lei'); ?>>lei</option>
+                                    <option value="usd" <?php selected($currency, 'usd'); ?>>usd</option>
+                                    <option value="eur" <?php selected($currency, 'eur'); ?>>eur</option>
                                 </select>
                             </div>
                         </div>

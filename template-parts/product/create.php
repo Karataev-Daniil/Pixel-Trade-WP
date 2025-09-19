@@ -149,9 +149,9 @@ const existingDynamicFields = <?php
                                        placeholder="<?php echo t('Укажите цену', 'Enter the price', 'Introduceți prețul'); ?>"
                                        min="0.01" max="1000000">
                                 <select name="product_currency" class="form-select select-tertiary body-medium-regular">
-                                    <option value="lei">лей</option>
-                                    <option value="usd">$</option>
-                                    <option value="eur">€</option>
+                                    <option value="lei">lei</option>
+                                    <option value="usd">usd</option>
+                                    <option value="eur">eur</option>
                                 </select>
                             </div>
                             <small class="form-hint body-small-regular">

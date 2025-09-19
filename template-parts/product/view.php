@@ -57,10 +57,20 @@ if ($product['thumbnail_id'] && !in_array($product['thumbnail_id'], $product['ga
 
 $current_user_id = get_current_user_id();
 $author_id = $product['author_id'];
-$author_avatar = get_avatar($author_id, 64);
 $author_registered = get_the_author_meta('user_registered');
 $author_url = get_author_posts_url($author_id);
 $author_region = get_user_meta($author_id, 'region', true);
+
+$user = get_userdata($author_id);
+$avatar_id = get_user_meta($user->ID, 'profile_avatar', true);
+
+if ($avatar_id) {
+    $author_avatar = wp_get_attachment_image($avatar_id, 'thumbnail', false, [
+        'alt' => esc_attr($user->display_name),
+    ]);
+} else {
+    $author_avatar = get_avatar($user->ID, 64, '', esc_attr($user->display_name));
+}
 
 $features = get_product_category_features();
 $saved_values = get_post_meta($product_id, 'dynamic_features', true);
@@ -68,7 +78,7 @@ $post_cats = wp_get_post_terms($product_id, 'product_cat', ['fields' => 'ids']);
 $allowed_cats = array_intersect(array_keys($features), $post_cats);
 ?>
 
-<div class="product__wrapper content-main">
+<div class="product-card__wrapper">
     <div class="container-medium">
         <main>
             <?php get_template_part('template-parts/breadcrumbs'); ?>
@@ -92,36 +102,68 @@ $allowed_cats = array_intersect(array_keys($features), $post_cats);
                             </div>
                         </section>
                     <?php endif; ?>
-                            
-                    <section class="content body-small-regular" aria-label="<?= t('Описание товара','Product Description','Descriere produs'); ?>">
-                        <?= wpautop(tr($product['content'], $lang, get_the_content($product_id))); ?>
-                    </section>
-                            
+
                     <?php if (!empty($saved_values) && is_array($saved_values) && $allowed_cats) : ?>
                         <section class="product-dynamic-features">
-                            <h2><?= t('Дополнительные характеристики','Additional features','Caracteristici suplimentare'); ?></h2>
+                            <h2 class="title-largest">
+                                <?= t('Дополнительные характеристики','Additional features','Caracteristici suplimentare'); ?>
+                            </h2>
+
                             <?php foreach ($allowed_cats as $cat_id) : ?>
                                 <div class="category-features" data-category-id="<?= esc_attr($cat_id); ?>">
                                     <ul>
-                                        <?php foreach ($features[$cat_id] as $key => $field) :
-                                            $js_key = '_' . strtolower(str_replace(' ', '-', preg_replace('/[^a-zA-Z0-9а-яёА-ЯЁ_\s]/u','',$key)));
+                                        <?php 
+                                        $current_lang = $lang ?? 'ru';
+                                        foreach ($features[$cat_id] as $key => $field) :
+                                            $js_key = '_' . strtolower(
+                                                str_replace(' ', '-', preg_replace('/[^a-zA-Z0-9а-яёА-ЯЁ_\s]/u','',$key))
+                                            );
                                             $value  = $saved_values[$js_key] ?? '';
-                                            if ($value !== '') : ?>
-                                                <li>
-                                                    <strong><?= esc_html($field['label']['ru'] ?? $key); ?>:</strong>
-                                                    <?= esc_html($value); ?>
+                                        
+                                            if ($value !== '') :
+                                                $label = $field['label'][$current_lang] 
+                                                    ?? $field['label']['ru'] 
+                                                    ?? $key;
+                                            
+                                                if (!empty($field['options']) && is_array($field['options'])) {
+                                                    foreach ($field['options'] as $opt) {
+                                                        if (in_array($value, $opt, true)) {
+                                                            $value = $opt[$current_lang] 
+                                                                ?? $opt['ru'] 
+                                                                ?? $value;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                                ?>
+                                                <li class="body-small-medium feature-item">
+                                                    <span class="feature-label-dots">
+                                                        <span class="feature-label"><?= esc_html($label); ?></span>
+                                                        <span class="feature-dots"></span>
+                                                    </span>
+                                                    <span class="feature-value"><?= esc_html($value); ?></span>
                                                 </li>
-                                            <?php endif;
-                                        endforeach; ?>
+                                            <?php 
+                                            endif;
+                                        endforeach; 
+                                        ?>
                                     </ul>
                                 </div>
                             <?php endforeach; ?>
                         </section>
                     <?php endif; ?>
-                            
-                    <section class="price title-medium" aria-label="<?= t('Цена','Price','Preț'); ?>">
-                        <p><strong><?= t('Цена:','Price:','Preț:'); ?></strong> <?= format_price_with_currency($product['price'], $product['currency']); ?></p>
 
+                    <section class="content body-small-regular" aria-label="<?= t('Описание товара','Product Description','Descriere produs'); ?>">
+                        <h2 class="title-largest"><?= t('Описание товара','Product Description','Descriere produs'); ?></h2>
+                        <?= wpautop(tr($product['content'], $lang, get_the_content($product_id))); ?>
+                    </section>
+
+                    <section class="price title-medium" aria-label="<?= t('Цена','Price','Preț'); ?>">
+                        <p>
+                            <strong><?= t('Цена:','Price:','Preț:'); ?></strong> 
+                            <?= format_price_with_conversions($product['price'], $product['currency']); ?>
+                        </p>
+                                                        
                         <?php if ($author_region): ?>
                             <div class="author-region body-small-regular">
                                 <strong><?= t('Регион:','Region:','Regiune:'); ?></strong> <?= esc_html($author_region); ?>
@@ -129,15 +171,14 @@ $allowed_cats = array_intersect(array_keys($features), $post_cats);
                         <?php endif; ?>
                     </section>
 
-                            
-                    <?php if (is_user_logged_in() && $author_id && $author_id != $current_user_id):
-                        $author_name = get_the_author_meta('display_name', $author_id); ?>
-                        <button class="dm-write-btn" data-user="<?= esc_attr($author_id); ?>">
-                            <?= t('Написать','Write','Scrieți'); ?> <?= esc_html($author_name); ?>
+
+                    <?php if (is_user_logged_in() && $author_id && $author_id != $current_user_id): ?>
+                        <button class="primary-button-medium dm-write-btn" data-user="<?= esc_attr($author_id); ?>">
+                            <?= t('Отправить сообщение', 'Send Message', 'Trimite mesaj'); ?>
                         </button>
                     <?php endif; ?>
                 </article>
-                    
+
                 <aside class="product-sidebar">
                     <section class="author" aria-label="<?= t('Информация об авторе','Author Info','Informații despre autor'); ?>">
                         <div class="author-avatar"><?= $author_avatar; ?></div>
@@ -148,26 +189,71 @@ $allowed_cats = array_intersect(array_keys($features), $post_cats);
                             <span class="body-small-regular"><?= t('На сайте с','On the site since','Pe site din'); ?> <?= date_i18n('d.m.Y', strtotime($author_registered)); ?></span>
                         </div>
                     </section>
-                        
+                                    
                     <section class="details" aria-label="<?= t('Детали товара','Product Details','Detalii produs'); ?>">
                         <div class="item body-small-regular"><?= t('Дата публикации','Published on','Data publicării'); ?>: <?= get_the_date('d.m.Y', $product_id); ?></div>
-                        <div class="item body-small-regular"><?= t('Просмотры','Views','Vizualizări'); ?>: <?= get_product_views($product_id); ?></div>
                         <?php if ($product['product_type']): ?>
                             <div class="item body-small-regular"><?= t('Тип','Type','Tip'); ?>: <?= esc_html($product['product_type']); ?></div>
                         <?php endif; ?>
+                        <div class="item body-small-regular"><?= t('Просмотры','Views','Vizualizări'); ?>: <?= get_product_views($product_id); ?></div>
                     </section>
-
+                        
+                    <hr>
+                        
                     <section class="price title-medium" aria-label="<?= t('Цена','Price','Preț'); ?>">
-                        <?= format_price_with_currency($product['price'], $product['currency']); ?>
+                        <p>
+                            <?= format_price_with_conversions($product['price'], $product['currency']); ?>
+                        </p>
                     </section>
-
+                        
+                    <?php if (is_user_logged_in() && $author_id && $author_id != $current_user_id): ?>
+                        <hr>
+                        <button class="primary-button-medium button-medium dm-write-btn" data-user="<?= esc_attr($author_id); ?>">
+                            <?= t('Отправить сообщение', 'Send Message', 'Trimite mesaj'); ?>
+                        </button>
+                    <?php endif; ?>
+                    
                     <?php if ($author_region): ?>
+                        <hr>
                         <section class="author-region" aria-label="<?= t('Регион автора','Author Region','Regiunea autorului'); ?>">
-                            <div class="item body-small-regular"><strong><?= t('Регион:','Region','Regiune:'); ?></strong> <?= esc_html($author_region); ?></div>
+                            <div class="item body-medium-regular">
+                                <strong><?= t('Регион:','Region','Regiune:'); ?></strong> <?= esc_html($author_region); ?>
+                            </div>
                         </section>
                     <?php endif; ?>
-
-                    <?php if ($current_user_id === $author_id || current_user_can('manage_options')): ?>
+                    
+                    <?php 
+                    if (is_user_logged_in() && $product_id && $author_id != $current_user_id):
+                        $favorites = function_exists('favorites_get') ? favorites_get($current_user_id, 'product') : [];
+                        $is_favorite = in_array($product_id, $favorites);
+                    ?>
+                        <hr>
+                        <section class="actions favorites" aria-label="<?= t('Избранное','Favorites','Favorite'); ?>">
+                            <button class="toggle-favorite button <?= $is_favorite ? 'favorited' : ''; ?>" 
+                                    data-id="<?= esc_attr($product_id); ?>">
+                                <svg width="24" height="24" viewBox="0 0 24 24"
+                                     fill="<?= $is_favorite ? 'red' : 'none' ?>"
+                                     stroke="<?= $is_favorite ? 'none' : 'var(--gray_-6)' ?>"
+                                     stroke-width="<?= $is_favorite ? '0' : '2' ?>"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 
+                                             4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
+                                             C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 
+                                             22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                </svg>
+                                <span class="favorites-text body-small-regular">
+                                    <?= $is_favorite 
+                                        ? t('Удалить из избранного', 'Remove from Favorites', 'Elimina din Favorite') 
+                                        : t('Сохранить в избранное', 'Save to Favorites', 'Salvează în Favorite'); ?>
+                                </span>
+                            </button>
+                        </section>
+                    <?php endif; ?>
+                    
+                    <?php if ($current_user_id === $author_id): ?>
+                        <hr>
                         <section class="actions" aria-label="<?= t('Управление товаром','Manage Product','Gestionați produsul'); ?>">
                             <a href="<?= esc_url(add_query_arg(['edit' => 1])); ?>" class="button primary-button-small"><?= t('Редактировать','Edit','Editați'); ?></a>
                             <button class="delete-product-btn button secondary-button-small"
@@ -178,6 +264,7 @@ $allowed_cats = array_intersect(array_keys($features), $post_cats);
                         </section>
                     <?php endif; ?>
                 </aside>
+
             </div>
         </main>
     </div>

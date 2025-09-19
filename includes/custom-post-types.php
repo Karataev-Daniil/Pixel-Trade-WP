@@ -594,6 +594,253 @@ function get_product_category_features() {
     ];
 }
 
+// function get_product_category_features() {
+//     return [
+//         670 => [ // Легковые автомобили
+//             'Основные данные' => [
+//                 'label' => ['ru'=>'Основные данные','en'=>'Basic Info','ro'=>'Date principale'],
+//                 'body_type' => [
+//                     'label' => ['ru'=>'Тип кузова','en'=>'Body type','ro'=>'Tip caroserie'],
+//                     'type'  => 'select',
+//                     'options' => [
+//                         ['ru'=>'Седан','en'=>'Sedan','ro'=>'Sedan'],
+//                         ['ru'=>'Хэтчбек','en'=>'Hatchback','ro'=>'Hatchback'],
+//                         ['ru'=>'Универсал','en'=>'Station Wagon','ro'=>'Break'],
+//                         ['ru'=>'SUV','en'=>'SUV','ro'=>'SUV'],
+//                         ['ru'=>'Купе','en'=>'Coupe','ro'=>'Coupe'],
+//                         ['ru'=>'Кабриолет','en'=>'Convertible','ro'=>'Decapotabil'],
+//                         ['ru'=>'Минивэн','en'=>'Minivan','ro'=>'Minivan'],
+//                         ['ru'=>'Пикап','en'=>'Pickup','ro'=>'Pickup'],
+//                     ]
+//                 ],
+//                 'brand' => [
+//                     'label' => ['ru'=>'Марка','en'=>'Brand','ro'=>'Marcă'],
+//                     'type' => 'select',
+//                     'options' => [
+//                         ['ru'=>'BMW','en'=>'BMW','ro'=>'BMW'],
+//                         ['ru'=>'Mercedes','en'=>'Mercedes','ro'=>'Mercedes'],
+//                         ['ru'=>'Audi','en'=>'Audi','ro'=>'Audi'],
+//                         ['ru'=>'Toyota','en'=>'Toyota','ro'=>'Toyota'],
+//                         ['ru'=>'Volkswagen','en'=>'Volkswagen','ro'=>'Volkswagen'],
+//                         ['ru'=>'Honda','en'=>'Honda','ro'=>'Honda'],
+//                         ['ru'=>'Ford','en'=>'Ford','ro'=>'Ford'],
+//                         ['ru'=>'Chevrolet','en'=>'Chevrolet','ro'=>'Chevrolet'],
+//                         ['ru'=>'Nissan','en'=>'Nissan','ro'=>'Nissan'],
+//                         ['ru'=>'Hyundai','en'=>'Hyundai','ro'=>'Hyundai'],
+//                     ]
+//                 ],
+//                 'model' => [
+//                     'label' => ['ru'=>'Модель','en'=>'Model','ro'=>'Model'],
+//                     'type' => 'text',
+//                     'options'=> []
+//                 ],
+//                 'year' => [
+//                     'label' => ['ru'=>'Год выпуска','en'=>'Year','ro'=>'An'],
+//                     'type' => 'number',
+//                     'suffix' => 'г.',
+//                     'options' => array_map(function($y){ return ['ru'=>(string)$y,'en'=>(string)$y,'ro'=>(string)$y]; }, range(date('Y'), 1990))
+//                 ],
+//             ],
+//             'Технические параметры' => [
+//                 'label' => ['ru'=>'Технические параметры','en'=>'Technical Specs','ro'=>'Parametri tehnici'],
+//                 'fuel_type' => [
+//                     'label'=>['ru'=>'Тип топлива','en'=>'Fuel type','ro'=>'Tip combustibil'],
+//                     'type' => 'select',
+//                     'options'=>[
+//                         ['ru'=>'Бензин','en'=>'Petrol','ro'=>'Benzină'],
+//                         ['ru'=>'Дизель','en'=>'Diesel','ro'=>'Motorină'],
+//                         ['ru'=>'Электро','en'=>'Electric','ro'=>'Electric'],
+//                         ['ru'=>'Гибрид','en'=>'Hybrid','ro'=>'Hibrid'],
+//                         ['ru'=>'Газ','en'=>'Gas','ro'=>'Gaz'],
+//                     ]
+//                 ],
+//                 'transmission'=>[
+//                     'label'=>['ru'=>'Коробка передач','en'=>'Transmission','ro'=>'Cutie de viteze'],
+//                     'type' => 'select',
+//                     'options'=>[
+//                         ['ru'=>'Автомат','en'=>'Automatic','ro'=>'Automată'],
+//                         ['ru'=>'Механика','en'=>'Manual','ro'=>'Manuală'],
+//                         ['ru'=>'Вариатор (CVT)','en'=>'CVT','ro'=>'CVT'],
+//                     ]
+//                 ],
+//                 'drive'=>[
+//                     'label'=>['ru'=>'Привод','en'=>'Drive','ro'=>'Tracțiune'],
+//                     'type' => 'select',
+//                     'options'=>[
+//                         ['ru'=>'Передний','en'=>'Front','ro'=>'Față'],
+//                         ['ru'=>'Задний','en'=>'Rear','ro'=>'Spate'],
+//                         ['ru'=>'Полный','en'=>'All-wheel','ro'=>'Integral'],
+//                     ]
+//                 ],
+//                 'mileage'=>[
+//                     'label'=>['ru'=>'Пробег','en'=>'Mileage','ro'=>'Kilometraj'],
+//                     'type'=>'number',
+//                     'suffix'=>'км',
+//                     'options'=>[]
+//                 ],
+//                 'condition'=>[
+//                     'label'=>['ru'=>'Состояние','en'=>'Condition','ro'=>'Stare'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'Новый','en'=>'New','ro'=>'Nou'],
+//                         ['ru'=>'Б/у','en'=>'Used','ro'=>'Second-hand'],
+//                     ]
+//                 ],
+//             ],
+//             'Комплектация' => [
+//                 'label' => ['ru'=>'Комплектация','en'=>'Trim','ro'=>'Nivel echipare'],
+//                 'trim'=>[
+//                     'label'=>['ru'=>'Комплектация','en'=>'Trim','ro'=>'Nivel echipare'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'Базовая','en'=>'Basic','ro'=>'Basic'],
+//                         ['ru'=>'Средняя','en'=>'Medium','ro'=>'Medie'],
+//                         ['ru'=>'Полная','en'=>'Full','ro'=>'Completă'],
+//                         ['ru'=>'Спортивная','en'=>'Sport','ro'=>'Sport'],
+//                     ]
+//                 ],
+//                 'climate_control'=>[
+//                     'label'=>['ru'=>'Климат-контроль','en'=>'Climate control','ro'=>'Climatizare'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'Есть','en'=>'Yes','ro'=>'Da'],
+//                         ['ru'=>'Нет','en'=>'No','ro'=>'Nu'],
+//                     ]
+//                 ],
+//                 'power_windows'=>[
+//                     'label'=>['ru'=>'Электростеклоподъемники','en'=>'Power windows','ro'=>'Geamuri electrice'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'Передние','en'=>'Front','ro'=>'Față'],
+//                         ['ru'=>'Передние и задние','en'=>'Front & Rear','ro'=>'Față & Spate'],
+//                         ['ru'=>'Нет','en'=>'No','ro'=>'Nu'],
+//                     ]
+//                 ],
+//                 'multimedia'=>[
+//                     'label'=>['ru'=>'Мультимедиа','en'=>'Multimedia','ro'=>'Multimedia'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'Bluetooth','en'=>'Bluetooth','ro'=>'Bluetooth'],
+//                         ['ru'=>'Навигация','en'=>'Navigation','ro'=>'Navigație'],
+//                         ['ru'=>'USB','en'=>'USB','ro'=>'USB'],
+//                         ['ru'=>'Apple CarPlay','en'=>'Apple CarPlay','ro'=>'Apple CarPlay'],
+//                         ['ru'=>'Android Auto','en'=>'Android Auto','ro'=>'Android Auto'],
+//                         ['ru'=>'CD','en'=>'CD','ro'=>'CD'],
+//                         ['ru'=>'Нет','en'=>'None','ro'=>'Niciunul'],
+//                     ]
+//                 ],
+//             ],
+//             'Внешние характеристики' => [
+//                 'label' => ['ru'=>'Внешние характеристики','en'=>'Exterior','ro'=>'Exterior'],
+//                 'color'=>[
+//                     'label'=>['ru'=>'Цвет','en'=>'Color','ro'=>'Culoare'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'Черный','en'=>'Black','ro'=>'Negru'],
+//                         ['ru'=>'Белый','en'=>'White','ro'=>'Alb'],
+//                         ['ru'=>'Серый','en'=>'Gray','ro'=>'Gri'],
+//                         ['ru'=>'Синий','en'=>'Blue','ro'=>'Albastru'],
+//                         ['ru'=>'Красный','en'=>'Red','ro'=>'Roșu'],
+//                         ['ru'=>'Зеленый','en'=>'Green','ro'=>'Verde'],
+//                         ['ru'=>'Желтый','en'=>'Yellow','ro'=>'Galben'],
+//                         ['ru'=>'Коричневый','en'=>'Brown','ro'=>'Maro'],
+//                         ['ru'=>'Оранжевый','en'=>'Orange','ro'=>'Portocaliu'],
+//                         ['ru'=>'Фиолетовый','en'=>'Purple','ro'=>'Violet'],
+//                     ]
+//                 ],
+//                 'doors_count'=>[
+//                     'label'=>['ru'=>'Количество дверей','en'=>'Doors count','ro'=>'Număr uși'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'2','en'=>'2','ro'=>'2'],
+//                         ['ru'=>'3','en'=>'3','ro'=>'3'],
+//                         ['ru'=>'4','en'=>'4','ro'=>'4'],
+//                         ['ru'=>'5','en'=>'5','ro'=>'5'],
+//                     ]
+//                 ],
+//                 'seats_count'=>[
+//                     'label'=>['ru'=>'Количество мест','en'=>'Seats count','ro'=>'Număr locuri'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'2','en'=>'2','ro'=>'2'],
+//                         ['ru'=>'4','en'=>'4','ro'=>'4'],
+//                         ['ru'=>'5','en'=>'5','ro'=>'5'],
+//                         ['ru'=>'7','en'=>'7','ro'=>'7'],
+//                         ['ru'=>'8+','en'=>'8+','ro'=>'8+'],
+//                     ]
+//                 ],
+//                 'tinted_windows'=>[
+//                     'label'=>['ru'=>'Тонированные стекла','en'=>'Tinted windows','ro'=>'Geamuri tonate'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'Да','en'=>'Yes','ro'=>'Da'],
+//                         ['ru'=>'Нет','en'=>'No','ro'=>'Nu'],
+//                     ]
+//                 ],
+//                 'fog_lights'=>[
+//                     'label'=>['ru'=>'Противотуманные фары','en'=>'Fog lights','ro'=>'Lumini de ceață'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'Да','en'=>'Yes','ro'=>'Da'],
+//                         ['ru'=>'Нет','en'=>'No','ro'=>'Nu'],
+//                     ]
+//                 ],
+//             ],
+//             'Безопасность и дополнительные опции' => [
+//                 'label' => ['ru'=>'Безопасность и дополнительные опции','en'=>'Safety & Extras','ro'=>'Siguranță și opțiuni suplimentare'],
+//                 'owners_count'=>[
+//                     'label'=>['ru'=>'Количество владельцев','en'=>'Owners count','ro'=>'Număr proprietari'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'1','en'=>'1','ro'=>'1'],
+//                         ['ru'=>'2','en'=>'2','ro'=>'2'],
+//                         ['ru'=>'3','en'=>'3','ro'=>'3'],
+//                         ['ru'=>'4','en'=>'4','ro'=>'4'],
+//                         ['ru'=>'5 и более','en'=>'5+','ro'=>'5+'],
+//                     ]
+//                 ],
+//                 'airbags'=>[
+//                     'label'=>['ru'=>'Подушки безопасности','en'=>'Airbags','ro'=>'Airbaguri'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'Водитель','en'=>'Driver','ro'=>'Șofer'],
+//                         ['ru'=>'Пассажир','en'=>'Passenger','ro'=>'Pasager'],
+//                         ['ru'=>'Боковые','en'=>'Side','ro'=>'Laterale'],
+//                         ['ru'=>'Шторки','en'=>'Curtain','ro'=>'Perdele'],
+//                         ['ru'=>'Полный комплект','en'=>'Full','ro'=>'Complet'],
+//                     ]
+//                 ],
+//                 'tire_condition'=>[
+//                     'label'=>['ru'=>'Состояние шин','en'=>'Tire condition','ro'=>'Stare anvelope'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'Новые','en'=>'New','ro'=>'Noi'],
+//                         ['ru'=>'Хорошее','en'=>'Good','ro'=>'Bune'],
+//                         ['ru'=>'Среднее','en'=>'Average','ro'=>'Mediu'],
+//                         ['ru'=>'Изношенные','en'=>'Worn','ro'=>'Uzate'],
+//                     ]
+//                 ],
+//                 'has_gbo'=>[
+//                     'label'=>['ru'=>'Газобаллонное оборудование','en'=>'Has GBO','ro'=>'Are GBO'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'Да','en'=>'Yes','ro'=>'Da'],
+//                         ['ru'=>'Нет','en'=>'No','ro'=>'Nu'],
+//                     ]
+//                 ],
+//                 'alarm'=>[
+//                     'label'=>['ru'=>'Сигнализация','en'=>'Alarm','ro'=>'Alarmă'],
+//                     'type'=>'select',
+//                     'options'=>[
+//                         ['ru'=>'Да','en'=>'Yes','ro'=>'Da'],
+//                         ['ru'=>'Нет','en'=>'No','ro'=>'Nu'],
+//                     ]
+//                 ],
+//             ]
+//         ],
+//     ];
+// }
+
 
 function add_dynamic_features_metabox() {
     add_meta_box(

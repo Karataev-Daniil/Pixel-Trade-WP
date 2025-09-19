@@ -2,7 +2,7 @@
 .header .header__wrapper {
     position: relative;
     z-index: 1;
-    height: 145px;
+    height: 143px;
 }
 .header .header__wrapper .container-medium {
     overflow: visible;

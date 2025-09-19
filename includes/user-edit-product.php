@@ -26,12 +26,16 @@ function handle_product_edit_form_submission() {
     if (!$title) wp_die('Please fill the title.');
     if (!$content) wp_die('Please fill the content.');
 
-    $price    = floatval($_POST['product_price'] ?? 0) ?: floatval($_POST['product_old_price'] ?? 0);
+    $price = floatval($_POST['product_price'] ?? 0) ?: floatval($_POST['product_old_price'] ?? 0);
     if ($price <= 0) wp_die('Please fill a valid price.');
 
-    $status   = sanitize_text_field($_POST['product_status'] ?? 'draft');
-    $currency = sanitize_text_field($_POST['product_currency'] ?? 'lei');
-    $type     = sanitize_text_field($_POST['product_type'] ?? '');
+    $status = sanitize_text_field($_POST['product_status'] ?? 'draft');
+
+    $currency = strtolower(sanitize_text_field($_POST['product_currency'] ?? 'lei'));
+    if (!in_array($currency, ['lei','usd','eur'])) $currency = 'lei';
+    update_post_meta($product_id, 'product_currency', $currency);
+
+    $type = sanitize_text_field($_POST['product_type'] ?? '');
 
     wp_update_post([
         'ID'           => $product_id,
@@ -70,7 +74,6 @@ function handle_product_edit_form_submission() {
                     ? array_map('sanitize_text_field', $value) 
                     : sanitize_text_field($value);
             }
-
             update_post_meta($product_id, 'dynamic_features', $dynamic_fields);
         }
     }

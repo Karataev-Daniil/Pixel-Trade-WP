@@ -18,6 +18,7 @@ body {
 }
 header {
   flex-shrink: 0;
+  z-index: 2;
 }
 main {
   background: var(--gray_6);
@@ -269,12 +270,6 @@ p {
   width: 18px;
   height: 18px;
 }
-.dm-write-btn {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  color: var(--gray_-6);
-}
 
 
 .products-list {
@@ -378,4 +373,22 @@ p {
 .form-message.info { 
   border-left: 3px solid var(--aqua_0); 
   color: var(--aqua_0); 
+}
+
+hr {
+  border: none;
+  height: 1px;
+  background-color: var(--gray_3);
+  margin: 8px 0;
+}
+hr.dark-divider {
+  height: 1px;
+  background-color: var(--gray_-2);
+}
+hr.glass-divider {
+  height: 1px;
+  background-color: rgba(255,255,255,0.2); /* прозрачная линия на фоне */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none;
 }
