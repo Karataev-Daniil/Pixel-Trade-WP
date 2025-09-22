@@ -5,23 +5,7 @@ $favorites = function_exists('favorites_get') ? favorites_get($user_id, 'product
 $is_favorite = in_array(get_the_ID(), $favorites);
 
 $author_id = get_post_field('post_author', get_the_ID());
-
-$author_region = get_user_meta($author_id, 'region', true);
-$regions = get_option('available_regions_multi', []);
-$region_name = '';
-
-if ($author_region && !empty($regions)) {
-    foreach ($regions as $region) {
-        if (
-            $region['ru'] === $author_region || 
-            $region['en'] === $author_region || 
-            $region['ro'] === $author_region
-        ) {
-            $region_name = $region['ru']; 
-            break;
-        }
-    }
-}
+$region_name = get_translated_region($author_id);
 
 $terms = get_the_terms(get_the_ID(), 'product_cat');
 $cat_ids = [];
@@ -45,24 +29,27 @@ $cat_ids_str = implode(',', $cat_ids);
             if ($thumb_id) {
                 echo wp_get_attachment_image($thumb_id, 'thumbnail', false, [
                     'class' => '',
-                    'alt'   => get_the_title()
+                    'alt'   => esc_attr(get_translated_title())
                 ]);
             } else {
                 $default_img = get_template_directory_uri() . '/images/product-placeholder.png';
-                echo '<img src="' . esc_url($default_img) . '" alt="' . esc_attr(get_the_title()) . '">';
+                echo '<img src="' . esc_url($default_img) . '" alt="' . esc_attr(get_translated_title()) . '">';
             }
             ?>
         </div>
         <div class="product-card-row__info">
-            <h3 class="product-card-row__title body-small-regular"><?php the_title(); ?></h3>
+            <h3 class="product-card-row__title body-small-regular">
+                <?= esc_html(get_translated_title()); ?>
+            </h3>
             <?php if ($price): ?>
                 <div class="product-card-row__price uppercase-small">
-                    <?php echo number_format((float)$price, 0, '', ','); ?> MDL
+                    <?= number_format((float)$price, 0, '', ','); ?> MDL
                 </div>
             <?php endif; ?>
             <?php if ($region_name): ?>
                 <div class="product-card-row__region body-small-regular">
-                    Регион: <span><?php echo esc_html($region_name); ?></span>
+                    <?= t('Регион', 'Region', 'Regiune'); ?>: 
+                    <span><?= esc_html($region_name); ?></span>
                 </div>
             <?php endif; ?>
         </div>
@@ -82,5 +69,3 @@ $cat_ids_str = implode(',', $cat_ids);
         </button>
     <?php endif; ?>
 </div>
-
-

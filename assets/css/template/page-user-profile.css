@@ -1,0 +1,86 @@
+.user-profile {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    margin: 32px 0;
+}
+.user-profile .banner {
+    width: 100%;
+    height: 220px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+.user-profile .profile-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    padding: 16px 0;
+}
+.user-profile .avatar-frame {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    padding: 4px;
+    border: 2px solid var(--orange_0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: var(--gray_5);
+}
+.user-profile .avatar-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.user-profile .profile-info h1 {
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--gray_-6);
+}
+.user-profile .profile-info p {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--gray_-2);
+    max-width: 600px;
+}
+.user-profile .user-products {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.user-profile .user-products h2 {
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gray_-6);
+}
+.user-profile .products-grid .product-card .product-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray_-6);
+    padding: 8px 12px;
+}
+
+@media (max-width: 768px) {
+    .user-profile .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 16px;
+    }
+
+    .user-profile .profile-info h1 {
+        font-size: 20px;
+    }
+
+    .user-profile .profile-info p {
+        font-size: 14px;
+    }
+}

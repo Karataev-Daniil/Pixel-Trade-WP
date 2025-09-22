@@ -15,7 +15,8 @@ jQuery(document).ready(function($){
         $.post(favorites_ajax.ajax_url, {
             action: 'add_to_favorites',
             product_id: product_id,
-            nonce: favorites_ajax.nonce
+            nonce: favorites_ajax.nonce,
+            lang: favorites_ajax.lang
         }, function(response){
             if(response.success){
                 alert(response.data.message);
@@ -37,7 +38,8 @@ jQuery(document).ready(function($){
         $.post(favorites_ajax.ajax_url, {
             action: 'remove_from_favorites',
             product_id: product_id,
-            nonce: favorites_ajax.nonce
+            nonce: favorites_ajax.nonce,
+            lang: favorites_ajax.lang
         }, function(response){
             if(response.success){
                 alert(response.data.message);
@@ -63,7 +65,8 @@ jQuery(document).ready(function($){
         $.post(favorites_ajax.ajax_url, {
             action: action,
             product_id: product_id,
-            nonce: favorites_ajax.nonce
+            nonce: favorites_ajax.nonce,
+            lang: favorites_ajax.lang
         }, function(response){
             if(response.success){
                 if(isActive){

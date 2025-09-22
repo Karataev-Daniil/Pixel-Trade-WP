@@ -39,11 +39,13 @@ window.existingDynamicFields = <?php
                     </h1>
 
                     <section class="form-group form-group--type">
-                        <label class="form-label label-large" for="product_type"><?php echo t('Тип объявления', 'Type', 'Tip'); ?></label>
-                        <select name="product_type" id="product_type" class="form-select select-tertiary body-medium-regular">
-                            <option value="sell" <?php selected($type, 'sell'); ?>><?php echo t('Продам', 'Sell', 'Vând'); ?></option>
-                            <option value="buy" <?php selected($type, 'buy'); ?>><?php echo t('Куплю', 'Buy', 'Cumpăr'); ?></option>
-                        </select>
+                        <div class="input-block">
+                            <label class="form-label label-large" for="product_type"><?php echo t('Тип объявления', 'Type', 'Tip'); ?></label>
+                            <select name="product_type" id="product_type" class="form-select select--secondary body-medium-regular">
+                                <option value="sell" <?php selected($type, 'sell'); ?>><?php echo t('Продам', 'Sell', 'Vând'); ?></option>
+                                <option value="buy" <?php selected($type, 'buy'); ?>><?php echo t('Куплю', 'Buy', 'Cumpăr'); ?></option>
+                            </select>
+                        </div>
                     </section>
 
                     <fieldset class="form-group form-group--categories">
@@ -84,12 +86,16 @@ window.existingDynamicFields = <?php
                             $desc_val  = $lang === 'ru' ? $content : esc_textarea(get_post_meta($product_id, "_description_{$lang}", true));
                             ?>
                             <div class="tab-content <?php if ($language === $lang) echo 'active'; ?>" data-lang="<?php echo $lang; ?>" id="tab-<?php echo $lang; ?>">
-                                <label class="label-large" for="title_<?php echo $lang; ?>"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
-                                <input type="text" id="title_<?php echo $lang; ?>" name="<?php echo $title_key; ?>" class="form-input input-secondary body-medium-regular" value="<?php echo $title_val; ?>">
+                                <div class="input-block">
+                                    <label class="label-large" for="title_<?php echo $lang; ?>"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
+                                    <input type="text" id="title_<?php echo $lang; ?>" name="<?php echo $title_key; ?>" class="form-input input--secondary body-medium-regular" value="<?php echo $title_val; ?>">
+                                </div>
 
-                                <label class="label-large" for="desc_<?php echo $lang; ?>"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
-                                <textarea id="desc_<?php echo $lang; ?>" name="<?php echo $desc_key; ?>" rows="12" maxlength="2000" oninput="updateCharCount(this)" class="form-textarea input-tertiary body-medium-regular"><?php echo $desc_val; ?></textarea>
-                                <small class="form-hint body-small-regular">0 / 2000</small>
+                                <div class="input-block">
+                                    <label class="label-large" for="desc_<?php echo $lang; ?>"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
+                                    <textarea id="desc_<?php echo $lang; ?>" name="<?php echo $desc_key; ?>" rows="12" maxlength="2000" oninput="updateCharCount(this)" class="form-textarea textarea--secondary body-medium-regular"><?php echo $desc_val; ?></textarea>
+                                    <small class="form-hint body-small-regular">0 / 2000</small>
+                                </div>
                             </div>
                         <?php endforeach; ?>
 
@@ -159,28 +165,34 @@ window.existingDynamicFields = <?php
                                 <?php echo t('Цена', 'Price', 'Preț'); ?>
                             </label>
                             <div class="price-input-wrapper">
-                                <input type="number" step="0.01" name="product_price" id="product_price"
-                                    value="<?php echo esc_attr($price); ?>"
-                                    class="form-input input-secondary body-medium-regular"
-                                    placeholder="<?php echo t('Укажите цену', 'Enter the price', 'Introduceți prețul'); ?>"
-                                    min="0.01" max="1000000">
-                                                    
-                                <select name="product_currency"
-                                    class="form-select select-tertiary body-medium-regular">
-                                    <option value="lei" <?php selected($currency, 'lei'); ?>>lei</option>
-                                    <option value="usd" <?php selected($currency, 'usd'); ?>>usd</option>
-                                    <option value="eur" <?php selected($currency, 'eur'); ?>>eur</option>
-                                </select>
+                                <div class="input-block">
+                                    <input type="number" step="0.01" name="product_price" id="product_price"
+                                        value="<?php echo esc_attr($price); ?>"
+                                        class="form-input input--secondary body-medium-regular"
+                                        placeholder="<?php echo t('Укажите цену', 'Enter the price', 'Introduceți prețul'); ?>"
+                                        min="0.01" max="1000000">
+                                </div>
+
+                                <div class="input-block">
+                                    <select name="product_currency"
+                                        class="form-select select--secondary body-medium-regular">
+                                        <option value="lei" <?php selected($currency, 'lei'); ?>>lei</option>
+                                        <option value="usd" <?php selected($currency, 'usd'); ?>>usd</option>
+                                        <option value="eur" <?php selected($currency, 'eur'); ?>>eur</option>
+                                    </select>
+                                </div>                 
                             </div>
                         </div>
                         <div class="form-group__right">
-                            <label class="form-label label-large" for="product_status"><?php echo t('Статус', 'Status', 'Stare'); ?></label>
-                            <select id="product_status" name="product_status" class="form-select select-tertiary body-medium-regular">
-                                <option value="draft" <?php selected($status, 'draft'); ?>><?php echo t('Черновик', 'Draft', 'Schiță'); ?></option>
-                                <option value="publish" <?php selected($status, 'publish'); ?>><?php echo t('Опубликован', 'Published', 'Publicat'); ?></option>
-                            </select>
-                            <div class="form-message body-small-regular" id="message_product_status"></div>
+                            <div class="input-block">
+                                <label class="form-label label-large" for="product_status"><?php echo t('Статус', 'Status', 'Stare'); ?></label>
+                                <select id="product_status" name="product_status" class="form-select select--secondary body-medium-regular">
+                                    <option value="draft" <?php selected($status, 'draft'); ?>><?php echo t('Черновик', 'Draft', 'Schiță'); ?></option>
+                                    <option value="publish" <?php selected($status, 'publish'); ?>><?php echo t('Опубликован', 'Published', 'Publicat'); ?></option>
+                                </select>
+                            </div>
                         </div>
+                        <div class="form-message body-small-regular" id="message_product_status"></div>
                     </div>
 
                     <div class="form-group">

@@ -93,7 +93,13 @@ $favorites_profiles = favorites_get(get_current_user_id(), 'profile');
                                 </button>
                                 <?php foreach ($category_counts as $cat_id => $data): ?>
                                     <button class="category-tag label-small" data-category="<?= $cat_id; ?>">
-                                        <?= esc_html($data['name']); ?> <?= $data['count']; ?>
+                                        <?= esc_html(
+                                            t(
+                                                $data['name'], 
+                                                get_term_meta($cat_id, 'translation_en', true), 
+                                                get_term_meta($cat_id, 'translation_ro', true)
+                                            )
+                                        ); ?> <?= $data['count']; ?>
                                     </button>
                                 <?php endforeach; ?>
                             </div>
@@ -266,7 +272,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: {"Content-Type": "application/x-www-form-urlencoded"},
                 body: new URLSearchParams({
                     action: "load_more_favorites",
-                    ids: nextIds
+                    ids: nextIds,
+                    lang: favorites_ajax.lang
                 })
             })
             .then(res => res.text())

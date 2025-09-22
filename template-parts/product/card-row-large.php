@@ -12,9 +12,8 @@ $favorites = $wpdb->get_col($wpdb->prepare(
 
 $is_favorite = in_array($post_id, $favorites);
 
-
-$author_id = get_post_field('post_author', $post_id);
-$author_name = get_the_author_meta('display_name', $author_id);
+$author_id    = get_post_field('post_author', $post_id);
+$author_name  = get_the_author_meta('display_name', $author_id);
 $author_email = get_the_author_meta('user_email', $author_id);
 $author_phone = get_user_meta($author_id, 'phone', true);
 $phone_visibility = get_user_meta($author_id, 'phone_visibility', true);
@@ -73,7 +72,7 @@ $cat_ids_str = implode(',', $cat_ids);
 
         <?php if ($region_name): ?>
             <div class="product-card-row-large__region body-larger-semibold">
-                Регион: <span><?= esc_html($region_name); ?></span>
+                <?= t('Регион', 'Region', 'Regiune'); ?>: <span><?= esc_html($region_name); ?></span>
             </div>
         <?php endif; ?>
 
@@ -88,13 +87,13 @@ $cat_ids_str = implode(',', $cat_ids);
                                  4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
                                  C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 
                                  22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
+                        </svg>
                 </button>
             <?php endif; ?>
 
             <?php if (is_user_logged_in() && $author_id && $author_id != $current_user_id): ?>
                 <button class="dm-write-btn secondary-button-small button-medium" data-user="<?= esc_attr($author_id); ?>">
-                    Написать
+                    <?= t('Написать', 'Write', 'Scrie'); ?>
                 </button>
             <?php endif; ?>
 
@@ -108,7 +107,9 @@ $cat_ids_str = implode(',', $cat_ids);
                 }
             }
             if ($can_show_phone): ?>
-                <a href="tel:<?= esc_attr($author_phone); ?>" class="btn-show-phone">Показать номер</a>
+                <a href="tel:<?= esc_attr($author_phone); ?>" class="btn-show-phone">
+                    <?= t('Показать номер', 'Show number', 'Arată numărul'); ?>
+                </a>
             <?php endif; ?>
         </div>
     </div>

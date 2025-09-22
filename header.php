@@ -115,37 +115,52 @@
                 </button>
                     
                 <?php
-                $user = wp_get_current_user();
+                $current_user = wp_get_current_user();
                 $is_logged_in = is_user_logged_in();
+                $lang = $GLOBALS['language'] ?? 'ru';
                 ?>
+
                 <?php if ($is_logged_in): ?>
-                  <button id="dm-toggle-btn-header" class="dm-toggle-btn button-medium" aria-label="<?= t('Открыть чат', 'Open Chat', 'Deschide chat'); ?>">
-                    <span class="icon-message"><?php echo file_get_contents(get_template_directory() . '/images/message.svg'); ?></span>
-                    <span class="icon-message-solid"><?php echo file_get_contents(get_template_directory() . '/images/message-solid.svg'); ?></span>
-                  </button>
-                
-                  <div class="user-menu">
-                    <?php
-                    $avatar_id = get_user_meta($user->ID, 'profile_avatar', true);
-                
-                    if ($avatar_id) {
-                      $avatar_img = wp_get_attachment_image($avatar_id, 'small-thumb', false, [
-                          'alt' => 'User Avatar',
-                      ]);
-                    } else {
-                      $avatar_img = get_avatar($user->ID, 50, '', 'User Avatar');
-                    }
-                    ?>
-                    <button class="user-avatar" id="user-avatar" aria-haspopup="true" aria-expanded="false" aria-label="<?= t('Меню пользователя', 'User menu', 'Meniu utilizator'); ?>">
-                      <?= $avatar_img; ?>
+
+                    <button id="dm-toggle-btn-header" class="dm-toggle-btn button-medium" aria-label="<?= t('Открыть чат', 'Open Chat', 'Deschide chat'); ?>">
+                        <span class="icon-message"><?php echo file_get_contents(get_template_directory() . '/images/message.svg'); ?></span>
+                        <span class="icon-message-solid"><?php echo file_get_contents(get_template_directory() . '/images/message-solid.svg'); ?></span>
                     </button>
-                    <ul class="user-dropdown" id="user-dropdown">
-                      <li class="label-small"><a href="/my-products" class="title-smaller"><?= t('Мои товары', 'My Products', 'Produsele mele'); ?></a></li>
-                      <li class="label-small"><a href="/account/settings" class="title-smaller"><?= t('Настройки аккаунта', 'Account Settings', 'Setări cont'); ?></a></li>
-                      <li class="label-small"><a href="/account/favorites" class="title-smaller"><?= t('Избраное', 'Favorites', 'Favoritele'); ?></a></li>
-                      <li class="label-small"><a href="<?= wp_logout_url(home_url()); ?>" class="title-smaller"><?= t('Выход', 'Logout', 'Ieșire'); ?></a></li>
-                    </ul>
-                  </div>
+                
+                    <div class="user-menu">
+                        <?php
+                        $avatar_id = get_user_meta($current_user->ID, 'profile_avatar', true);
+                        if ($avatar_id) {
+                            $avatar_img = wp_get_attachment_image($avatar_id, 'small-thumb', false, ['alt' => 'User Avatar']);
+                        } else {
+                            $avatar_img = get_avatar($current_user->ID, 50, '', 'User Avatar');
+                        }
+                      
+                        $user_nicename = $current_user->user_nicename;
+                        ?>
+                        <button class="user-avatar" id="user-avatar" aria-haspopup="true" aria-expanded="false" aria-label="<?= t('Меню пользователя', 'User menu', 'Meniu utilizator'); ?>">
+                            <?= $avatar_img; ?>
+                        </button>
+                      
+                        <ul class="user-dropdown" id="user-dropdown">
+                            <li class="label-small">
+                                <a href="/<?= $lang ?>/my-products" class="title-smaller"><?= t('Мои товары', 'My Products', 'Produsele mele'); ?></a>
+                            </li>
+                            <li class="label-small">
+                                <a href="/<?= $lang ?>/account/settings" class="title-smaller"><?= t('Настройки аккаунта', 'Account Settings', 'Setări cont'); ?></a>
+                            </li>
+                            <li class="label-small">
+                                <a href="/<?= $lang ?>/account/favorites" class="title-smaller"><?= t('Избраное', 'Favorites', 'Favoritele'); ?></a>
+                            </li>
+                            <li class="label-small">
+                                <a href="/<?= $lang ?>/account/<?= $user_nicename ?>" class="title-smaller"><?= t('Публичный профиль', 'Public Profile', 'Profil public'); ?></a>
+                            </li>
+                            <li class="label-small">
+                                <a href="<?= wp_logout_url(home_url("/$lang/")); ?>" class="title-smaller"><?= t('Выход', 'Logout', 'Ieșire'); ?></a>
+                            </li>
+                        </ul>
+                    </div>
+                      
                 <?php else: ?>
                     <a href="/account/login/" class="accent-button-small button-small"><?= t('Войти', 'Login', 'Autentificare'); ?></a>
                 <?php endif; ?>

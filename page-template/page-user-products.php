@@ -142,21 +142,27 @@ $ajax_nonce = wp_create_nonce('my_products_nonce');
                             </svg>
                         </span>
                     </div>
+                    
+                    <div class="input-block">
+                        <select class="filter-category select--secondary label-medium">
+                            <option value="all"><?php echo t('Все категории','All categories','Toate categoriile'); ?></option>
+                            <?php render_user_cats_options($all_cats, $user_products_by_cat); ?>
+                        </select>
+                    </div>
 
-                    <select class="filter-category select-tertiary label-medium">
-                        <option value="all"><?php echo t('Все категории','All categories','Toate categoriile'); ?></option>
-                        <?php render_user_cats_options($all_cats, $user_products_by_cat); ?>
-                    </select>
-
-                    <input type="text" class="filter-search input-secondary label-medium" placeholder="<?php echo t('Найти в моих объявлениях','Search in my listings','Caută în anunțurile mele'); ?>">
+                    <div class="input-block">
+                        <input type="text" class="filter-search input--secondary label-medium" placeholder="<?php echo t('Найти в моих объявлениях','Search in my listings','Caută în anunțurile mele'); ?>">
+                    </div>
                 </div>
 
-                <select class="filter-sort select-tertiary label-medium">
-                    <option value="date_new"><?php echo t('По дате (новые)','By date (new)','După dată (noi)'); ?></option>
-                    <option value="date_old"><?php echo t('По дате (старые)','By date (old)','După dată (vechi)'); ?></option>
-                    <option value="price_low"><?php echo t('По цене (дешевле)','By price (low)','După preț (mic)'); ?></option>
-                    <option value="price_high"><?php echo t('По цене (дороже)','By price (high)','După preț (mare)'); ?></option>
-                </select>
+                <div class="input-block">
+                    <select class="filter-sort select--secondary label-medium">
+                        <option value="date_new"><?php echo t('По дате (новые)','By date (new)','După dată (noi)'); ?></option>
+                        <option value="date_old"><?php echo t('По дате (старые)','By date (old)','După dată (vechi)'); ?></option>
+                        <option value="price_low"><?php echo t('По цене (дешевле)','By price (low)','După preț (mic)'); ?></option>
+                        <option value="price_high"><?php echo t('По цене (дороже)','By price (high)','După preț (mare)'); ?></option>
+                    </select>
+                </div>
             </div>
         </div>
 

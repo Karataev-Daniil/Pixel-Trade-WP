@@ -1,7 +1,7 @@
-const ajaxUrl = categorySelectorVars.ajaxUrl; // WP AJAX url
-const lang = categorySelectorVars.language;   // текущий язык
+const ajaxUrl = categorySelectorVars.ajaxUrl;
+const lang = categorySelectorVars.language;  
 
-let categoryFeaturesCache = {}; // кэш характеристик
+let categoryFeaturesCache = {};
 
 function loadCategoryFeatures(categoryId) {
     if (categoryFeaturesCache[categoryId]) {
@@ -60,7 +60,7 @@ function initCategorySelectors() {
         const select = document.createElement('select');
         select.name = 'product_categories[]';
         select.dataset.level = level;
-        select.classList.add('category-select', 'select-tertiary', 'body-small-regular');
+        select.classList.add('category-select', 'select--secondary', 'body-small-regular');
 
         const defaultOption = document.createElement('option');
         defaultOption.value = '';
@@ -97,7 +97,7 @@ function initCategorySelectors() {
         const fieldName = generateFieldName(fieldKey);
 
         const wrapperDiv = document.createElement('div');
-        wrapperDiv.classList.add('dynamic-field-wrapper');
+        wrapperDiv.classList.add('input-block');
 
         const label = document.createElement('label');
         label.classList.add('label-medium');
@@ -108,7 +108,7 @@ function initCategorySelectors() {
         if (fieldData.options && fieldData.options.length) {
             input = document.createElement('select');
             input.name = fieldName;
-            input.classList.add('category-select', 'select-tertiary', 'body-small-regular');
+            input.classList.add('category-select', 'select--secondary', 'body-small-regular');
 
             const defaultOption = document.createElement('option');
             defaultOption.value = '';
@@ -133,7 +133,7 @@ function initCategorySelectors() {
             input = document.createElement('input');
             input.type = 'text';
             input.name = fieldName;
-            input.classList.add('category-select', 'input-secondary', 'body-small-regular');
+            input.classList.add('category-select', 'input--secondary', 'body-small-regular');
         }
 
         if (existingDynamicFields[fieldName] !== undefined) {

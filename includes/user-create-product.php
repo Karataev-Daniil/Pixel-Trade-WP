@@ -61,21 +61,18 @@ function handle_create_product() {
     update_post_meta($post_id, '_description_en', sanitize_textarea_field($_POST['description_en'] ?? ''));
     update_post_meta($post_id, '_description_ro', sanitize_textarea_field($_POST['description_ro'] ?? ''));
 
-if (!empty($_POST['dynamic_fields'])) {
-    $dynamic_fields = json_decode(stripslashes($_POST['dynamic_fields']), true);
-    if (is_array($dynamic_fields)) {
-        $dynamic_fields = sanitize_dynamic_fields($dynamic_fields);
+    if (!empty($_POST['dynamic_fields'])) {
+        $dynamic_fields = json_decode(stripslashes($_POST['dynamic_fields']), true);
+        if (is_array($dynamic_fields)) {
+            $dynamic_fields = sanitize_dynamic_fields($dynamic_fields);
+        
+            update_post_meta($post_id, 'dynamic_features', $dynamic_fields);
 
-        // Сохраняем целиком (как есть)
-        update_post_meta($post_id, 'dynamic_features', $dynamic_fields);
-
-        // Сохраняем каждое поле как отдельное мета
-        foreach ($dynamic_fields as $meta_key => $meta_value) {
-            // Если у тебя ключи вида "_brand" – оставляй так же
-            update_post_meta($post_id, $meta_key, $meta_value);
+            foreach ($dynamic_fields as $meta_key => $meta_value) {
+                update_post_meta($post_id, $meta_key, $meta_value);
+            }
         }
     }
-}
 
 
     if (!function_exists('media_handle_sideload')) {

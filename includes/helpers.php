@@ -72,3 +72,34 @@ function sort_categories_by_hierarchy($categories) {
 
     return array_reverse($sorted);
 }
+
+function get_translated_title($post_id = null) {
+    $post_id = $post_id ?: get_the_ID();
+    $lang = $GLOBALS['language'] ?? 'ru';
+
+    if ($lang !== 'ru') {
+        $meta = get_post_meta($post_id, '_title_' . $lang, true);
+        if (!empty($meta)) {
+            return $meta;
+        }
+    }
+    return get_the_title($post_id);
+}
+
+function get_translated_region($author_id) {
+    $lang = $GLOBALS['language'] ?? 'ru';
+    $author_region = get_user_meta($author_id, 'region', true);
+    $regions = get_option('available_regions_multi', []);
+    if ($author_region && !empty($regions)) {
+        foreach ($regions as $region) {
+            if (
+                $region['ru'] === $author_region ||
+                $region['en'] === $author_region ||
+                $region['ro'] === $author_region
+            ) {
+                return $region[$lang] ?: $region['ru'];
+            }
+        }
+    }
+    return '';
+}

@@ -5,41 +5,45 @@
 .user-settings__title {
   margin: 0 0 28px;
 }
-
 .user-settings__field {
   margin: 0 0 20px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.user-settings__field img {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-}
-.avatar-wrapper {
+.avatar-wrapper,
+.banner-wrapper {
   position: relative;
   display: inline-block;
   cursor: pointer;
   width: 120px;
   height: 120px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #f0f0f0;
 }
-
 .avatar-wrapper img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
   object-fit: cover;
   display: block;
+  border-radius: 50%;
 }
-.avatar-wrapper input[type="file"] {
+.banner-wrapper {
+  width: 100%;
+  height: 200px;
+  border-radius: 12px;
+}
+.avatar-wrapper input[type="file"],
+.banner-wrapper input[type="file"] {
   display: none;
 }
-.avatar-wrapper .edit-icon {
+.avatar-wrapper .edit-icon,
+.banner-wrapper .edit-icon {
   position: absolute;
   bottom: 8px;
   right: 8px;
-  background: var(--popup-bg);
+  background: var(--popup-bg, rgba(0,0,0,0.6));
   color: white;
   border-radius: 50%;
   padding: 5px;
@@ -47,6 +51,13 @@
   opacity: 0;
   transition: 0.3s;
 }
-.avatar-wrapper:hover .edit-icon {
+.avatar-wrapper:hover .edit-icon,
+.banner-wrapper:hover .edit-icon {
   opacity: 1;
+}
+.banner-wrapper img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

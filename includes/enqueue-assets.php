@@ -68,6 +68,29 @@ function custom_enqueue_assets() {
         true
     );
 
+    if ( get_query_var('user_profile') ) {
+        wp_enqueue_style(
+            'page-user-profile',
+            $theme_dir . '/assets/css/template/page-user-profile.css',
+            [],
+            filemtime($theme_path . '/assets/css/template/page-user-profile.css')
+        );
+
+        wp_enqueue_script(
+            'user-profile-js',
+            $theme_dir . '/assets/js/user-profile.js',
+            ['jquery'],
+            filemtime($theme_path . '/assets/js/user-profile.js'),
+            true
+        );
+
+        wp_localize_script('user-profile-js', 'USER_PROFILE_VARS', [
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'language'=> $lang,
+            'imgPath' => get_template_directory_uri() . '/images/'
+        ]);
+    }
+
     if ( is_page('my-products') ) {
         wp_enqueue_style(
             'page-user-products-style',

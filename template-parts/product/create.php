@@ -23,17 +23,19 @@ const existingDynamicFields = <?php
                     </h1>
 
                     <section class="form-group form-group--type">
-                        <label class="form-label label-large" for="product_type">
-                            <?php echo t('Тип объявления', 'Listing type', 'Tip anunț'); ?>
-                        </label>
-                        <select id="product_type" name="product_type" class="form-select select-tertiary body-medium-regular">
-                            <option value="sell"><?php echo t('Продам', 'Sell', 'Vând'); ?></option>
-                            <option value="buy"><?php echo t('Куплю', 'Buy', 'Cumpăr'); ?></option>
-                        </select>
-                        <small class="form-hint body-small-regular">
-                            <?php echo t('Выберите, что хотите сделать: продать или купить', 'Select whether you want to sell or buy', 'Alegeți dacă doriți să vindeți sau să cumpărați'); ?>
-                        </small>
-                        <div class="form-message body-small-regular" id="message_product_type"></div>
+                        <div class="input-block">
+                            <label class="form-label label-large" for="product_type">
+                                <?php echo t('Тип объявления', 'Listing type', 'Tip anunț'); ?>
+                            </label>
+                            <select id="product_type" name="product_type" class="form-select select--secondary body-medium-regular">
+                                <option value="sell"><?php echo t('Продам', 'Sell', 'Vând'); ?></option>
+                                <option value="buy"><?php echo t('Куплю', 'Buy', 'Cumpăr'); ?></option>
+                            </select>
+                            <small class="form-hint body-small-regular">
+                                <?php echo t('Выберите, что хотите сделать: продать или купить', 'Select whether you want to sell or buy', 'Alegeți dacă doriți să vindeți sau să cumpărați'); ?>
+                            </small>
+                            <div class="form-message body-small-regular" id="message_product_type"></div>
+                        </div>
                     </section>
 
                     <fieldset class="form-group form-group--categories">
@@ -60,7 +62,9 @@ const existingDynamicFields = <?php
                     </fieldset>
 
                     <section class="form-group form-group--dynamic-features" id="dynamic-features-container">
-                        <h2><?php echo t('Дополнительные характеристики', 'Additional features', 'Caracteristici suplimentare'); ?></h2>
+                        <label class="label-large">
+                            <?php echo t('Дополнительные характеристики', 'Additional features', 'Caracteristici suplimentare'); ?>
+                        </label>
                         <div class="dynamic-features-fields" id="dynamic-features-fields"></div>
                         <input type="hidden" name="dynamic_fields" id="dynamic_fields_input">
                     </section>
@@ -83,17 +87,20 @@ const existingDynamicFields = <?php
                         foreach ($tabs as $lang => $fields): 
                         ?>
                         <div class="tab-content <?php if ($language === $lang) echo 'active'; ?>" id="tab-<?php echo $lang; ?>" data-lang="<?php echo $lang; ?>">
-                            <label class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
-                            <input type="text" class="form-input input-secondary body-medium-regular" 
-                                   name="<?php echo $fields['title']; ?>"
-                                   placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>"
-                                   data-lang="<?php echo $lang; ?>">
-                        
-                            <label class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
-                            <textarea name="<?php echo $fields['content']; ?>" rows="12" class="form-textarea input-tertiary body-medium-regular"
-                                      placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>"
-                                      data-lang="<?php echo $lang; ?>"></textarea>
-                            <small class="form-hint body-small-regular">0 / 2000</small>
+                            <div class="input-block">
+                                <label class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
+                                <input type="text" class="form-input input--secondary body-medium-regular" 
+                                       name="<?php echo $fields['title']; ?>"
+                                       placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>"
+                                       data-lang="<?php echo $lang; ?>">
+                            </div>
+                            <div class="input-block">
+                                <label class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
+                                <textarea name="<?php echo $fields['content']; ?>" rows="12" class="form-textarea textarea--secondary body-medium-regular"
+                                          placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>"
+                                          data-lang="<?php echo $lang; ?>"></textarea>
+                                <small class="form-hint body-small-regular">0 / 2000</small>
+                            </div>
                         </div>
                         <?php endforeach; ?>
                         
@@ -145,14 +152,18 @@ const existingDynamicFields = <?php
                         <div class="form-group__left">
                             <label class="form-label label-large"><?php echo t('Цена', 'Price', 'Preț'); ?></label>
                             <div class="price-input-wrapper">
-                                <input type="number" step="0.01" name="product_price" class="form-input input-secondary body-medium-regular"
-                                       placeholder="<?php echo t('Укажите цену', 'Enter the price', 'Introduceți prețul'); ?>"
-                                       min="0.01" max="1000000">
-                                <select name="product_currency" class="form-select select-tertiary body-medium-regular">
-                                    <option value="lei">lei</option>
-                                    <option value="usd">usd</option>
-                                    <option value="eur">eur</option>
-                                </select>
+                                <div class="input-block">
+                                    <input type="number" step="0.01" name="product_price" class="form-input input--secondary body-medium-regular"
+                                           placeholder="<?php echo t('Укажите цену', 'Enter the price', 'Introduceți prețul'); ?>"
+                                           min="0.01" max="1000000">
+                                </div>
+                                <div class="input-block">
+                                    <select name="product_currency" class="form-select select--secondary body-medium-regular">
+                                        <option value="lei">lei</option>
+                                        <option value="usd">usd</option>
+                                        <option value="eur">eur</option>
+                                    </select>
+                                </div>
                             </div>
                             <small class="form-hint body-small-regular">
                                 <?php echo t('Введите цену без пробелов и символов, только цифры', 'Enter the price as digits only', 'Introduceți prețul doar cu cifre'); ?>
@@ -160,11 +171,13 @@ const existingDynamicFields = <?php
                             <div class="form-message body-small-regular" id="message_product_price"></div>
                         </div>
                         <div class="form-group__right">
-                            <label class="form-label label-large"><?php echo t('Статус', 'Status', 'Stare'); ?></label>
-                            <select name="product_status" class="form-select select-tertiary body-medium-regular">
-                                <option value="publish"><?php echo t('Опубликован', 'Published', 'Publicat'); ?></option>
-                                <option value="draft"><?php echo t('Черновик', 'Draft', 'Schiță'); ?></option>
-                            </select>
+                            <div class="input-block">
+                                <label class="form-label label-large"><?php echo t('Статус', 'Status', 'Stare'); ?></label>
+                                <select name="product_status" class="form-select select--secondary body-medium-regular">
+                                    <option value="publish"><?php echo t('Опубликован', 'Published', 'Publicat'); ?></option>
+                                    <option value="draft"><?php echo t('Черновик', 'Draft', 'Schiță'); ?></option>
+                                </select>
+                            </div>
                             <div class="form-message body-small-regular" id="message_product_status"></div>
                         </div>
                     </section>
