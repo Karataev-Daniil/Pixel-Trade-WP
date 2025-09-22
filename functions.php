@@ -259,3 +259,172 @@ add_action('save_post_products', function($post_id, $post, $update){
         my_products_clear_cache($author_id);
     }
 }, 10, 3);
+
+function get_current_category_features() {
+    $term = get_queried_object();
+    if (!$term) return [];
+    $all_features = get_product_category_features();
+    return $all_features[$term->term_id] ?? [];
+}
+
+add_action('wp_ajax_load_more_products', 'load_more_products');
+add_action('wp_ajax_nopriv_load_more_products', 'load_more_products');
+
+function load_more_products() {
+    $cat_id = intval($_POST['cat_id'] ?? 0);
+    $paged  = intval($_POST['paged'] ?? 1);
+
+    if (!$cat_id) {
+        echo '<p>Категория не указана</p>';
+        wp_die();
+    }
+
+    $args = [
+        'post_type'      => 'products',
+        'posts_per_page' => 24,
+        'paged'          => $paged,
+        'tax_query'      => [
+            [
+                'taxonomy' => 'product_cat',
+                'field'    => 'term_id',
+                'terms'    => $cat_id,
+            ]
+        ],
+    ];
+
+    // Получаем фильтры из POST-запроса
+    $features = get_product_category_features()[$cat_id] ?? [];
+    $meta_query = [];
+
+    if (!empty($features) && is_array($features)) {
+        foreach ($features as $key => $feature) {
+            $value = trim($_POST[$key] ?? '');
+            if ($value !== '') { // добавляем только выбранные фильтры
+                $meta_query[] = [
+                    'key'     => '_' . $key,
+                    'value'   => sanitize_text_field($value),
+                    'compare' => 'LIKE',
+                ];
+            }
+        }
+    }
+
+    if (!empty($meta_query)) {
+        $meta_query['relation'] = 'AND';
+        $args['meta_query'] = $meta_query;
+    }
+
+    $query = new WP_Query($args);
+
+    if ($query->have_posts()) {
+        while ($query->have_posts()) : $query->the_post();
+            get_template_part('template-parts/product/card');
+        endwhile;
+    } else {
+        echo '<p>Ничего не найдено</p>';
+    }
+
+    echo '<span style="display:none" data-max="' . $query->max_num_pages . '"></span>';
+
+    wp_reset_postdata();
+    wp_die();
+}
+
+
+// Получаем динамические поля по категориям
+// add_action('wp_ajax_get_category_features', 'ajax_get_category_features');
+// add_action('wp_ajax_nopriv_get_category_features', 'ajax_get_category_features');
+
+// function ajax_get_category_features() {
+//     global $wpdb;
+//     $category_ids = isset($_GET['categories']) ? explode(',', $_GET['categories']) : [];
+//     $category_ids = array_map('intval', $category_ids);
+//     $result = [];
+
+//     if ($category_ids) {
+//         $features_table = $wpdb->prefix . 'features';
+//         $options_table  = $wpdb->prefix . 'feature_options';
+
+//         foreach ($category_ids as $cat_id) {
+//             $fields = $wpdb->get_results($wpdb->prepare(
+//                 "SELECT id, label_ru, label_en, label_ro, type FROM $features_table WHERE category_id = %d",
+//                 $cat_id
+//             ), ARRAY_A);
+
+//             if (!$fields) continue;
+
+//             foreach ($fields as $field) {
+//                 $fieldData = [
+//                     'label' => [
+//                         'ru' => $field['label_ru'],
+//                         'en' => $field['label_en'],
+//                         'ro' => $field['label_ro']
+//                     ]
+//                 ];
+
+//                 if ($field['type'] === 'select') {
+//                     $options = $wpdb->get_results($wpdb->prepare(
+//                         "SELECT value_ru, value_en, value_ro FROM $options_table WHERE feature_id = %d ORDER BY id ASC",
+//                         $field['id']
+//                     ), ARRAY_A);
+
+//                     $fieldData['options'] = array_map(function($opt) {
+//                         return [
+//                             'ru' => $opt['value_ru'],
+//                             'en' => $opt['value_en'],
+//                             'ro' => $opt['value_ro']
+//                         ];
+//                     }, $options);
+//                 }
+
+//                 $result[$cat_id]['_' . sanitize_title($field['label_ru'])] = $fieldData;
+//             }
+//         }
+//     }
+
+//     wp_send_json($result);
+// }
+
+
+// AJAX для загрузки характеристик категории
+add_action('wp_ajax_get_category_features', 'ajax_get_category_features');
+add_action('wp_ajax_nopriv_get_category_features', 'ajax_get_category_features');
+
+function ajax_get_category_features() {
+    global $wpdb;
+
+    $category_id = intval($_GET['category_id'] ?? 0);
+    if (!$category_id) {
+        wp_send_json_error(['message' => 'No category_id']);
+    }
+
+    // Загружаем все фичи по категории
+    $features = $wpdb->get_results($wpdb->prepare("
+        SELECT id, `key`, label_ru, label_en, label_ro
+        FROM wp_features
+        WHERE category_id = %d
+        ORDER BY id ASC
+    ", $category_id), ARRAY_A);
+
+    $result = [];
+
+    foreach ($features as $feature) {
+        $options = $wpdb->get_results($wpdb->prepare("
+            SELECT value_ru, value_en, value_ro
+            FROM wp_feature_options
+            WHERE feature_id = %d
+            ORDER BY id ASC
+        ", $feature['id']), ARRAY_A);
+
+        $result[$feature['key']] = [
+            'label' => [
+                'ru' => $feature['label_ru'],
+                'en' => $feature['label_en'],
+                'ro' => $feature['label_ro'],
+            ],
+            'options' => $options
+        ];
+    }
+
+    wp_send_json_success($result);
+}

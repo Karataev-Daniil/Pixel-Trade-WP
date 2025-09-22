@@ -1,6 +1,31 @@
-const ajaxUrl = categorySelectorVars.ajaxUrl;
+const ajaxUrl = categorySelectorVars.ajaxUrl; // WP AJAX url
+const lang = categorySelectorVars.language;   // текущий язык
 
-document.addEventListener('DOMContentLoaded', function () {
+let categoryFeaturesCache = {}; // кэш характеристик
+
+function loadCategoryFeatures(categoryId) {
+    if (categoryFeaturesCache[categoryId]) {
+        return Promise.resolve(categoryFeaturesCache[categoryId]);
+    }
+
+    return fetch(`${ajaxUrl}?action=get_category_features&category_id=${categoryId}`)
+        .then(res => res.json())
+        .then(res => {
+            if (res.success) {
+                categoryFeaturesCache[categoryId] = res.data;
+                return res.data;
+            } else {
+                console.error('Ошибка при загрузке характеристик', res);
+                return {};
+            }
+        })
+        .catch(err => {
+            console.error('Ошибка AJAX get_category_features', err);
+            return {};
+        });
+}
+
+function initCategorySelectors() {
     const wrapper = document.getElementById('category-selectors');
     if (!wrapper) return;
 
@@ -18,8 +43,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function generateFieldName(label) {
         return '_' + label.toLowerCase()
-                          .replace(/\s+/g, '-')
-                          .replace(/[^a-z0-9а-яё_-]/gi, '');
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9а-яё_-]/gi, '');
     }
 
     function createSelect(level, options, selectedId = null) {
@@ -39,13 +64,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const defaultOption = document.createElement('option');
         defaultOption.value = '';
-        defaultOption.textContent = translations.selectCategory;
+        defaultOption.textContent = translations.selectCategory || '--- Выберите ---';
         select.appendChild(defaultOption);
 
         options.forEach(opt => {
             const option = document.createElement('option');
             option.value = opt.term_id;
-            option.textContent = opt.name[categorySelectorVars.language] || opt.name['ru'];
+            option.textContent = opt.name[lang] || opt.name['ru'];
             if (selectedId && parseInt(selectedId) === parseInt(opt.term_id)) option.selected = true;
             select.appendChild(option);
         });
@@ -68,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function createDynamicField(fieldKey, fieldData) {
-        const fieldLabelText = fieldData.label?.[categorySelectorVars.language] || fieldData.label?.ru || fieldKey;
+        const fieldLabelText = fieldData.label?.[lang] || fieldData.label?.ru || fieldKey;
         const fieldName = generateFieldName(fieldKey);
 
         const wrapperDiv = document.createElement('div');
@@ -91,11 +116,18 @@ document.addEventListener('DOMContentLoaded', function () {
             input.appendChild(defaultOption);
 
             fieldData.options.forEach(opt => {
-                const val = opt[categorySelectorVars.language] || opt.ru;
-                const option = document.createElement('option');
-                option.value = val;
-                option.textContent = val;
-                input.appendChild(option);
+                if (typeof opt === 'object') {
+                    const val = opt[lang] || opt['ru'] || Object.values(opt)[0];
+                    const option = document.createElement('option');
+                    option.value = val;
+                    option.textContent = val;
+                    input.appendChild(option);
+                } else {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.textContent = opt;
+                    input.appendChild(option);
+                }
             });
         } else {
             input = document.createElement('input');
@@ -113,22 +145,20 @@ document.addEventListener('DOMContentLoaded', function () {
         return wrapperDiv;
     }
 
-    function renderDynamicFields() {
+    async function renderDynamicFields() {
         dynamicFieldsContainer.innerHTML = '';
 
         const selectedCategoryIds = selectedInput.value
             ? selectedInput.value.split(',').map(v => parseInt(v)).filter(v => !isNaN(v))
             : [];
 
-        selectedCategoryIds.forEach(categoryId => {
-            const categoryFields = categorySelectorVars.categoryFeatures[categoryId];
-            if (!categoryFields) return;
-
+        for (let categoryId of selectedCategoryIds) {
+            const categoryFields = await loadCategoryFeatures(categoryId);
             Object.entries(categoryFields).forEach(([fieldKey, fieldData]) => {
                 const field = createDynamicField(fieldKey, fieldData);
                 dynamicFieldsContainer.appendChild(field);
             });
-        });
+        }
     }
 
     function handleSelectChange(select) {
@@ -187,24 +217,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (preselectedTerms.length) restoreChain();
     else loadSubcategories(0, 0);
+
     ['create-product-form', 'edit-product-form'].forEach(formId => {
         const form = document.getElementById(formId);
         if (!form) return;
 
-form.addEventListener('submit', function (e) {
-    const allDynamicData = {};
-    dynamicFieldsContainer.querySelectorAll('input, select').forEach(input => {
-        if (input && input.name) {
-            const value = input.value.trim();
-            if (value !== '') {
-                allDynamicData[input.name] = value;
-            }
-        }
+        form.addEventListener('submit', function () {
+            const allDynamicData = {};
+            dynamicFieldsContainer.querySelectorAll('input, select').forEach(input => {
+                if (input && input.name) {
+                    const value = input.value.trim();
+                    if (value !== '') {
+                        allDynamicData[input.name] = value;
+                    }
+                }
+            });
+            hiddenDynamicFields.value = JSON.stringify(allDynamicData);
+        });
     });
-    hiddenDynamicFields.value = JSON.stringify(allDynamicData);
-});
+}
 
-    });
+
+document.addEventListener('DOMContentLoaded', () => {
+    initCategorySelectors();
 });
 
 

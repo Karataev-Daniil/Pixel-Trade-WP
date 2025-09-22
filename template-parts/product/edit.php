@@ -38,7 +38,6 @@ window.existingDynamicFields = <?php
                         <?php echo t('Редактировать объявление', 'Edit Listing', 'Editează Anunț'); ?>
                     </h1>
 
-                    <!-- Тип -->
                     <section class="form-group form-group--type">
                         <label class="form-label label-large" for="product_type"><?php echo t('Тип объявления', 'Type', 'Tip'); ?></label>
                         <select name="product_type" id="product_type" class="form-select select-tertiary body-medium-regular">
@@ -47,7 +46,6 @@ window.existingDynamicFields = <?php
                         </select>
                     </section>
 
-                    <!-- Категории -->
                     <fieldset class="form-group form-group--categories">
                         <div id="category-selectors" class="category-selectors" data-restored="1">
                             <div id="preselected-categories" data-terms="<?php echo esc_attr(json_encode($sorted_term_ids)); ?>"></div>
@@ -70,8 +68,7 @@ window.existingDynamicFields = <?php
                         <div class="dynamic-features-fields" id="dynamic-features-fields"></div>
                         <input type="hidden" id="dynamic_fields_input" name="dynamic_fields" value="">
                     </section>
-                        
-                    <!-- Языковые вкладки -->
+
                     <section class="form-group form-group--tabs tabs">
                         <ul class="tab-buttons" role="tablist">
                             <?php foreach (['ru','en','ro'] as $lang): ?>
@@ -156,8 +153,6 @@ window.existingDynamicFields = <?php
                         <div class="form-message body-small-regular" id="message_product_gallery"></div>
                     </fieldset>
 
-
-                    <!-- Цена + статус -->
                     <div class="form-group form-group--price">
                         <div class="form-group__left">
                             <label class="form-label label-large" for="product_price">
@@ -188,7 +183,6 @@ window.existingDynamicFields = <?php
                         </div>
                     </div>
 
-                    <!-- Сабмит -->
                     <div class="form-group">
                         <input type="submit" name="submit_product" value="<?php echo t('Обновить', 'Update', 'Actualizează'); ?>" class="form-submit primary-button-large button-large">
                     </div>

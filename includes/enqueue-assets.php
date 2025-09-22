@@ -159,7 +159,7 @@ function custom_enqueue_assets() {
         wp_localize_script('category-selector', 'categorySelectorVars', [
             'ajaxUrl'          => admin_url('admin-ajax.php'),
             'language'         => $lang,
-            'categoryFeatures' => function_exists('get_product_category_features') ? get_product_category_features() : []
+            // 'categoryFeatures' => function_exists('get_product_category_features') ? get_product_category_features() : []
         ]);
 
         wp_enqueue_script(

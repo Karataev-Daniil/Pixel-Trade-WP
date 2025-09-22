@@ -3,7 +3,7 @@
     background-color: var(--gray_6);
 }
 .single-products .product__wrapper {
-    overflow: visible;
+    overflow: clip;
 }
 .product-card__wrapper .container-medium {
     overflow: visible;

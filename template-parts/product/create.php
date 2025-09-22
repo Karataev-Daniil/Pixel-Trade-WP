@@ -61,7 +61,7 @@ const existingDynamicFields = <?php
 
                     <section class="form-group form-group--dynamic-features" id="dynamic-features-container">
                         <h2><?php echo t('Дополнительные характеристики', 'Additional features', 'Caracteristici suplimentare'); ?></h2>
-                        <div class="dynamic-features-fields" id="dynamic-features-fields" ></div>
+                        <div class="dynamic-features-fields" id="dynamic-features-fields"></div>
                         <input type="hidden" name="dynamic_fields" id="dynamic_fields_input">
                     </section>
 

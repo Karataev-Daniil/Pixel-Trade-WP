@@ -30,6 +30,46 @@ if (!function_exists('format_price_with_currency')) {
     }
 }
 
+if (!function_exists('get_product_category_features_from_db')) {
+    function get_product_category_features_from_db(): array {
+        global $wpdb;
+
+        $rows = $wpdb->get_results("
+            SELECT f.id as feature_id, f.category_id, f.key,
+                   f.label_ru, f.label_en, f.label_ro,
+                   o.id as option_id, o.value_ru, o.value_en, o.value_ro
+            FROM {$wpdb->prefix}features f
+            LEFT JOIN {$wpdb->prefix}feature_options o ON o.feature_id = f.id
+            ORDER BY f.category_id, f.id, o.id
+        ");
+
+        $features = [];
+
+        foreach ($rows as $row) {
+            if (!isset($features[$row->category_id][$row->key])) {
+                $features[$row->category_id][$row->key] = [
+                    'label' => [
+                        'ru' => $row->label_ru,
+                        'en' => $row->label_en,
+                        'ro' => $row->label_ro,
+                    ],
+                    'options' => []
+                ];
+            }
+
+            if ($row->option_id) {
+                $features[$row->category_id][$row->key]['options'][] = [
+                    'ru' => $row->value_ru,
+                    'en' => $row->value_en,
+                    'ro' => $row->value_ro,
+                ];
+            }
+        }
+
+        return $features;
+    }
+}
+
 $product = [
     'title' => [
         'ru' => get_the_title($product_id),
@@ -72,7 +112,7 @@ if ($avatar_id) {
     $author_avatar = get_avatar($user->ID, 64, '', esc_attr($user->display_name));
 }
 
-$features = get_product_category_features();
+$features = get_product_category_features_from_db();
 $saved_values = get_post_meta($product_id, 'dynamic_features', true);
 $post_cats = wp_get_post_terms($product_id, 'product_cat', ['fields' => 'ids']);
 $allowed_cats = array_intersect(array_keys($features), $post_cats);
@@ -170,7 +210,6 @@ $allowed_cats = array_intersect(array_keys($features), $post_cats);
                             </div>
                         <?php endif; ?>
                     </section>
-
 
                     <?php if (is_user_logged_in() && $author_id && $author_id != $current_user_id): ?>
                         <button class="primary-button-medium dm-write-btn" data-user="<?= esc_attr($author_id); ?>">
