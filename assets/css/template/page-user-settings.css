@@ -1,63 +1,89 @@
-.user-settings__wrapper {
-  max-width: 600px; 
-  margin: 40px auto;
+.user-profile {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    margin: 32px 0;
 }
-.user-settings__title {
-  margin: 0 0 28px;
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
 }
-.user-settings__field {
-  margin: 0 0 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+
+.avatar-wrapper {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    padding: 4px;
+    /* overflow: hidden; */
+    border: 2px solid var(--gray_0);
+    background-color: var(--gray_6);
+    color: var(--gray_-6);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.avatar-wrapper,
-.banner-wrapper {
-  position: relative;
-  display: inline-block;
-  cursor: pointer;
-  width: 120px;
-  height: 120px;
-  overflow: hidden;
-  border-radius: 50%;
-  background: #f0f0f0;
+.avatar-wrapper:hover {
+    border-color: var(--orange_-1);
+    background-color: var(--orange_5);
 }
 .avatar-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  border-radius: 50%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
 }
-.banner-wrapper {
-  width: 100%;
-  height: 200px;
-  border-radius: 12px;
+.avatar-wrapper .edit-icon {
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background-color: var(--orange_0);
+    border-radius: 50%;
+    z-index: 2;
+    padding: 4px;
+    cursor: pointer;
+    fill: var(--gray_-6);
 }
-.avatar-wrapper input[type="file"],
-.banner-wrapper input[type="file"] {
-  display: none;
+
+.profile-text h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--gray_-6);
 }
-.avatar-wrapper .edit-icon,
-.banner-wrapper .edit-icon {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background: var(--popup-bg, rgba(0,0,0,0.6));
-  color: white;
-  border-radius: 50%;
-  padding: 5px;
-  font-size: 16px;
-  opacity: 0;
-  transition: 0.3s;
+.profile-text p {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--gray_-2);
+    max-width: 600px;
 }
-.avatar-wrapper:hover .edit-icon,
-.banner-wrapper:hover .edit-icon {
-  opacity: 1;
+
+.user-products {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
-.banner-wrapper img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.user-products h2 {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+/* Мобильная адаптивность */
+@media (max-width: 768px) {
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+    .profile-text h1 { font-size: 20px; }
+    .profile-text p { font-size: 14px; }
 }

@@ -74,7 +74,7 @@
               <!-- Переключатели -->
               <div class="header-top-right">
                 <?php
-                $languages = ['ru' => '🇷🇺', 'en' => '🇬🇧', 'ro' => '🇷🇴'];
+                $languages = ['ru' => 'Рус', 'en' => 'Eng', 'ro' => 'Rom'];
                 $current_path = trim($_SERVER['REQUEST_URI'], '/');
                 $parts = explode('/', $current_path);
 
@@ -87,23 +87,23 @@
 
                 $GLOBALS['language'] = $current_lang;
                 ?>
-                <nav class="language-switcher">
-                  <button class="language-toggle">
-                    <span class="flag"><?= esc_html($languages[$current_lang]) ?></span>
-                    <span class="lang-label label-small"><?= esc_html(strtoupper($current_lang)) ?></span>
+
+                <div class="dropdown language-switcher">
+                  <button class="dropdown__button">
+                    <span class="dropdown__label"><?= esc_html(strtoupper($current_lang)) ?></span>
+                    <span class="dropdown__icon"></span>
                   </button>
-                  <div class="language-options">
-                    <?php foreach ($languages as $lang => $flag): ?>
+                  <ul class="dropdown__list">
+                    <?php foreach ($languages as $lang => $label): ?>
                       <?php if ($lang === $current_lang) continue; ?>
-                      <a href="<?= esc_url(home_url("/$lang/$path_without_lang")) ?>"
-                         class="language-button"
-                         title="<?= esc_attr(strtoupper($lang)) ?>">
-                        <span class="flag"><?= esc_html($flag) ?></span>
-                        <span class="lang-label label-small"><?= esc_html(strtoupper($lang)) ?></span>
-                      </a>
+                      <li class="dropdown__item">
+                        <a href="<?= esc_url(home_url("/$lang/$path_without_lang")) ?>">
+                          <?= esc_html(strtoupper($lang)) ?>
+                        </a>
+                      </li>
                     <?php endforeach; ?>
-                  </div>
-                </nav>
+                  </ul>
+                </div>
 
 
                 <button id="theme-toggle-button" class="theme-icon-button">
@@ -121,7 +121,7 @@
                 ?>
 
                 <?php if ($is_logged_in): ?>
-
+                
                     <button id="dm-toggle-btn-header" class="dm-toggle-btn button-medium" aria-label="<?= t('Открыть чат', 'Open Chat', 'Deschide chat'); ?>">
                         <span class="icon-message"><?php echo file_get_contents(get_template_directory() . '/images/message.svg'); ?></span>
                         <span class="icon-message-solid"><?php echo file_get_contents(get_template_directory() . '/images/message-solid.svg'); ?></span>
@@ -138,31 +138,23 @@
                       
                         $user_nicename = $current_user->user_nicename;
                         ?>
+
                         <button class="user-avatar" id="user-avatar" aria-haspopup="true" aria-expanded="false" aria-label="<?= t('Меню пользователя', 'User menu', 'Meniu utilizator'); ?>">
                             <?= $avatar_img; ?>
-                        </button>
-                      
+                          </button>
+                          
                         <ul class="user-dropdown" id="user-dropdown">
-                            <li class="label-small">
-                                <a href="/<?= $lang ?>/my-products" class="title-smaller"><?= t('Мои товары', 'My Products', 'Produsele mele'); ?></a>
-                            </li>
-                            <li class="label-small">
-                                <a href="/<?= $lang ?>/account/settings" class="title-smaller"><?= t('Настройки аккаунта', 'Account Settings', 'Setări cont'); ?></a>
-                            </li>
-                            <li class="label-small">
-                                <a href="/<?= $lang ?>/account/favorites" class="title-smaller"><?= t('Избраное', 'Favorites', 'Favoritele'); ?></a>
-                            </li>
-                            <li class="label-small">
-                                <a href="/<?= $lang ?>/account/<?= $user_nicename ?>" class="title-smaller"><?= t('Публичный профиль', 'Public Profile', 'Profil public'); ?></a>
-                            </li>
-                            <li class="label-small">
-                                <a href="<?= wp_logout_url(home_url("/$lang/")); ?>" class="title-smaller"><?= t('Выход', 'Logout', 'Ieșire'); ?></a>
-                            </li>
+                            <li class="label-small user-name"><a class="title-smaller" href="/<?= $lang ?>/user/<?= $user_nicename ?>"><?= esc_html($current_user->display_name); ?></a></li>
+                            <li class="label-small"><a class="title-smaller" href="/<?= $lang ?>/user/<?= $user_nicename ?>"><?= t('Профиль', 'Profile', 'Profil'); ?></a></li>
+                            <li class="label-small"><a class="title-smaller" href="/<?= $lang ?>/user/products"><?= t('Мои товары', 'My Products', 'Produsele mele'); ?></a></li>
+                            <li class="label-small"><a class="title-smaller" href="/<?= $lang ?>/user/favorites"><?= t('Избранное', 'Favorites', 'Favorite'); ?></a></li>
+                            <li class="label-small"><a class="title-smaller" href="/<?= $lang ?>/user/settings"><?= t('Настройки', 'Settings', 'Setări'); ?></a></li>
+                            <li class="label-small"><a class="title-smaller" href="<?= wp_logout_url(home_url("/$lang/")); ?>"><?= t('Выход', 'Logout', 'Ieșire'); ?></a></li>
                         </ul>
                     </div>
                       
                 <?php else: ?>
-                    <a href="/account/login/" class="accent-button-small button-small"><?= t('Войти', 'Login', 'Autentificare'); ?></a>
+                    <a href="/user/login/" class="accent-button-small button-small"><?= t('Войти', 'Login', 'Autentificare'); ?></a>
                 <?php endif; ?>
               </div>
             </div>

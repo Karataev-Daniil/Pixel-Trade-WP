@@ -32,10 +32,10 @@
                 </ul>
               </div>
               <div class="footer__column">
-                <h4 class="label-medium"><?= t('Аккаунт', 'Account', 'Contul meu'); ?></h4>
+                <h4 class="label-medium"><?= t('Аккаунт', 'user', 'Contul meu'); ?></h4>
                 <ul>
-                  <li><a class="link-button" href="/account/login"><?= t('Вход', 'Login', 'Autentificare'); ?></a></li>
-                  <li><a class="link-button" href="/account/settings"><?= t('Настройки', 'Settings', 'Setări'); ?></a></li>
+                  <li><a class="link-button" href="/user/login"><?= t('Вход', 'Login', 'Autentificare'); ?></a></li>
+                  <li><a class="link-button" href="/user/settings"><?= t('Настройки', 'Settings', 'Setări'); ?></a></li>
                   <li><a class="link-button" href="/my-products"><?= t('Мои товары', 'My Products', 'Produsele mele'); ?></a></li>
                 </ul>
               </div>

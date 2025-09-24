@@ -45,7 +45,7 @@ function add_to_favorites() {
     if (!is_user_logged_in()) {
         wp_send_json_error([
             'message' => 'Чтобы добавить товар в избранное, войдите в аккаунт.',
-            'login_button' => '<a href="/account/login/" class="btn-login">Войти</a>'
+            'login_button' => '<a href="/user/login/" class="btn-login">Войти</a>'
         ]);
     }
 
@@ -69,7 +69,7 @@ function remove_from_favorites() {
     if (!is_user_logged_in()) {
         wp_send_json_error([
             'message' => 'Чтобы удалить товар из избранного, войдите в аккаунт.',
-            'login_button' => '<a href="/account/login/" class="btn-login">Войти</a>'
+            'login_button' => '<a href="/user/login/" class="btn-login">Войти</a>'
         ]);
     }
 

@@ -31,3 +31,13 @@ function get_product_translations($product_id, $type = 'title') {
     }
     return $translations;
 }
+
+function get_current_category_features() {
+    $term = get_queried_object();
+    if (!$term) return [];
+    $all_features = get_product_category_features();
+    return $all_features[$term->term_id] ?? [];
+}
+
+add_action('wp_ajax_load_more_products', 'load_more_products');
+add_action('wp_ajax_nopriv_load_more_products', 'load_more_products');

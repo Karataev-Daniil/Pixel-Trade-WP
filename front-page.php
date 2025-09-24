@@ -138,7 +138,7 @@ get_header();
                         ?>
 
                         <div style="margin-top: 12px; text-align: center;">
-                            <a href="/account/favorites" class="secondary-button-small">
+                            <a href="/user/favorites" class="secondary-button-small">
                                 <?= t('Перейти в избранное', 'Go to Favorites', 'Mergi la Favorite'); ?>
                             </a>
                         </div>

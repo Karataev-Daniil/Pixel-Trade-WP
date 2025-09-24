@@ -98,7 +98,6 @@ if ($product['thumbnail_id'] && !in_array($product['thumbnail_id'], $product['ga
 $current_user_id = get_current_user_id();
 $author_id = $product['author_id'];
 $author_registered = get_the_author_meta('user_registered');
-$author_url = get_author_posts_url($author_id);
 $author_region = get_user_meta($author_id, 'region', true);
 
 $user = get_userdata($author_id);
@@ -219,11 +218,15 @@ $allowed_cats = array_intersect(array_keys($features), $post_cats);
                 </article>
 
                 <aside class="product-sidebar">
+                    <?php 
+                    $user_nicename = $user->user_nicename;
+                    $author_url = home_url("/{$lang}/user/{$user_nicename}");
+                    ?>
                     <section class="author" aria-label="<?= t('Информация об авторе','Author Info','Informații despre autor'); ?>">
                         <div class="author-avatar"><?= $author_avatar; ?></div>
                         <div class="author-profile">
                             <a class="link-button" href="<?= esc_url($author_url); ?>">
-                                <strong><?= t('Автор:','Author:','Autor:'); ?></strong> <?= get_the_author_meta('display_name',$author_id); ?>
+                                <strong><?= t('Автор:','Author:','Autor:'); ?></strong> <?= esc_html($user->display_name); ?>
                             </a>
                             <span class="body-small-regular"><?= t('На сайте с','On the site since','Pe site din'); ?> <?= date_i18n('d.m.Y', strtotime($author_registered)); ?></span>
                         </div>

@@ -14,21 +14,6 @@
 .main-navigation li {
     list-style: none;
 }
-.main-navigation .language-switcher a {
-    border-radius: 4px;
-    color: var(--gray_-6);
-}
-.main-navigation .language-switcher a:hover {
-    color: var(--gray_-2);
-}
-.main-navigation .language-switcher a.active {
-    color: var(--orange_0);
-    font-weight: bold;
-}
-.main-navigation .language-switcher a.active:hover {
-    color: var(--orange_2);
-    transform: scale(1);
-}
 
 /* 2. Navigation Layout */
 .main-navigation {
@@ -78,74 +63,79 @@
     display: flex;
 }
 
+/* Контейнер */
+.language-switcher {
+  position: relative;
+  display: inline-block;
+  font-family: inherit;
+  min-width: 0;
+}
 
-.main-navigation .language-switcher {
-    display: flex;
-    position: relative;
-    align-items: center;
+/* Кнопка — просто текст и стрелочка */
+.language-switcher .dropdown__button {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray_-6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-.main-navigation .language-switcher ul {
-    display: flex;
-    gap: 10px;
+
+/* Стрелочка */
+.language-switcher .dropdown__icon {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--gray_-6);
+  border-bottom: 2px solid var(--gray_-6);
+  transform: rotate(45deg); /* вниз */
+  transition: transform 0.25s ease;
+  margin-top: -2px;
 }
-.main-navigation .language-switcher a {
-    padding: 8px 12px;
+
+.language-switcher.open .dropdown__icon {
+  transform: rotate(-135deg); /* вверх */
 }
-.main-navigation .language-options {
-    display: none;
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: var(--gray_3);
-    border: 1px solid var(--gray_1);
-    border-radius: 6px;
-    box-shadow: 0 8px 24px var(--shadow);
-    z-index: 1000;
-    min-width: 120px;
-    padding: 6px 0;
+
+/* Список */
+.language-switcher .dropdown__list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  padding: 0;
+  list-style: none;
+  background: none;
+  border: none;
+  box-shadow: none;
+  display: none;
 }
-.language-switcher:hover .language-options,
-.language-switcher.open .language-options {
-    display: block;
+
+.language-switcher.open .dropdown__list {
+  display: block;
 }
-.language-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+
+/* Пункты */
+.language-switcher .dropdown__item {
+  padding: 2px 0;
 }
-.language-toggle .lang-label {
-    padding: 8px 12px;
-    text-decoration: none;
-    max-height: 20px;
-    line-height: 20px;
-    color: var(--gray_-6);
-    white-space: nowrap;
-    transition: background 0.2s ease;
+
+.language-switcher .dropdown__item a {
+  text-decoration: none;
+  color: var(--gray_-6);
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s ease;
 }
-.language-options a {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    text-decoration: none;
-    color: var(--gray_-6);
-    white-space: nowrap;
-    transition: background 0.2s ease;
+
+.language-switcher .dropdown__item a:hover {
+  color: var(--orange_5);
 }
-.language-toggle .lang-label a:hover,
-.language-options a:hover {
-    color: var(--gray_-5);
-    background-color: var(--gray_4);
-}
-.language-button.active {
-    font-weight: bold;
-    color: var(--gray_-5);
-    background-color: var(--gray_4);
-}
-.flag {
-    font-size: 1.2em;
-    max-height: 20px;
-}
+
 
 /* 6. Theme Toggle */
 .theme-icon-button {
@@ -245,53 +235,94 @@
     height: 18px;
 }
 
-
 /* 7. User Menu */
 .user-menu {
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 0;
 }
 .user-avatar {
-    padding: 0;
-    cursor: pointer;
+    position: relative;
+    z-index: 3;
     width: 40px;
     height: 40px;
     border-radius: 50%;
     overflow: hidden;
-    border: 2px solid var(--gray_2);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.2s ease, border 0.3s ease;
+}
+.user-avatar:hover {
+    border-color: var(--orange_0);
+    transform: scale(1.05);
+}
+.user-menu .user-name:hover ~ .user-avatar,
+.user-menu:hover .user-name:hover ~ .user-avatar {
+    border-color: var(--orange_0);
+    transform: scale(1.05);
 }
 .user-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
-.user-dropdown {
-    display: none;
-    position: absolute;
-    width: 200px;
-    right: 0;
-    top: 110%;
-    background: var(--gray_3);
-    border: 1px solid var(--gray_1);
-    box-shadow: 0 8px 24px var(--shadow);
-    padding: 8px 0;
-    border-radius: 8px;
-    min-width: 160px;
-    z-index: 999;
+.user-dropdown .user-name {
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: max-width 0.3s ease, opacity 0.3s ease;
+    color: var(--gray_-6);
 }
+.user-dropdown .user-name:hover {
+    background: var(--gray_4);
+    color: var(--orange_0);
+}
+.user-dropdown {
+    position: absolute;
+    top: -7px;
+    right: -8px;
+    min-width: 200px;
+    padding: 6px 0;
+    border-radius: 8px;
+    background-color: var(--gray_5);
+    border: 2px solid var(--orange_3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+
+    opacity: 0;
+    transform: scale(0.8);
+    transform-origin: top right;
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0.25s;
+    z-index: 2;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.user-menu.active .user-dropdown {
+    opacity: 1;
+    transform: scale(1);
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
+}
+
 .user-dropdown li {
     list-style: none;
+    display: block;
+    transition: background 0.2s ease, color 0.2s ease;
 }
 .user-dropdown li a {
     display: block;
-    padding: 8px 16px;
+    padding: 10px 16px;
     color: var(--gray_-6);
     text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
 }
-.user-dropdown li a:hover {
-    background-color: var(--gray_3);
-}
-.user-menu-wrapper.active .user-dropdown {
-    display: block;
+.user-dropdown li:hover a {
+    background: var(--gray_4);
+    color: var(--orange_0);
 }
 
 /* 3. Logo Animations */

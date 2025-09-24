@@ -71,15 +71,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
 document.addEventListener('DOMContentLoaded', function () {
     const avatar = document.getElementById('user-avatar');
-    const dropdown = document.getElementById('user-dropdown');
+    const menuWrapper = avatar.closest('.user-menu');
+
     avatar.addEventListener('click', function (e) {
         e.stopPropagation();
-        dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
+        menuWrapper.classList.toggle('active');
     });
+
     document.addEventListener('click', function () {
-        dropdown.style.display = 'none';
+        menuWrapper.classList.remove('active');
     });
 });
+document.addEventListener('DOMContentLoaded', function () {
+    const avatar = document.getElementById('user-avatar');
+    const username = document.querySelector('.user-name');
+
+    username.addEventListener('mouseenter', () => {
+        avatar.style.borderColor = 'var(--orange_0)';
+        avatar.style.transform = 'scale(1.05)';
+    });
+
+    username.addEventListener('mouseleave', () => {
+        avatar.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        avatar.style.transform = 'scale(1)';
+    });
+});
+
 
 jQuery(document).ready(function($) {
     function initFirstSlider() {
@@ -111,3 +128,41 @@ window.t = function(ru, en, ro) {
     if (window.language === 'ro') return ro;
     return ru;
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+  const dropdowns = document.querySelectorAll(".dropdown");
+
+  dropdowns.forEach(dropdown => {
+    const button = dropdown.querySelector(".dropdown__button");
+    const list = dropdown.querySelector(".dropdown__list");
+    const items = dropdown.querySelectorAll(".dropdown__item");
+    const icon = dropdown.querySelector(".dropdown__icon");
+
+    button.addEventListener("click", (e) => {
+      e.stopPropagation();
+
+      dropdowns.forEach(d => {
+        if (d !== dropdown) d.classList.remove("open");
+      });
+
+      dropdown.classList.toggle("open");
+    });
+
+    items.forEach(item => {
+      item.addEventListener("click", () => {
+        button.childNodes[0].nodeValue = item.textContent + " ";
+        dropdown.classList.remove("open");
+      });
+    });
+  });
+
+  document.addEventListener("click", () => {
+    dropdowns.forEach(dropdown => dropdown.classList.remove("open"));
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      dropdowns.forEach(dropdown => dropdown.classList.remove("open"));
+    }
+  });
+});

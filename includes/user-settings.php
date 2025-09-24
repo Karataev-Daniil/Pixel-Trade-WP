@@ -163,41 +163,6 @@ add_action('admin_post_save_user_settings', function() {
         }
     }
 
-    if (isset($_FILES['banner']) && !empty($_FILES['banner']['name'])) {
-        require_once(ABSPATH . 'wp-admin/includes/file.php');
-        require_once(ABSPATH . 'wp-admin/includes/image.php');
-        require_once(ABSPATH . 'wp-admin/includes/media.php');
-
-        $file = $_FILES['banner'];
-        
-        $file_array = [
-            'name'     => 'banner-' . $user_id . '-' . wp_generate_password(8, false) . '.' . pathinfo($file['name'], PATHINFO_EXTENSION),
-            'tmp_name' => $file['tmp_name'],
-            'type'     => $file['type'],
-            'size'     => $file['size'],
-            'error'    => $file['error'],
-        ];
-
-        if ($file_array['size'] > 500 * 1024) {
-            $image = wp_get_image_editor($file_array['tmp_name']);
-            if (!is_wp_error($image)) {
-                $mime = $file_array['type'];
-                if (in_array($mime, ['image/jpeg','image/jpg','image/webp'])) {
-                    $image->set_quality(80);
-                }
-                $image->save($file_array['tmp_name']);
-            }
-        }
-
-        $attachment_id = media_handle_sideload($file_array, 0);
-        if (!is_wp_error($attachment_id)) {
-            update_user_meta($user_id, 'banner', $attachment_id);
-        } else {
-            wp_die(__('Ошибка загрузки баннера: ') . $attachment_id->get_error_message());
-        }
-    }
-
-
     add_filter('get_avatar', function ($avatar, $id_or_email, $size, $default, $alt) {
         $user = false;
 
@@ -222,6 +187,65 @@ add_action('admin_post_save_user_settings', function() {
         return $avatar;
     }, 10, 5);
 
-    wp_redirect(wp_get_referer() ? wp_get_referer() : home_url());
+        // ✅ редирект на страницу пользователя
+    $user = get_userdata($user_id);
+    $user_nicename = $user->user_nicename;
+
+    // Если у тебя кастомный роут вида /user/{slug}
+    $redirect_url = home_url('/user/' . $user_nicename . '/');
+
+    // Если хочешь стандартный WordPress /author/{slug}, то:
+    // $redirect_url = get_author_posts_url($user_id);
+
+    wp_redirect($redirect_url);
     exit;
+
 });
+
+
+add_action('admin_post_update_user_banner', 'handle_update_user_banner');
+
+function handle_update_user_banner() {
+    if (!is_user_logged_in()) {
+        wp_die('Нет доступа');
+    }
+
+    if (!isset($_POST['update_user_banner_nonce']) || !wp_verify_nonce($_POST['update_user_banner_nonce'], 'update_user_banner')) {
+        wp_die('Ошибка безопасности');
+    }
+
+    $user_id = get_current_user_id();
+
+    if (isset($_FILES['banner']) && !empty($_FILES['banner']['name'])) {
+        require_once(ABSPATH . 'wp-admin/includes/file.php');
+        require_once(ABSPATH . 'wp-admin/includes/image.php');
+        require_once(ABSPATH . 'wp-admin/includes/media.php');
+
+        if ($_FILES['banner']['size'] > 200 * 1024) {
+            $image = wp_get_image_editor($_FILES['banner']['tmp_name']);
+            if (!is_wp_error($image)) {
+                $mime = $_FILES['banner']['type'];
+                if ($mime === 'image/jpeg' || $mime === 'image/jpg' || $mime === 'image/webp') {
+                    $image->set_quality(80);
+                }
+                $image->save($_FILES['banner']['tmp_name']);
+            }
+        }
+
+        $attachment_id = media_handle_upload('banner', 0);
+
+        if (!is_wp_error($attachment_id)) {
+            $old_banner = get_user_meta($user_id, 'banner', true);
+            if ($old_banner && $old_banner != $attachment_id) {
+                wp_delete_attachment($old_banner, true);
+            }
+
+            update_user_meta($user_id, 'banner', $attachment_id);
+        } else {
+            wp_die('Ошибка загрузки: ' . $attachment_id->get_error_message());
+        }
+    }
+
+    wp_safe_redirect(wp_get_referer());
+    exit;
+}
