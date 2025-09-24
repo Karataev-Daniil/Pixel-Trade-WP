@@ -63,77 +63,81 @@
     display: flex;
 }
 
-/* Контейнер */
 .language-switcher {
-  position: relative;
-  display: inline-block;
-  font-family: inherit;
-  min-width: 0;
+    position: relative;
+    display: inline-block;
+    font-family: inherit;
+    min-width: 0;
 }
-
-/* Кнопка — просто текст и стрелочка */
 .language-switcher .dropdown__button {
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--gray_-6);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+    background: none;
+    border: none;
+    padding: 0;
+    width: 50px;
+    font-weight: 300;
+    color: var(--gray_-6);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: font-weight 0.3s ease, color 0.3s ease;
 }
-
-/* Стрелочка */
+.language-switcher.open .dropdown__button,
+.language-switcher:hover .dropdown__button {
+    font-weight: 700;
+}
 .language-switcher .dropdown__icon {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid var(--gray_-6);
-  border-bottom: 2px solid var(--gray_-6);
-  transform: rotate(45deg); /* вниз */
-  transition: transform 0.25s ease;
-  margin-top: -2px;
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--gray_-6);
+    border-bottom: 2px solid var(--gray_-6);
+    transform: rotate(45deg);
+    transform-origin: center;
+    transition: transform 0.3s ease, border-width 0.3s ease;
+    will-change: transform;
+    margin-top: -1px;
 }
-
+.language-switcher.open .dropdown__icon,
+.language-switcher:hover .dropdown__icon {
+    border-right-width: 4px;
+    border-bottom-width: 4px;
+}
 .language-switcher.open .dropdown__icon {
-  transform: rotate(-135deg); /* вверх */
+    transform: rotate(-135deg);
+    margin-top: -1px;
 }
-
-/* Список */
 .language-switcher .dropdown__list {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 4px;
-  padding: 0;
-  list-style: none;
-  background: none;
-  border: none;
-  box-shadow: none;
-  display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 6px;
+    padding: 8px 0;
+    list-style: none;
+    background-color: var(--gray_5);
+    border: 1px solid var(--orange_3);
+    border-radius: 4px;
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 10;
 }
-
 .language-switcher.open .dropdown__list {
-  display: block;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
 }
-
-/* Пункты */
 .language-switcher .dropdown__item {
-  padding: 2px 0;
+    padding: 4px 12px;
 }
-
 .language-switcher .dropdown__item a {
-  text-decoration: none;
-  color: var(--gray_-6);
-  font-size: 14px;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.language-switcher .dropdown__item a:hover {
-  color: var(--orange_5);
+    text-decoration: none;
+    color: var(--gray_-5);
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.3s ease, transform 0.3s ease;
 }
 
 
@@ -494,7 +498,8 @@ button.catalog-toggle-button {
 }
 .catalog-subcategories {
     width: 100%;
-    padding: 16px 16px 16px 0;
+    padding: 16px 0;
+    margin: 0 28px 0 0;
     min-height: 500px;
     max-height: 500px;
     flex: 1;

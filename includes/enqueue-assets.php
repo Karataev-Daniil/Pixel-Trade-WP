@@ -52,10 +52,10 @@ function custom_enqueue_assets() {
     ]);
 
     wp_enqueue_script(
-        'catalog-menu',
-        get_template_directory_uri() . '/assets/js/dropdown-catalog.js',
+        'main-menu',
+        get_template_directory_uri() . '/assets/js/main-menu.js',
         ['jquery'],
-        filemtime(get_template_directory() . '/assets/js/dropdown-catalog.js'),
+        filemtime(get_template_directory() . '/assets/js/main-menu.js'),
         true
     );
 

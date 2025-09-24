@@ -142,7 +142,7 @@ window.existingDynamicFields = <?php
                             <label class="btn-upload" for="product_gallery_input">
                                 <div class="btn-upload__icon">
                                     <?php 
-                                        $svg = file_get_contents(get_template_directory() . '/images/icon-camera.svg');
+                                        $svg = file_get_contents(get_template_directory() . '/images/camera.svg');
                                         $svg = str_replace('<svg', '<svg class="icon icon-camera"', $svg);
                                         echo $svg;
                                     ?>

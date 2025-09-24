@@ -32,8 +32,15 @@
 }
 .banner-edit-btn {
     position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     top: 12px;
     right: 12px;
+}
+.banner-edit-btn svg {
+    width: 24px;
+    height: 24px;
 }
 .user-profile .profile-info {
     position: sticky;
@@ -55,6 +62,7 @@
     height: 120px;
     padding: 4px;
     border-radius: 50%;
+    margin-bottom: 16px;
     border: 2px solid var(--orange_0);
     display: flex;
     align-items: center;
@@ -68,11 +76,14 @@
     object-fit: cover;
     border-radius: 50%;
 }
-.user-profile .profile-info h1 {
+.user-profile h1 {
     color: var(--gray_-6);
 }
-.user-profile .profile-info p {
+.user-profile p {
     color: var(--gray_-2);
+}
+.user-profile .meta {
+    margin-bottom: 12px;
 }
 .user-profile .user-products {
     display: flex;

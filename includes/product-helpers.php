@@ -39,5 +39,43 @@ function get_current_category_features() {
     return $all_features[$term->term_id] ?? [];
 }
 
-add_action('wp_ajax_load_more_products', 'load_more_products');
-add_action('wp_ajax_nopriv_load_more_products', 'load_more_products');
+add_action('wp_ajax_get_category_features', 'ajax_get_category_features');
+add_action('wp_ajax_nopriv_get_category_features', 'ajax_get_category_features');
+
+function ajax_get_category_features() {
+    global $wpdb;
+
+    $category_id = intval($_GET['category_id'] ?? 0);
+    if (!$category_id) {
+        wp_send_json_error(['message' => 'No category_id']);
+    }
+
+    $features = $wpdb->get_results($wpdb->prepare("
+        SELECT id, `key`, label_ru, label_en, label_ro
+        FROM wp_features
+        WHERE category_id = %d
+        ORDER BY id ASC
+    ", $category_id), ARRAY_A);
+
+    $result = [];
+
+    foreach ($features as $feature) {
+        $options = $wpdb->get_results($wpdb->prepare("
+            SELECT value_ru, value_en, value_ro
+            FROM wp_feature_options
+            WHERE feature_id = %d
+            ORDER BY id ASC
+        ", $feature['id']), ARRAY_A);
+
+        $result[$feature['key']] = [
+            'label' => [
+                'ru' => $feature['label_ru'],
+                'en' => $feature['label_en'],
+                'ro' => $feature['label_ro'],
+            ],
+            'options' => $options
+        ];
+    }
+
+    wp_send_json_success($result);
+}

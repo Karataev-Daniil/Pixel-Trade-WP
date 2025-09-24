@@ -16,7 +16,17 @@
     padding-bottom: 8px;
 }
 
-/* PRIMARY — главный акцент */
+/* SVG */
+[class*="-button-"] svg {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+    fill: currentColor;
+    transition: fill 0.3s, transform 0.15s;
+}
+
+/* PRIMARY */
 .primary-button-larger {
     min-height: 64px;
     padding: 8px 32px;
@@ -24,7 +34,6 @@
     border-radius: 12px;
     background-color: var(--orange_0);
     color: var(--orange_5);
-    transition: background-color 0.3s, color 0.3s;
 }
 .primary-button-large {
     min-height: 56px;
@@ -51,7 +60,7 @@
     color: var(--orange_5);
 }
 
-/* Эффекты для PRIMARY кнопок */
+/* PRIMARY */
 .primary-button-larger:hover,
 .primary-button-large:hover,
 .primary-button-medium:hover,
@@ -59,11 +68,23 @@
     background-color: var(--orange_1);
     color: var(--orange_5);
 }
+.primary-button-larger:hover svg,
+.primary-button-large:hover svg,
+.primary-button-medium:hover svg,
+.primary-button-small:hover svg {
+    fill: currentColor;
+}
 .primary-button-larger:active,
 .primary-button-large:active,
 .primary-button-medium:active,
 .primary-button-small:active {
     background-color: var(--orange_3);
+    transform: scale(0.97);
+}
+.primary-button-larger:active svg,
+.primary-button-large:active svg,
+.primary-button-medium:active svg,
+.primary-button-small:active svg {
     transform: scale(0.97);
 }
 .primary-button-larger:focus-visible,
@@ -73,7 +94,7 @@
     box-shadow: 0 0 0 3px var(--orange_-2);
 }
 
-/* Темная тема: фиксированные цвета */
+/* Dark theme PRIMARY */
 html[data-theme="dark"] .primary-button-larger,
 html[data-theme="dark"] .primary-button-large,
 html[data-theme="dark"] .primary-button-medium,
@@ -101,7 +122,7 @@ html[data-theme="dark"] .primary-button-small:focus-visible {
     box-shadow: 0 0 0 3px var(--orange_2) !important;
 }
 
-/* SECONDARY — нейтральный тёмный */
+/* SECONDARY */
 .secondary-button-larger,
 .secondary-button-small {
     background-color: var(--gray_5);
@@ -121,16 +142,24 @@ html[data-theme="dark"] .primary-button-small:focus-visible {
     border-radius: 6px;
 }
 
-/* Эффекты для SECONDARY */
+/* SECONDARY */
 .secondary-button-larger:hover,
 .secondary-button-small:hover {
     background-color: var(--gray_5);
     color: var(--gray_-2);
     border-color: var(--gray_0);
 }
+.secondary-button-larger:hover svg,
+.secondary-button-small:hover svg {
+    fill: var(--orange_0);
+}
 .secondary-button-larger:active,
 .secondary-button-small:active {
     background-color: var(--gray_3);
+    transform: scale(0.97);
+}
+.secondary-button-larger:active svg,
+.secondary-button-small:active svg {
     transform: scale(0.97);
 }
 .secondary-button-larger:focus-visible,
@@ -138,7 +167,7 @@ html[data-theme="dark"] .primary-button-small:focus-visible {
     box-shadow: 0 0 0 3px var(--gray_1);
 }
 
-/* TERTIARY — прозрачный фон, только текст */
+/* TERTIARY*/
 .tertiary-button-small {
     min-height: 40px;
     padding: 8px 20px;
@@ -151,16 +180,22 @@ html[data-theme="dark"] .primary-button-small:focus-visible {
     background-color: var(--gray_4);
     color: var(--gray_-6);
 }
+.tertiary-button-small:hover svg {
+    fill: currentColor;
+}
 .tertiary-button-small:active {
     background-color: var(--gray_3);
     color: var(--gray_-6);
+    transform: scale(0.97);
+}
+.tertiary-button-small:active svg {
     transform: scale(0.97);
 }
 .tertiary-button-small:focus-visible {
     box-shadow: 0 0 0 3px var(--gray_1);
 }
 
-/* ACCENT — светлый фон с акцентной рамкой */
+/* ACCENT */
 .accent-button-small {
     min-height: 40px;
     padding: 8px 20px;
@@ -174,16 +209,22 @@ html[data-theme="dark"] .primary-button-small:focus-visible {
     background-color: var(--gray_5);
     border-color: var(--orange_-1);
 }
+.accent-button-small:hover svg {
+    fill: currentColor;
+}
 .accent-button-small:active {
     background-color: var(--gray_4);
     border-color: var(--orange_0);
+    transform: scale(0.97);
+}
+.accent-button-small:active svg {
     transform: scale(0.97);
 }
 .accent-button-small:focus-visible {
     box-shadow: 0 0 0 3px var(--orange_-2);
 }
 
-/* Icon-only кнопки */
+/* ICON-ONLY BUTTONS */
 .icon-button-small,
 .icon-button-medium {
     cursor: pointer;
@@ -212,7 +253,22 @@ html[data-theme="dark"] .primary-button-small:focus-visible {
     background-color: var(--orange_2);
 }
 
-/* Disabled */
+.icon-button-small svg,
+.icon-button-medium svg {
+    width: 50%;
+    height: 50%;
+    fill: currentColor;
+}
+.icon-button-small:hover svg,
+.icon-button-medium:hover svg {
+    fill: currentColor;
+}
+.icon-button-small:active svg,
+.icon-button-medium:active svg {
+    transform: scale(0.9);
+}
+
+/* DISABLED */
 button:disabled,
 div:disabled,
 a:disabled {
@@ -221,7 +277,7 @@ a:disabled {
     background-color: var(--gray_2);
 }
 
-/* Link-style кнопки */
+/* LINK STYLE */
 .link-button {
     font-family: 'Inter', 'IBM Plex Sans', sans-serif;
     cursor: pointer;
@@ -240,7 +296,6 @@ a:disabled {
     color: var(--orange_2);
 }
 
-/* Link-style серые кнопки */
 .link-button-gray {
     font-family: 'Inter', 'IBM Plex Sans', sans-serif;
     cursor: pointer;

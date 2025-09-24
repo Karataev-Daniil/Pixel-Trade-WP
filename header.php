@@ -89,14 +89,14 @@
                 ?>
 
                 <div class="dropdown language-switcher">
-                  <button class="dropdown__button">
+                  <button class="dropdown__button label-small">
                     <span class="dropdown__label"><?= esc_html(strtoupper($current_lang)) ?></span>
                     <span class="dropdown__icon"></span>
                   </button>
                   <ul class="dropdown__list">
                     <?php foreach ($languages as $lang => $label): ?>
                       <?php if ($lang === $current_lang) continue; ?>
-                      <li class="dropdown__item">
+                      <li class="dropdown__item label-small">
                         <a href="<?= esc_url(home_url("/$lang/$path_without_lang")) ?>">
                           <?= esc_html(strtoupper($lang)) ?>
                         </a>

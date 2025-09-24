@@ -19,7 +19,7 @@ $region      = get_user_meta($user_id, 'region', true);
 $phone       = get_user_meta($user_id, 'phone', true);
 
 $avatar_img  = $avatar_id
-    ? wp_get_attachment_image($avatar_id, 'medium-thumb', false, ['alt' => 'User Avatar'])
+    ? wp_get_attachment_image($avatar_id, 'avatar-large', false, ['alt' => 'User Avatar'])
     : get_avatar($user_id, 120, '', 'User Avatar');
 
 $banner_url = $banner_id ? wp_get_attachment_url($banner_id) : '';
@@ -67,6 +67,10 @@ $is_owner   = is_user_logged_in() && get_current_user_id() === $user_id;
                                 <button type="button" 
                                         class="banner-edit-btn button secondary-button-small button-small"
                                         onclick="document.getElementById('banner-upload').click();">
+                                    <?php
+                                    $icon_path = get_template_directory_uri() . '/images/camera.svg';
+                                    echo file_get_contents( get_template_directory() . '/images/camera.svg' );
+                                    ?>
                                     <?php echo $banner_url ? 'Сменить баннер' : 'Загрузить баннер'; ?>
                                 </button>
                             </form>
