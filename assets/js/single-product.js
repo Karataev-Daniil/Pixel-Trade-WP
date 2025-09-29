@@ -2,50 +2,14 @@ const MAX_IMAGES = 10;
 let newImageIndex = 0;
 let translationChecked = false;
 
+// Counter
 function updateCounter(el) {
-    const counter = el.closest('.tab-content').querySelector('.form-hint');
+    const counter = el.closest('.tab-content')?.querySelector('.form-hint');
     if (!counter) return;
-    counter.textContent = `${el.value.length} / 2000`; 
+    counter.textContent = `${el.value.length} / 2000`;
 }
 
-function attachLengthValidation() {
-    document.querySelectorAll('textarea[name="product_content"], textarea[name="description_en"], textarea[name="description_ro"]').forEach(el => {
-        el.addEventListener('input', () => {
-            if (el.value.length > 2000) el.value = el.value.slice(0, 2000);
-            updateCounter(el);
-
-            const activeTab = el.closest('.tab-content');
-            const title = activeTab.querySelector('input');
-            const content = activeTab.querySelector('textarea');
-            const errorField = document.getElementById('translation-message');
-
-            if (!errorField) return;
-
-            let errors = [];
-            const titleEmpty = !title.value.trim();
-            const contentEmpty = !content.value.trim();
-            const titleShort = !titleEmpty && title.value.length < 3;
-            const contentShort = !contentEmpty && content.value.length < 5;
-
-            if (titleEmpty && contentEmpty) errors.push('Введите название и описание');
-            else if (titleEmpty) errors.push('Введите название');
-            else if (contentEmpty) errors.push('Введите описание');
-
-            if (titleShort && contentShort) errors.push('Название и описание слишком короткие');
-            else if (titleShort) errors.push('Название слишком короткое (мин. 3 символа)');
-            else if (contentShort) errors.push('Описание слишком короткое (мин. 5 символов)');
-
-            if (errors.length) {
-                errorField.textContent = errors.join('; ');
-                errorField.classList.add('warning');
-            } else {
-                errorField.textContent = '';
-                errorField.classList.remove('warning', 'error', 'success');
-            }
-        });
-    });
-}
-
+// Gallery order
 function updateGalleryOrder() {
     const items = document.querySelectorAll('#gallery_preview .gallery-item');
     const order = Array.from(items).map(item => item.dataset.id);
@@ -53,87 +17,13 @@ function updateGalleryOrder() {
     if (input) input.value = order.join(',');
 }
 
-window.checkGalleryLimit = function(input) {
-    const files = Array.from(input.files || []);
-    if (!files.length) return;
-
-    const preview = document.getElementById('gallery_preview');
-    const existingCount = preview.querySelectorAll('.gallery-item').length;
-    const remaining = MAX_IMAGES - existingCount;
-    if (remaining <= 0) {
-        setFieldMessage('message_product_gallery', `Достигнут лимит ${MAX_IMAGES} изображений.`, 'error');
-        return;
-    }
-
-    const toAdd = files.slice(0, remaining);
-
-    toAdd.forEach(file => {
-        const currentIndex = newImageIndex++;
-        const div = document.createElement('div');
-        div.className = 'gallery-item';
-        div.dataset.id = 'new-' + currentIndex;
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            div.prepend(img);
-            setFieldMessage('message_product_gallery', 'Фото успешно добавлено', 'success');
-        };
-        reader.readAsDataURL(file);
-
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'gallery-remove';
-        removeBtn.textContent = '✕';
-        div.appendChild(removeBtn);
-
-        preview.insertBefore(div, preview.querySelector('.btn-upload') || null);
-    });
-
-    const dt = new DataTransfer();
-    toAdd.forEach(f => dt.items.add(f));
-    input.files = dt.files;
-
-    updateGalleryOrder();
-}
-
-function checkTranslationsBeforeSubmit() {
-    const tabs = document.querySelectorAll('.tab-content');
-    const translationMessage = document.getElementById('translation-message');
-    if (!translationMessage) return true;
-
-    let missingTranslations = [];
-
-    tabs.forEach(tab => {
-        const lang = tab.id.split('-')[1];
-        const title = tab.querySelector('input');
-        const content = tab.querySelector('textarea');
-
-        if (title && content && !title.value.trim() && !content.value.trim()) {
-            missingTranslations.push(lang);
-        }
-    });
-
-    if (missingTranslations.length && !translationChecked) {
-        translationMessage.textContent = `У вас нет переводов для языков: ${missingTranslations.join(', ')}. Сгенерируйте их — это бесплатно!`;
-        translationMessage.classList.remove('error', 'warning', 'success');
-        translationMessage.classList.add('info');
-        translationChecked = true;
-        return false;
-    }
-
-    return true;
-}
-
+// Clear message for field
 function clearMessageForField(fieldIdOrName) {
-    const msgEl = document.getElementById('message_' + fieldIdOrName) || 
-                  document.getElementById(fieldIdOrName);
+    const msgEl = document.getElementById('message_' + fieldIdOrName) || document.getElementById(fieldIdOrName);
     if (msgEl) {
         msgEl.textContent = '';
-        msgEl.classList.remove('error', 'warning', 'success');
+        msgEl.classList.remove('error', 'warning', 'success', 'info');
     }
-
     if (fieldIdOrName.startsWith('product_title') || fieldIdOrName.startsWith('product_content')) {
         const translationMessage = document.getElementById('translation-message');
         if (translationMessage) {
@@ -143,100 +33,197 @@ function clearMessageForField(fieldIdOrName) {
     }
 }
 
-function validateForm() {
-    const activeTab = document.querySelector('.tab-content.active');
-    if (!activeTab) return false;
+// Gallery limit check and preview
+window.checkGalleryLimit = function(input) {
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
 
-    let firstInvalid = null;
-    let hasErrors = false;
-    const errorField = document.getElementById('translation-message');
-    if (!errorField) return false;
-    errorField.textContent = '';
-    errorField.classList.remove('error', 'warning', 'success', 'info');
+    const preview = document.getElementById('gallery_preview');
+    if (!preview) return;
 
-    const title = activeTab.querySelector('input');
-    const content = activeTab.querySelector('textarea');
-
-    const titleEmpty = !title.value.trim();
-    const contentEmpty = !content.value.trim();
-    const titleShort = !titleEmpty && title.value.length < 3;
-    const contentShort = !contentEmpty && content.value.length < 5;
-
-    let errors = [];
-
-    if (titleEmpty && contentEmpty) errors.push('Введите название и описание');
-    else if (titleEmpty) errors.push('Введите название');
-    else if (contentEmpty) errors.push('Введите описание');
-
-    if (titleShort && contentShort) errors.push('Название и описание слишком короткие');
-    else if (titleShort) errors.push('Название слишком короткое (мин. 3 символа)');
-    else if (contentShort) errors.push('Описание слишком короткое (мин. 5 символов)');
-
-    if (errors.length) {
-        errorField.textContent = errors.join('; ');
-        errorField.classList.add('warning');
-        firstInvalid = firstInvalid || title;
-        hasErrors = true;
+    const existingCount = preview.querySelectorAll('.gallery-item').length;
+    const remaining = MAX_IMAGES - existingCount;
+    if (remaining <= 0) {
+        alert(`Достигнут лимит ${MAX_IMAGES} изображений.`);
+        input.value = '';
+        return;
     }
 
-    const selectedCategories = Array.from(document.querySelectorAll('#category-selectors .category-select')).map(s => s.value).filter(v => v);
-    if (!selectedCategories.length) {
-        setFieldMessage('message_selected_categories', translations.selectCategory, 'warning');
-        firstInvalid = firstInvalid || document.getElementById('category-selectors');
-        hasErrors = true;
-    } else {
-        document.getElementById('selected_categories_input').value = selectedCategories.join(',');
-    }
+    const toAdd = files.slice(0, remaining);
+    const dt = new DataTransfer();
 
-    const price = document.querySelector('input[name="product_price"]');
-    const priceValue = parseFloat(price?.value || 0);
-    if (isNaN(priceValue) || priceValue <= 0) {
-        setFieldMessage('message_product_price', 'Введите корректную цену', 'warning');
-        price?.classList.add('input-error');
-        firstInvalid = firstInvalid || price;
-        hasErrors = true;
-    }
+    toAdd.forEach(file => {
+        const div = document.createElement('div');
+        div.className = 'gallery-item';
+        div.dataset.id = 'new-' + newImageIndex++;
 
-    const galleryItems = document.querySelectorAll('#gallery_preview .gallery-item');
-    if (galleryItems.length === 0) {
-        setFieldMessage('message_product_gallery', 'Добавьте хотя бы одно изображение', 'warning');
-        firstInvalid = firstInvalid || document.getElementById('gallery_preview');
-        hasErrors = true;
-    } else if (galleryItems.length > MAX_IMAGES) {
-        setFieldMessage('message_product_gallery', `Не более ${MAX_IMAGES} изображений`, 'warning');
-        hasErrors = true;
-    }
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'gallery-remove';
+        removeBtn.textContent = '✕';
+        div.appendChild(removeBtn);
 
-    if (firstInvalid && firstInvalid.offsetParent !== null) {
-        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        if (firstInvalid.focus) setTimeout(() => firstInvalid.focus(), 300);
-    }
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            div.prepend(img);
 
-    const missingTranslations = checkTranslations();
+            const uploadBtn = preview.querySelector('.btn-upload');
+            preview.insertBefore(div, uploadBtn || null);
 
-    if (missingTranslations.length && !translationChecked) {
-        translationChecked = true;
-        return false;
-    }
+            updateGalleryOrder();
+            setFieldMessage('product_gallery', 'Фото успешно добавлено', 'success');
+        };
+        reader.readAsDataURL(file);
 
-    return !hasErrors;
+        dt.items.add(file);
+    });
+
+    input.files = dt.files;
+};
+
+// Get image url
+function getImageUrl(imgId) {
+    return typeof galleryPaths !== 'undefined' && galleryPaths[imgId] ? galleryPaths[imgId] : '';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    attachLengthValidation();
+// Translation check before submit
+function checkTranslationsBeforeSubmit() {
+    const tabs = document.querySelectorAll('.tab-content');
+    const translationMessage = document.getElementById('translation-message');
+    if (!translationMessage) return true;
 
+    let filledCount = 0;
+    let missingLangs = [];
+
+    tabs.forEach(tab => {
+        const lang = tab.id.split('-')[1];
+        const title = tab.querySelector('input');
+        const content = tab.querySelector('textarea');
+
+        if ((title && title.value.trim()) || (content && content.value.trim())) {
+            filledCount++;
+        } else {
+            missingLangs.push(lang);
+        }
+    });
+
+    // Если только один перевод
+    if (filledCount === 1 && missingLangs.length > 0) {
+        if (!translationChecked) {
+            translationMessage.textContent = `Вы не заполнили переводы для языков: ${missingLangs.join(', ')}. 
+            Сгенерируйте их — это бесплатно!`;
+            translationMessage.classList.remove('error', 'warning', 'success');
+            translationMessage.classList.add('info');
+            translationChecked = true;
+            return false; // блокируем первый сабмит
+        }
+        return true; // второй клик — отправляем
+    }
+
+    // Если вообще нет переводов
+    if (filledCount === 0) {
+        if (!translationChecked) {
+            translationMessage.textContent = `У вас нет переводов. Заполните хотя бы один язык.`;
+            translationMessage.classList.remove('success', 'warning', 'info');
+            translationMessage.classList.add('error');
+            translationChecked = true;
+            return false;
+        }
+        return true;
+    }
+
+    return true; // всё ок — отправляем
+}
+
+
+// Set field message
+function setFieldMessage(id, message = '', type = '') {
+    const el = document.getElementById('message_' + id);
+    if (!el) return;
+    el.textContent = message;
+    el.classList.remove('error', 'warning', 'success', 'info');
+    if (type) el.classList.add(type);
+}
+
+function validateForm(form) {
+    let valid = true;
+    const errors = {}; // собираем ошибки для консоли
+
+    // Categories
+    const selectedCategories = form.querySelector('#selected_categories_input');
+    if (!selectedCategories.value) {
+        setFieldMessage('selected_categories', 'Выберите хотя бы одну категорию', 'error');
+        errors['selected_categories'] = 'Выберите хотя бы одну категорию';
+        valid = false;
+    }
+
+    // Titles + Descriptions (хотя бы один язык должен быть заполнен)
+    const titleIds = ['product_title', 'title_en', 'title_ro'];
+    const contentIds = ['product_content', 'description_en', 'description_ro'];
+
+    const hasTitle = titleIds.some(id => {
+        const input = form.querySelector(`[name="${id}"]`);
+        return input && input.value.trim();
+    });
+
+    const hasContent = contentIds.some(id => {
+        const textarea = form.querySelector(`[name="${id}"]`);
+        return textarea && textarea.value.trim();
+    });
+
+    if (!hasTitle) {
+        titleIds.forEach(id => setFieldMessage(id, 'Введите название хотя бы на одном языке', 'error'));
+        errors['title'] = 'Введите название хотя бы на одном языке';
+        valid = false;
+    }
+
+    if (!hasContent) {
+        contentIds.forEach(id => setFieldMessage(id, 'Введите описание хотя бы на одном языке', 'error'));
+        errors['content'] = 'Введите описание хотя бы на одном языке';
+        valid = false;
+    }
+
+    // Price
+    const priceInput = form.querySelector('[name="product_price"]');
+    if (!priceInput.value || parseFloat(priceInput.value) <= 0) {
+        setFieldMessage('product_price', 'Введите корректную цену', 'error');
+        errors['product_price'] = 'Введите корректную цену';
+        valid = false;
+    }
+
+    // Gallery
+    const galleryItems = document.querySelectorAll('#gallery_preview .gallery-item');
+    if (!galleryItems || galleryItems.length === 0) {
+        setFieldMessage('product_gallery', 'Добавьте хотя бы одно фото', 'error');
+        errors['product_gallery'] = 'Добавьте хотя бы одно фото';
+        valid = false;
+    }
+
+    return valid;
+}
+
+
+// DOM Ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Input events
     document.querySelectorAll('input, textarea, select').forEach(el => {
         const id = el.id || el.name;
         el.addEventListener('input', () => {
             clearMessageForField(id);
             translationChecked = false;
+            updateCounter(el);
         });
         el.addEventListener('change', () => clearMessageForField(id));
     });
 
+    // Gallery preview setup
     const galleryPreview = document.getElementById('gallery_preview');
-    if (galleryPreview && typeof existingGallery !== 'undefined' && Array.isArray(existingGallery)) {
-        existingGallery.forEach((imgId) => {
+    const existingGalleryArray = typeof existingGallery !== 'undefined' ? existingGallery : [];
+
+    if (galleryPreview && Array.isArray(existingGalleryArray)) {
+        existingGalleryArray.forEach(imgId => {
             const div = document.createElement('div');
             div.className = 'gallery-item';
             div.dataset.id = imgId;
@@ -261,8 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!e.target.classList.contains('gallery-remove')) return;
             const item = e.target.closest('.gallery-item');
             if (!item) return;
-            const removeInput = document.getElementById('remove_gallery_ids_input');
 
+            const removeInput = document.getElementById('remove_gallery_ids_input');
             if (item.dataset.id && !item.dataset.id.startsWith('new-')) {
                 const currentValue = removeInput.value ? removeInput.value.split(',') : [];
                 currentValue.push(item.dataset.id);
@@ -283,31 +270,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Tab switch
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
             btn.classList.add('active');
             const tab = document.getElementById(btn.dataset.tab);
             if (tab) tab.classList.add('active');
+
             const lang = btn.dataset.tab.split('-')[1];
             const langInput = document.getElementById('product_lang_input');
             if (langInput) langInput.value = lang;
-            checkTranslations();
+
+            checkTranslationsBeforeSubmit();
         });
     });
 
+    // Form submit
     const form = document.getElementById('create-product-form') || document.getElementById('edit-product-form');
     if (form) {
-        form.addEventListener('submit', function(e) {
-            if (!checkTranslationsBeforeSubmit()) {
+        form.addEventListener('submit', e => {
+            if (typeof collectDynamicFields === 'function') collectDynamicFields();
+            const isValid = validateForm(form);
+            const translationsOk = checkTranslationsBeforeSubmit();
+            if (!isValid || !translationsOk) {
                 e.preventDefault();
+                e.stopPropagation();
+                return false;
             }
+            // Всё ок, форма отправится
         });
     }
-});
 
-function getImageUrl(imgId) {
-    if (typeof galleryPaths !== 'undefined' && galleryPaths[imgId]) return galleryPaths[imgId];
-    return '';
-}
+    // Slick slider
+    jQuery(document).ready($ => {
+        const $slider = $('.main-slider');
+        if ($slider.length) {
+            $slider.slick({
+                infinite: false,
+                swipe: false,
+                draggable: true,
+                slidesToScroll: 1,
+                slidesToShow: 1,
+                variableWidth: true,
+                swipeToSlide: false,
+                speed: 400,
+                prevArrow: '<button class="slick-prev" aria-label="Назад"></button>',
+                nextArrow: '<button class="slick-next" aria-label="Вперёд"></button>',
+            });
+        }
+    });
+});

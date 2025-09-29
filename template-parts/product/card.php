@@ -1,5 +1,6 @@
 <?php
 $price = get_post_meta(get_the_ID(), 'product_price', true);
+$currency = get_post_meta(get_the_ID(), 'product_currency', true) ?: 'MDL';
 $user_id = get_current_user_id();
 $favorites = function_exists('favorites_get') ? favorites_get($user_id, 'product') : [];
 $is_favorite = in_array(get_the_ID(), $favorites);
@@ -40,7 +41,7 @@ $cat_ids_str = implode(',', $cat_ids);
         <h3 class="product-card__title body-small-regular"><?= esc_html(get_translated_title()); ?></h3>
         <?php if ($price): ?>
             <div class="product-card__price uppercase-small">
-                <?= number_format((float)$price, 0, '', ','); ?> MDL
+                <?= number_format((float)$price, 0, '', ','); ?> <?= esc_html($currency); ?>
             </div>
         <?php endif; ?>
         <?php if ($region_name): ?>

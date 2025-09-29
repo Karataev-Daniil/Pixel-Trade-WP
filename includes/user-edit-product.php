@@ -1,13 +1,16 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
+// Handle product edit
 function handle_product_edit_form_submission() {
     if (
         !isset($_POST['submit_product']) ||
         !isset($_POST['product_form_nonce']) ||
         !wp_verify_nonce($_POST['product_form_nonce'], 'save_product_form') ||
         !current_user_can('edit_posts')
-    ) {
-        return;
-    }
+    ) return;
 
     $product_id = intval($_POST['product_id'] ?? 0);
     if (!$product_id || get_post_type($product_id) !== 'products') return;
@@ -22,21 +25,26 @@ function handle_product_edit_form_submission() {
 
     $title   = sanitize_text_field(trim($_POST[$title_field] ?? ''));
     $content = sanitize_textarea_field(trim($_POST[$content_field] ?? ''));
-
-    if (!$title) wp_die('Please fill the title.');
-    if (!$content) wp_die('Please fill the content.');
-
-    $price = floatval($_POST['product_price'] ?? 0) ?: floatval($_POST['product_old_price'] ?? 0);
-    if ($price <= 0) wp_die('Please fill a valid price.');
-
-    $status = sanitize_text_field($_POST['product_status'] ?? 'draft');
-
+    $price   = floatval($_POST['product_price'] ?? 0);
     $currency = strtolower(sanitize_text_field($_POST['product_currency'] ?? 'lei'));
-    if (!in_array($currency, ['lei','usd','eur'])) $currency = 'lei';
-    update_post_meta($product_id, 'product_currency', $currency);
+    $type    = sanitize_text_field($_POST['product_type'] ?? '');
+    $status  = sanitize_text_field($_POST['product_status'] ?? 'draft');
+    $categories = $_POST['product_categories'] ?? [];
+    if (!is_array($categories)) $categories = [];
 
-    $type = sanitize_text_field($_POST['product_type'] ?? '');
+    // --- Server-side validation ---
+    $errors = [];
+    if (!$title) $errors[$title_field] = t('Заполните заголовок', 'Please fill the title', 'Completați titlul');
+    if (!$content) $errors[$content_field] = t('Заполните описание', 'Please fill the content', 'Completați descrierea');
+    if ($price <= 0) $errors['product_price'] = t('Укажите корректную цену', 'Please provide a valid price', 'Vă rugăm să furnizați un preț valid');
+    if (empty($categories)) $errors['selected_categories'] = t('Выберите хотя бы одну категорию', 'Please select at least one category', 'Selectați cel puțin o categorie');
+    if (!in_array($currency, ['lei','usd','eur'], true)) $currency = 'lei';
 
+    if (!empty($errors)) {
+        redirect_with_error($errors, $_POST, wp_get_referer());
+    }
+
+    // --- Update post ---
     wp_update_post([
         'ID'           => $product_id,
         'post_title'   => $title,
@@ -48,34 +56,46 @@ function handle_product_edit_form_submission() {
     update_post_meta($product_id, 'product_currency', $currency);
     update_post_meta($product_id, 'product_type', $type);
 
-    if (!empty($_POST['product_categories']) && is_array($_POST['product_categories'])) {
-        $category_ids = array_map('intval', $_POST['product_categories']);
-        wp_set_post_terms($product_id, $category_ids, 'product_cat');
-    } else {
-        wp_set_post_terms($product_id, [], 'product_cat');
-    }
+    // Categories
+    $category_ids = array_map('intval', $categories);
+    wp_set_post_terms($product_id, $category_ids, 'product_cat');
 
+    // Titles & Descriptions for other languages
     update_post_meta($product_id, '_title_en', sanitize_text_field($_POST['title_en'] ?? ''));
     update_post_meta($product_id, '_title_ro', sanitize_text_field($_POST['title_ro'] ?? ''));
     update_post_meta($product_id, '_description_en', sanitize_textarea_field($_POST['description_en'] ?? ''));
     update_post_meta($product_id, '_description_ro', sanitize_textarea_field($_POST['description_ro'] ?? ''));
 
+    // Dynamic fields
+    if (!empty($_POST['dynamic_fields'])) {
+        $dynamic_fields = json_decode(wp_unslash($_POST['dynamic_fields']), true);
+        if (is_array($dynamic_fields)) {
+            $dynamic_fields = sanitize_dynamic_fields($dynamic_fields);
+
+            $new_features = [];
+
+            // Save individual fields with double underscore
+            foreach ($dynamic_fields as $key => $value) {
+                $meta_key = '__' . ltrim(sanitize_key($key), '_');
+
+                if ($value === '' || $value === null) {
+                    delete_post_meta($product_id, $meta_key);
+                } else {
+                    update_post_meta($product_id, $meta_key, $value);
+                    $new_features[$meta_key] = $value;
+                }
+            }
+
+            // Save the entire array with __ keys
+            update_post_meta($product_id, 'dynamic_features', $new_features);
+        }
+    }
+
+    // Gallery handling
     if (!function_exists('media_handle_upload')) {
         require_once ABSPATH . 'wp-admin/includes/image.php';
         require_once ABSPATH . 'wp-admin/includes/file.php';
         require_once ABSPATH . 'wp-admin/includes/media.php';
-    }
-
-    if(!empty($_POST['dynamic_fields'])){
-        $dynamic_fields = json_decode(wp_unslash($_POST['dynamic_fields']), true);
-        if(is_array($dynamic_fields)){
-            foreach ($dynamic_fields as $key => $value) {
-                $dynamic_fields[$key] = is_array($value) 
-                    ? array_map('sanitize_text_field', $value) 
-                    : sanitize_text_field($value);
-            }
-            update_post_meta($product_id, 'dynamic_features', $dynamic_fields);
-        }
     }
 
     $remove_ids = array_filter(array_map('intval', explode(',', $_POST['remove_gallery_ids_input'] ?? '')));
@@ -122,7 +142,6 @@ function handle_product_edit_form_submission() {
                 $new_attachment_ids[] = $attachment_id;
             }
         }
-
         remove_all_filters('wp_handle_upload_prefilter');
     }
 
@@ -145,6 +164,9 @@ function handle_product_edit_form_submission() {
     } else {
         delete_post_thumbnail($product_id);
     }
+
+    // Clear related products cache
+    delete_transient('related_products_' . $product_id);
 
     wp_redirect(get_permalink($product_id));
     exit;

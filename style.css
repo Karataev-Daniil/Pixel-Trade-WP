@@ -280,6 +280,9 @@ p {
 .products-list .product-card {
   transition: box-shadow 0.2s;
   position: relative;
+  display: block;
+  min-height: auto;
+  margin: 0;
 }
 .products-list .product-card__link {
   text-decoration: none;

@@ -21,6 +21,29 @@
     transition: all 0.25s ease;
 }
 
+.input-block input[type="number"] {
+    -moz-appearance: textfield;
+}
+.input-block input[type="number"]::-webkit-inner-spin-button,
+.input-block input[type="number"]::-webkit-outer-spin-button {
+    appearance: none;
+    background: var(--gray_5);
+    border-left: 1px solid var(--gray_2);
+    width: 24px;
+    height: 100%;
+    cursor: pointer;
+    border-radius: 0 6px 6px 0;
+    transition: background 0.25s ease;
+}
+.input-block input[type="number"]::-webkit-inner-spin-button:hover,
+.input-block input[type="number"]::-webkit-outer-spin-button:hover {
+    background: var(--orange_5);
+}
+.input-block input[type="number"]::-webkit-inner-spin-button:active,
+.input-block input[type="number"]::-webkit-outer-spin-button:active {
+    background: var(--orange_3);
+}
+
 /* PRIMARY STYLE */
 .input--primary,
 .textarea--primary,

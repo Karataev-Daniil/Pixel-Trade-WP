@@ -13,29 +13,6 @@ function clearFieldMessage(id) {
     el.classList.remove('error', 'warning', 'success');
 }
 
-jQuery(document).ready(function($) {
-    function initFirstSlider() {
-        var $slickSlider = $('.main-slider');
-
-        if ($slickSlider.length > 0) {
-            $slickSlider.slick({
-                infinite: false,
-                swipe: false,
-                draggable: true,
-                slidesToScroll: 1,
-                slidesToShow: 1,
-                variableWidth: true,
-                swipeToSlide: false,
-                speed: 400,
-                prevArrow: '<button class="slick-prev" aria-label="Назад"></button>',
-                nextArrow: '<button class="slick-next" aria-label="Вперёд"></button>',
-            });
-        }
-    }
-
-    initFirstSlider();
-});
-
 let language = window.language || 'ru';
 
 window.t = function(ru, en, ro) {
@@ -45,39 +22,41 @@ window.t = function(ru, en, ro) {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  const dropdowns = document.querySelectorAll(".dropdown");
-
-  dropdowns.forEach(dropdown => {
-    const button = dropdown.querySelector(".dropdown__button");
-    const list = dropdown.querySelector(".dropdown__list");
-    const items = dropdown.querySelectorAll(".dropdown__item");
-    const icon = dropdown.querySelector(".dropdown__icon");
-
-    button.addEventListener("click", (e) => {
-      e.stopPropagation();
-
-      dropdowns.forEach(d => {
-        if (d !== dropdown) d.classList.remove("open");
-      });
-
-      dropdown.classList.toggle("open");
+    const dropdowns = document.querySelectorAll(".dropdown");
+    if (!dropdowns.length) return;
+    
+    dropdowns.forEach(dropdown => {
+        const button = dropdown.querySelector(".dropdown__button");
+        const items = dropdown.querySelectorAll(".dropdown__item");
+        if (!button || !items.length) return;
+        
+        button.addEventListener("click", (e) => {
+            e.stopPropagation();
+            
+            dropdowns.forEach(d => {
+                if (d !== dropdown) d.classList.remove("open");
+            });
+          
+            dropdown.classList.toggle("open");
+        });
+      
+        items.forEach(item => {
+            item.addEventListener("click", () => {
+                if (button.childNodes.length > 0) {
+                    button.childNodes[0].nodeValue = item.textContent + " ";
+                }
+                dropdown.classList.remove("open");
+            });
+        });
     });
 
-    items.forEach(item => {
-      item.addEventListener("click", () => {
-        button.childNodes[0].nodeValue = item.textContent + " ";
-        dropdown.classList.remove("open");
-      });
-    });
-  });
-
-  document.addEventListener("click", () => {
-    dropdowns.forEach(dropdown => dropdown.classList.remove("open"));
-  });
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
+    document.addEventListener("click", () => {
       dropdowns.forEach(dropdown => dropdown.classList.remove("open"));
-    }
-  });
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        dropdowns.forEach(dropdown => dropdown.classList.remove("open"));
+      }
+    });
 });

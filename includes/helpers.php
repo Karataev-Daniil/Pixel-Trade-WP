@@ -13,8 +13,8 @@ function resize_image_url($image, $width = 150, $height = 150) {
 function format_price_with_conversions($price, $currency = 'lei') {
     $price_number = floatval($price);
 
-    $rate_mdl_to_eur = 0.051; // 1 MDL ≈ 0.051 €
-    $rate_mdl_to_usd = 0.055; // 1 MDL ≈ 0.055 $
+    $rate_mdl_to_eur = 0.051;
+    $rate_mdl_to_usd = 0.055;
 
     $currency = strtolower($currency);
 
@@ -39,12 +39,9 @@ function format_price_with_conversions($price, $currency = 'lei') {
     $main_price = $prices[$currency];
     unset($prices[$currency]);
 
-    $conversion_html = '';
-    foreach ($prices as $p) {
-        $conversion_html .= "<p>/ ≈ {$p}</p>";
-    }
+    $other_prices = implode(' / ≈ ', $prices);
 
-    return "<b>{$main_price}</b> <div>{$conversion_html}</div>";
+    return "<b>{$main_price}</b><br><span>{$other_prices}</span>";
 }
 
 function sort_categories_by_hierarchy($categories) {

@@ -3,6 +3,7 @@ global $wpdb;
 $current_user_id = get_current_user_id();
 $post_id = get_the_ID();
 $price = get_post_meta($post_id, 'product_price', true);
+$currency = get_post_meta(get_the_ID(), 'product_currency', true) ?: 'MDL';
 
 $favorites = $wpdb->get_col($wpdb->prepare(
     "SELECT object_id FROM {$wpdb->prefix}favorites WHERE user_id = %d AND object_type = %s",
@@ -65,8 +66,8 @@ $cat_ids_str = implode(',', $cat_ids);
         <h2 class="product-card-row-large__title title-large"><?php the_title(); ?></h2>
 
         <?php if ($price): ?>
-            <div class="product-card-row-large__price body-larger-semibold">
-                <?= number_format((float)$price, 0, '', ','); ?> MDL
+            <div class="product-card-row-large__price uppercase-small">
+                <?= number_format((float)$price, 0, '', ','); ?> <?= esc_html($currency); ?>
             </div>
         <?php endif; ?>
 

@@ -4,6 +4,13 @@ if (!$product_id) return;
 
 require_once get_theme_file_path('includes/product-helpers.php');
 
+$current_user_id = get_current_user_id();
+$form_data = get_transient('product_form_errors_' . $current_user_id);
+delete_transient('product_form_errors_' . $current_user_id);
+
+$errors = $form_data['errors'] ?? [];
+$old = $form_data['old'] ?? [];
+
 $title       = esc_attr(get_the_title($product_id));
 $content     = esc_textarea(get_post_field('post_content', $product_id));
 $status      = get_post_status($product_id);
@@ -17,6 +24,7 @@ $selected_terms = wp_get_post_terms($product_id, 'product_cat');
 $sorted_term_ids = function_exists('sort_categories_by_hierarchy') ? sort_categories_by_hierarchy($selected_terms) : [];
 $language    = $GLOBALS['language'] ?? 'ru';
 ?>
+
 <script>
 window.existingDynamicFields = <?php
     $dynamic_features = get_post_meta($product_id, 'dynamic_features', true);
@@ -38,6 +46,7 @@ window.existingDynamicFields = <?php
                         <?php echo t('Редактировать объявление', 'Edit Listing', 'Editează Anunț'); ?>
                     </h1>
 
+                    <!-- Type -->
                     <section class="form-group form-group--type">
                         <div class="input-block">
                             <label class="form-label label-large" for="product_type"><?php echo t('Тип объявления', 'Type', 'Tip'); ?></label>
@@ -45,9 +54,15 @@ window.existingDynamicFields = <?php
                                 <option value="sell" <?php selected($type, 'sell'); ?>><?php echo t('Продам', 'Sell', 'Vând'); ?></option>
                                 <option value="buy" <?php selected($type, 'buy'); ?>><?php echo t('Куплю', 'Buy', 'Cumpăr'); ?></option>
                             </select>
+                            <div class="form-message body-small-regular" id="message_product_type">
+                                <?php if (!empty($errors['product_type'])): ?>
+                                    <span class="error-text"><?php echo esc_html($errors['product_type']); ?></span>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </section>
 
+                    <!-- Categories -->
                     <fieldset class="form-group form-group--categories">
                         <div id="category-selectors" class="category-selectors" data-restored="1">
                             <div id="preselected-categories" data-terms="<?php echo esc_attr(json_encode($sorted_term_ids)); ?>"></div>
@@ -61,16 +76,28 @@ window.existingDynamicFields = <?php
                             </script>
                         </div>
                         <input type="hidden" id="selected_categories_input" name="product_categories[]" value="">
+                        <div class="form-message body-small-regular" id="message_selected_categories">
+                            <?php if (!empty($errors['selected_categories'])): ?>
+                                <span class="error-text"><?php echo esc_html($errors['selected_categories']); ?></span>
+                            <?php endif; ?>
+                        </div>
                     </fieldset>
 
+                    <!-- Dynamic Features -->
                     <section class="form-group form-group--dynamic-features" id="dynamic-features-container">
                         <label class="label-large">
                             <?php echo t('Дополнительные характеристики', 'Additional features', 'Caracteristici suplimentare'); ?>
                         </label>
                         <div class="dynamic-features-fields" id="dynamic-features-fields"></div>
                         <input type="hidden" id="dynamic_fields_input" name="dynamic_fields" value="">
+                        <div class="form-message body-small-regular" id="message_dynamic_fields">
+                            <?php if (!empty($errors['dynamic_fields'])): ?>
+                                <span class="error-text"><?php echo esc_html($errors['dynamic_fields']); ?></span>
+                            <?php endif; ?>
+                        </div>
                     </section>
 
+                    <!-- Tabs (Title/Description) -->
                     <section class="form-group form-group--tabs tabs">
                         <ul class="tab-buttons" role="tablist">
                             <?php foreach (['ru','en','ro'] as $lang): ?>
@@ -82,44 +109,35 @@ window.existingDynamicFields = <?php
                             <?php
                             $title_key = $lang === 'ru' ? 'product_title' : "title_{$lang}";
                             $desc_key  = $lang === 'ru' ? 'product_content' : "description_{$lang}";
-                            $title_val = $lang === 'ru' ? $title : esc_attr(get_post_meta($product_id, "_title_{$lang}", true));
-                            $desc_val  = $lang === 'ru' ? $content : esc_textarea(get_post_meta($product_id, "_description_{$lang}", true));
+                            $title_val = $old[$title_key] ?? ($lang === 'ru' ? $title : esc_attr(get_post_meta($product_id, "_title_{$lang}", true)));
+                            $desc_val  = $old[$desc_key] ?? ($lang === 'ru' ? $content : esc_textarea(get_post_meta($product_id, "_description_{$lang}", true)));
                             ?>
                             <div class="tab-content <?php if ($language === $lang) echo 'active'; ?>" data-lang="<?php echo $lang; ?>" id="tab-<?php echo $lang; ?>">
                                 <div class="input-block">
                                     <label class="label-large" for="title_<?php echo $lang; ?>"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
                                     <input type="text" id="title_<?php echo $lang; ?>" name="<?php echo $title_key; ?>" class="form-input input--secondary body-medium-regular" value="<?php echo $title_val; ?>">
+                                    <div class="form-message body-small-regular" id="message_<?php echo $title_key; ?>">
+                                        <?php if (!empty($errors[$title_key])): ?>
+                                            <span class="error-text"><?php echo esc_html($errors[$title_key]); ?></span>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
 
                                 <div class="input-block">
                                     <label class="label-large" for="desc_<?php echo $lang; ?>"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
                                     <textarea id="desc_<?php echo $lang; ?>" name="<?php echo $desc_key; ?>" rows="12" maxlength="2000" oninput="updateCharCount(this)" class="form-textarea textarea--secondary body-medium-regular"><?php echo $desc_val; ?></textarea>
                                     <small class="form-hint body-small-regular">0 / 2000</small>
+                                    <div class="form-message body-small-regular" id="message_<?php echo $desc_key; ?>">
+                                        <?php if (!empty($errors[$desc_key])): ?>
+                                            <span class="error-text"><?php echo esc_html($errors[$desc_key]); ?></span>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
-
-                        <div class="content-setting">
-                            <div id="translation-message" class="form-message body-small-regular"></div>
-                            <div class="dropdown">
-                                <button id="translation-action-button" class="secondary-button-small" type="button">
-                                    <?php echo t('Действия', 'Actions', 'Acțiuni'); ?>
-                                </button>
-                                <div class="dropdown-content" id="translation-action-menu">
-                                    <button class="link-button-gray" type="button" onclick="generateTranslations()">
-                                        <?php echo t('Генерировать переводы', 'Generate translations', 'Generează traduceri'); ?>
-                                    </button>
-                                    <button class="link-button-gray" type="button" onclick="showImproveOptions()">
-                                        <?php echo t('Улучшить текст', 'Improve text', 'Îmbunătățește textul'); ?>
-                                    </button>
-                                    <button class="link-button-gray" type="button" onclick="generateSEOText()">
-                                        <?php echo t('Сгенерировать SEO-текст', 'Generate SEO text', 'Generează text SEO'); ?>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </section>
-                        
+
+                    <!-- Gallery -->
                     <fieldset class="form-group form-group--gallery">
                         <label class="form-label label-large" for="product_gallery_input">
                             <?php echo t('Изображения (до 10 шт., первое — миниатюра)', 'Images (up to 10, first is thumbnail)', 'Imagini (până la 10, prima este miniatura)'); ?>
@@ -130,7 +148,6 @@ window.existingDynamicFields = <?php
                         <input type="hidden" id="remove_gallery_ids_input" name="remove_gallery_ids_input" value="">
 
                         <div id="gallery_preview" class="gallery-preview">
-
                             <?php foreach ($gallery as $index => $id): ?>
                                 <div class="gallery-item<?php echo ($index === 0) ? ' thumbnail' : ''; ?>" data-id="<?php echo esc_attr($id); ?>">
                                     <?php echo wp_get_attachment_image($id, 'medium'); ?>
@@ -152,18 +169,20 @@ window.existingDynamicFields = <?php
                                 </span>
                             </label>
                         </div>
-                            
                         <small class="form-hint body-small-regular">
                             <?php echo t('Первое изображение станет миниатюрой.', 'The first image will become the thumbnail.', 'Prima imagine va deveni miniatura.'); ?>
                         </small>
-                        <div class="form-message body-small-regular" id="message_product_gallery"></div>
+                        <div class="form-message body-small-regular" id="message_product_gallery">
+                            <?php if (!empty($errors['product_gallery'])): ?>
+                                <span class="error-text"><?php echo esc_html($errors['product_gallery']); ?></span>
+                            <?php endif; ?>
+                        </div>
                     </fieldset>
 
+                    <!-- Price -->
                     <div class="form-group form-group--price">
                         <div class="form-group__left">
-                            <label class="form-label label-large" for="product_price">
-                                <?php echo t('Цена', 'Price', 'Preț'); ?>
-                            </label>
+                            <label class="form-label label-large" for="product_price"><?php echo t('Цена', 'Price', 'Preț'); ?></label>
                             <div class="price-input-wrapper">
                                 <div class="input-block">
                                     <input type="number" step="0.01" name="product_price" id="product_price"
@@ -171,6 +190,11 @@ window.existingDynamicFields = <?php
                                         class="form-input input--secondary body-medium-regular"
                                         placeholder="<?php echo t('Укажите цену', 'Enter the price', 'Introduceți prețul'); ?>"
                                         min="0.01" max="1000000">
+                                    <div class="form-message body-small-regular" id="message_product_price">
+                                        <?php if (!empty($errors['product_price'])): ?>
+                                            <span class="error-text"><?php echo esc_html($errors['product_price']); ?></span>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
 
                                 <div class="input-block">
@@ -180,9 +204,16 @@ window.existingDynamicFields = <?php
                                         <option value="usd" <?php selected($currency, 'usd'); ?>>usd</option>
                                         <option value="eur" <?php selected($currency, 'eur'); ?>>eur</option>
                                     </select>
+                                    <div class="form-message body-small-regular" id="message_product_currency">
+                                        <?php if (!empty($errors['product_currency'])): ?>
+                                            <span class="error-text"><?php echo esc_html($errors['product_currency']); ?></span>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>                 
                             </div>
                         </div>
+
+                        <!-- Status -->
                         <div class="form-group__right">
                             <div class="input-block">
                                 <label class="form-label label-large" for="product_status"><?php echo t('Статус', 'Status', 'Stare'); ?></label>
@@ -190,9 +221,13 @@ window.existingDynamicFields = <?php
                                     <option value="draft" <?php selected($status, 'draft'); ?>><?php echo t('Черновик', 'Draft', 'Schiță'); ?></option>
                                     <option value="publish" <?php selected($status, 'publish'); ?>><?php echo t('Опубликован', 'Published', 'Publicat'); ?></option>
                                 </select>
+                                <div class="form-message body-small-regular" id="message_product_status">
+                                    <?php if (!empty($errors['product_status'])): ?>
+                                        <span class="error-text"><?php echo esc_html($errors['product_status']); ?></span>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-message body-small-regular" id="message_product_status"></div>
                     </div>
 
                     <div class="form-group">

@@ -100,6 +100,22 @@ $author_id = $product['author_id'];
 $author_registered = get_the_author_meta('user_registered');
 $author_region = get_user_meta($author_id, 'region', true);
 
+if ($author_region) {
+    $regions = get_moldova_regions();
+    foreach ($regions as $r) {
+        if ($r['ru'] === $author_region) {
+            if ($lang === 'en') {
+                $author_region = $r['en'];
+            } elseif ($lang === 'ro') {
+                $author_region = $r['ro'];
+            } else {
+                $author_region = $r['ru'];
+            }
+            break;
+        }
+    }
+}
+
 $user = get_userdata($author_id);
 $avatar_id = get_user_meta($user->ID, 'profile_avatar', true);
 
@@ -154,7 +170,7 @@ $allowed_cats = array_intersect(array_keys($features), $post_cats);
                                         <?php 
                                         $current_lang = $lang ?? 'ru';
                                         foreach ($features[$cat_id] as $key => $field) :
-                                            $js_key = '_' . strtolower(
+                                            $js_key = '__' . strtolower(
                                                 str_replace(' ', '-', preg_replace('/[^a-zA-Z0-9а-яёА-ЯЁ_\s]/u','',$key))
                                             );
                                             $value  = $saved_values[$js_key] ?? '';
@@ -306,8 +322,8 @@ $allowed_cats = array_intersect(array_keys($features), $post_cats);
                         </section>
                     <?php endif; ?>
                 </aside>
-
             </div>
+            <?php get_template_part('template-parts/product/related', null, ['product_id' => $product_id]); ?>
         </main>
     </div>
 </div>
