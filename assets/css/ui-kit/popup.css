@@ -67,3 +67,10 @@
 .universal-popup.info { 
   border-top-color: var(--aqua_0); 
 }
+/* Адаптив для оверлея */
+@media (max-width: 440px) {
+  .universal-popup {
+    min-width: 340px;
+    max-width: 340px;
+  }
+}

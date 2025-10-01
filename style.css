@@ -2,9 +2,12 @@
 Theme Name: PixelTrade
 Author: Daniil
 */
+html #wpadminbar {
+  display: none !important;
+}
 html, body {
   height: 100%;
-  margin: 0;
+  margin: 0 !important;
   padding: 0;
 }
 body {
@@ -340,8 +343,11 @@ p {
 .products-list .toggle-favorite svg:hover {
   stroke: var(--red_0);
 }
+.logo-link .title-largest {
+    font-size: 28px !important;
+}
 
-@media screen and (max-width: 440px) {
+@media screen and (max-width: 768px) {
   .container-big,
   .container,
   .container-medium,
@@ -349,10 +355,24 @@ p {
   .container-xsmall,
   .container-xxsmall {
     padding: 0 8px;
+    width: 100%;
+    box-sizing: border-box;
   }
-
+  
   section {
     margin: 40px 0;
+  }
+}
+@media screen and (max-width: 540px) {
+  .products-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(180px,1fr));
+    gap: 12px 8px;
+  }
+}
+@media screen and (max-width: 440px) {
+  main {
+    padding: 24px 0;
   }
 }
 
@@ -390,8 +410,28 @@ hr.dark-divider {
 }
 hr.glass-divider {
   height: 1px;
-  background-color: rgba(255,255,255,0.2); /* прозрачная линия на фоне */
+  background-color: rgba(255,255,255,0.2);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   border: none;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--gray_3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--gray_-3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--orange_5);
+}
+* {
+  scrollbar-width: thin;                        
+  scrollbar-color: var(--gray_-3) var(--gray_3);
 }

@@ -1,166 +1,178 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Main elements
-    const catalogToggle = document.querySelector("#catalogToggle");
-    const catalogDropdown = document.querySelector("#catalogDropdown");
-    const catalogOverlay = document.querySelector(".catalog-overlay");
-    const mainItems = catalogDropdown?.querySelectorAll(".catalog-main__item") || [];
-    const subcategories = catalogDropdown?.querySelectorAll(".catalog-subcategories__item") || [];
+    // --- Elements ---
+    const els = {
+        // Desktop
+        catalogToggle: document.querySelector("#catalogToggle"),
+        catalogDropdown: document.querySelector("#catalogDropdown"),
+        catalogOverlay: document.querySelector(".catalog-overlay"),
+        avatar: document.getElementById("user-avatar"),
+        searchField: document.querySelector(".search-field"),
+        searchPanel: document.querySelector(".search-panel"),
+        clearButton: document.querySelector(".search-clear-button"),
+        themeToggle: document.getElementById("theme-toggle-button"),
+        header: document.querySelector(".header"),
 
-    const avatar = document.getElementById("user-avatar");
-    const menuWrapper = avatar?.closest(".user-menu");
+        // Mobile
+        burgerButton: document.getElementById("burger-button"),
+        mobileSidebar: document.getElementById("mobile-sidebar"),
+        sidebarClose: document.getElementById("sidebar-close"),
+        mobileOverlay: document.getElementById("mobile-overlay"),
+        searchToggle: document.getElementById("search-toggle-button"),
+        mobileSearchPanel: document.getElementById("mobile-search-panel"),
+        searchCancel: document.getElementById("search-cancel"),
+        mobileLangToggle: document.getElementById("mobile-lang-toggle")
+    };
 
-    // Reset functions
+    const menuWrapper = els.avatar?.closest(".user-menu");
+
+    // --- Catalog functions ---
     const resetCatalogActive = () => {
-        mainItems.forEach(item => item.classList.remove("is-active"));
-        subcategories.forEach(sub => sub.classList.remove("is-active"));
-    };
-    const closeAllSubmenus = () => {
-        catalogDropdown.querySelectorAll(".submenu-grandchildren").forEach(g => g.classList.remove("is-open"));
-        catalogDropdown.querySelectorAll(".submenu-title").forEach(t => t.classList.remove("open"));
+        els.catalogDropdown?.querySelectorAll(".is-active").forEach(el => el.classList.remove("is-active"));
+        els.catalogDropdown?.querySelectorAll(".is-open").forEach(el => el.classList.remove("is-open"));
     };
 
-    // Universal close all
     const closeAllMainBlocks = () => {
-        // Close catalog
-        catalogDropdown.classList.remove("is-open");
-        catalogToggle.setAttribute("aria-expanded", "false");
-        catalogOverlay?.classList.remove("is-active");
-        resetCatalogActive();
-        closeAllSubmenus();
-
-        // Close user menu
+        els.catalogDropdown?.classList.remove("is-open");
+        els.catalogToggle?.setAttribute("aria-expanded", "false");
+        els.catalogOverlay?.classList.remove("is-active");
         menuWrapper?.classList.remove("active");
+        resetCatalogActive();
+        updateHeaderActive();
     };
 
-    // Catalog toggle
-    if (catalogToggle && catalogDropdown) {
-        catalogToggle.addEventListener("click", e => {
-            e.stopPropagation();
-            const isOpen = !catalogDropdown.classList.contains("is-open");
+    // --- Desktop Catalog ---
+    els.catalogToggle?.addEventListener("click", e => {
+        e.stopPropagation();
+        const isOpen = !els.catalogDropdown.classList.contains("is-open");
+        if (isOpen) menuWrapper?.classList.remove("active");
+        els.catalogDropdown.classList.toggle("is-open", isOpen);
+        els.catalogOverlay?.classList.toggle("is-active", isOpen);
+        els.catalogToggle.setAttribute("aria-expanded", isOpen);
 
-            // Close user menu if opening catalog
-            if (isOpen) menuWrapper?.classList.remove("active");
+        if (isOpen) {
+            resetCatalogActive();
+            const firstMain = els.catalogDropdown.querySelector(".catalog-main__item");
+            const firstSub = els.catalogDropdown.querySelector(".catalog-subcategories__item");
+            firstMain?.classList.add("is-active");
+            firstSub?.classList.add("is-active");
+        }
 
-            catalogDropdown.classList.toggle("is-open", isOpen);
-            catalogToggle.setAttribute("aria-expanded", isOpen);
-            catalogOverlay?.classList.toggle("is-active", isOpen);
-
-            if (isOpen) {
-                resetCatalogActive();
-                closeAllSubmenus();
-                if (mainItems[0]) mainItems[0].classList.add("is-active");
-                if (subcategories[0]) subcategories[0].classList.add("is-active");
-            }
-        });
-
-        catalogOverlay?.addEventListener("click", closeAllMainBlocks);
-    }
-
-    // Main items hover
-    mainItems.forEach(item => {
-        item.addEventListener("mouseover", () => {
-            const id = item.dataset.category;
-            mainItems.forEach(i => i.classList.toggle("is-active", i === item));
-            subcategories.forEach(sub => sub.classList.toggle("is-active", sub.dataset.category === id));
-            closeAllSubmenus();
-        });
+        setTimeout(updateHeaderActive, 0);
     });
 
-    // Submenu toggle
-    catalogDropdown.querySelectorAll(".submenu-title a").forEach(toggle => {
-        toggle.addEventListener("click", e => {
-            e.preventDefault();
-            const parent = toggle.closest(".submenu-block");
-            const grandchildren = parent?.querySelector(".submenu-grandchildren");
-            if (grandchildren) {
-                catalogDropdown.querySelectorAll(".submenu-grandchildren").forEach(g => {
-                    if (g !== grandchildren) g.classList.remove("is-open");
-                });
-                catalogDropdown.querySelectorAll(".submenu-title").forEach(t => {
-                    if (t !== toggle.parentElement) t.classList.remove("open");
-                });
-                grandchildren.classList.toggle("is-open");
-                toggle.parentElement.classList.toggle("open");
-            }
-        });
+    els.catalogOverlay?.addEventListener("click", closeAllMainBlocks);
+
+    els.catalogDropdown?.addEventListener("mouseover", e => {
+        const item = e.target.closest(".catalog-main__item");
+        if (!item) return;
+        const id = item.dataset.category;
+        els.catalogDropdown.querySelectorAll(".catalog-main__item")
+            .forEach(i => i.classList.toggle("is-active", i === item));
+        els.catalogDropdown.querySelectorAll(".catalog-subcategories__item")
+            .forEach(sub => sub.classList.toggle("is-active", sub.dataset.category === id));
+        els.catalogDropdown.querySelectorAll(".submenu-grandchildren").forEach(g => g.classList.remove("is-open"));
     });
 
-    // Hover grandchildren links
-    catalogDropdown.querySelectorAll(".submenu-grandchildren li a").forEach(link => {
-        link.addEventListener("mouseover", () => link.classList.add("is-hovered"));
-        link.addEventListener("mouseout", () => link.classList.remove("is-hovered"));
+    els.catalogDropdown?.addEventListener("click", e => {
+        const toggle = e.target.closest(".submenu-title a");
+        if (!toggle) return;
+        e.preventDefault();
+
+        const parent = toggle.closest(".submenu-block");
+        const grandchildren = parent?.querySelector(".submenu-grandchildren");
+        if (!grandchildren) return;
+
+        els.catalogDropdown.querySelectorAll(".submenu-grandchildren").forEach(g => g !== grandchildren && g.classList.remove("is-open"));
+        els.catalogDropdown.querySelectorAll(".submenu-title").forEach(t => t !== toggle.parentElement && t.classList.remove("open"));
+
+        grandchildren.classList.toggle("is-open");
+        toggle.parentElement.classList.toggle("open");
     });
 
-    // User avatar menu
-    if (avatar && menuWrapper) {
-        avatar.addEventListener("click", e => {
-            e.stopPropagation();
-            const isOpen = !menuWrapper.classList.contains("active");
+    // --- User menu ---
+    els.avatar?.addEventListener("click", e => {
+        e.stopPropagation();
+        const isOpen = !menuWrapper.classList.contains("active");
+        if (isOpen) closeAllMainBlocks();
+        menuWrapper.classList.toggle("active", isOpen);
+        setTimeout(updateHeaderActive, 0);
+    });
 
-            // Close catalog if opening user menu
-            if (isOpen) closeAllSubmenus(), catalogDropdown.classList.remove("is-open"), catalogOverlay?.classList.remove("is-active"), catalogToggle.setAttribute("aria-expanded", "false");
-
-            menuWrapper.classList.toggle("active", isOpen);
-        });
-    }
-
-    // Document click
+    // --- Global click close ---
     document.addEventListener("click", e => {
-        if (!e.target.closest(".catalog-wrapper") &&
-            !e.target.closest(".user-menu") &&
-            !e.target.closest(".search-panel")) {
+        if (!e.target.closest(".catalog-wrapper, .user-menu, .search-panel")) {
             closeAllMainBlocks();
         }
+        setTimeout(updateHeaderActive, 0);
     });
 
-    // Search field
-    const searchField = document.querySelector(".search-field");
-    const searchPanel = document.querySelector(".search-panel");
-    const clearButton = document.querySelector(".search-clear-button");
-
+    // --- Search Desktop ---
     const updateSearchState = () => {
-        if (!searchField || !searchPanel) return;
-
-        // Close all main blocks when typing
+        if (!els.searchField || !els.searchPanel) return;
         closeAllMainBlocks();
-
-        if (searchField.value.trim() !== '') {
-            searchPanel.classList.add("has-content");
-            searchPanel.style.top = "28px";
-            searchField.style.paddingTop = "12px";
-            searchField.style.paddingBottom = "12px";
-            searchField.style.borderRadius = "12px";
-        } else {
-            searchPanel.classList.remove("has-content");
-            searchPanel.style.top = "0px";
-            searchField.style.paddingTop = "4px";
-            searchField.style.paddingBottom = "4px";
-            searchField.style.borderRadius = "6px";
-        }
+        const hasValue = els.searchField.value.trim() !== "";
+        els.searchPanel.classList.toggle("search-active", hasValue);
+        els.searchField.classList.toggle("search-active", hasValue);
     };
-
-    searchField?.addEventListener("input", updateSearchState);
-    clearButton?.addEventListener("click", () => {
-        if (!searchField) return;
-        searchField.value = '';
+    els.searchField?.addEventListener("input", updateSearchState);
+    els.clearButton?.addEventListener("click", () => {
+        if (!els.searchField) return;
+        els.searchField.value = "";
         updateSearchState();
-        searchField.focus();
+        els.searchField.focus();
     });
     updateSearchState();
 
-    // Theme toggle
-    const themeToggleBtn = document.getElementById("theme-toggle-button");
-    const getCookie = name => document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))?.[2] || null;
+    // --- Theme toggle ---
+    const getCookie = name => document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`))?.[2] || null;
     const setTheme = theme => {
         document.documentElement.setAttribute("data-theme", theme);
-        document.cookie = `theme=${theme};path=/;max-age=${30*24*60*60}`;
+        document.cookie = `theme=${theme};path=/;max-age=${30 * 24 * 60 * 60}`;
     };
-    if (themeToggleBtn) {
+    if (els.themeToggle) {
         let currentTheme = getCookie("theme") || document.documentElement.getAttribute("data-theme") || "light";
         setTheme(currentTheme);
-        themeToggleBtn.addEventListener("click", () => {
+        els.themeToggle.addEventListener("click", () => {
             const newTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
             setTheme(newTheme);
         });
     }
+
+    // --- Header scroll & active ---
+    window.addEventListener("scroll", () => {
+        els.header.classList.toggle("header-scrolled", window.scrollY > 50);
+    });
+    const updateHeaderActive = () => {
+        const isActive = (els.catalogDropdown?.classList.contains("is-open") || 
+                          menuWrapper?.classList.contains("active"));
+        els.header.classList.toggle("header-active", isActive);
+    };
+
+    // --- Mobile Sidebar ---
+    els.burgerButton?.addEventListener("click", () => {
+        els.mobileSidebar?.classList.add("open");
+        els.mobileOverlay?.classList.add("active");
+    });
+    els.sidebarClose?.addEventListener("click", () => {
+        els.mobileSidebar?.classList.remove("open");
+        els.mobileOverlay?.classList.remove("active");
+    });
+    els.mobileOverlay?.addEventListener("click", () => {
+        els.mobileSidebar?.classList.remove("open");
+        els.mobileOverlay?.classList.remove("active");
+    });
+
+    // --- Mobile Search ---
+    els.searchToggle?.addEventListener("click", () => {
+        els.mobileSearchPanel?.classList.add("active");
+    });
+    els.searchCancel?.addEventListener("click", () => {
+        els.mobileSearchPanel?.classList.remove("active");
+    });
+
+    // --- Mobile Language Switcher (если есть) ---
+    els.mobileLangToggle?.addEventListener("click", () => {
+        els.mobileLangToggle.classList.toggle("active");
+        // здесь можно добавить логику смены языка
+    });
 });

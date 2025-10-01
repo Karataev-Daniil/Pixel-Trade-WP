@@ -38,7 +38,6 @@
 
 .category-card span {
   font-weight: 600;
-  font-size: 1rem;
   max-width: 120px;
   transition: color 0.4s ease, text-shadow 0.4s ease;
 }
@@ -163,53 +162,70 @@
   padding: 4px 0;
   transition: color 0.2s, font-weight 0.2s;
 }
+@media screen and (max-width: 1024px) {
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 83px);
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
 
+    /* Скрыть скролбар */
+    scrollbar-width: none; /* Firefox */
+  }
 
-/* Обертка слайдера */
-#price-slider {
-  margin: 8px 0;
-  border: 1px solid var(--gray_0);
-  background-color: var(--gray_6);
-  border-radius: 6px;
-  padding: 0;
-  box-sizing: border-box;
-  transition: border-color 0.3s ease, background-color 0.3s ease;
+  .categories-grid::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+  }
 }
-#price-slider:hover {
-  border-color: var(--orange_-1);
-  background-color: var(--orange_5);
-}
-.noUi-target {
-  border: none;
-  background: transparent;
-}
-.noUi-base {
-  height: 8px;
-  border-radius: 4px;
-  background-color: var(--gray_4);
-}
-.noUi-horizontal .noUi-handle {
-  width: 30px;
-  height: 30px;
-}
-.noUi-connect {
-  background-color: var(--orange_0);
-  border-radius: 4px;
-}
-.noUi-handle {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: var(--orange_0);
-  border: 2px solid var(--orange_-1);
-  top: -6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-.noUi-handle:hover {
-  background-color: var(--orange_-1);
-  border-color: var(--orange_0);
-}
-.noUi-horizontal {
-  height: 8px;
+
+@media screen and (max-width: 440px) {
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 62px);
+    margin: 0 -8px;
+    padding: 0 8px;
+    gap: 8px;
+  }
+  .category-card {
+    min-height: 100px;
+    padding: 12px;
+  }
+  .category-card__image {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+  }
+  .category-avtomobili .category-card__image img { 
+    bottom: -50px;
+  }
+  .category-detskiy-mir .category-card__image img {
+    top: -10px;
+  }
+  .category-dom-i-interer .category-card__image img {
+    top: -10px;
+    left: -10px;
+  }
+  .category-nedvizhimost .category-card__image img {
+    top: -30px;
+  }
+  .category-zootovary .category-card__image img {
+    top: -20px;
+    left: -10px;
+  }
+  .category-krasota-i-zdorove .category-card__image img {
+    top: -30px;
+    left: -20px;
+  }
+  .category-elektronika .category-card__image img {
+    left: -10px;
+  }
+  .category-card__image img {
+    position: relative;
+    width: 75%;
+  }
+  .featured-categories {
+    margin: 0 0 24px;
+  }
 }

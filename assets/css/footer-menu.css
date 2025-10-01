@@ -17,6 +17,7 @@
   gap: 16px;
 }
 .footer__logo {
+  width: 150px;
   display: inline-block;
 }
 

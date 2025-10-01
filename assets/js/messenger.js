@@ -29,6 +29,26 @@
   function ChatList({ threads, currentId, onSelect }){
     return React.createElement('div', { className: 'dm-sidebar' }, [
       React.createElement('div', { className: 'dm-sidebar-header title-medium', key: 'header' }, 'Чаты'),
+      React.createElement('button', {
+        className: 'dm-close-b',
+        onClick: () => {
+          document.body.style.overflow = '';
+          document.body.style.paddingRight = '';
+          const root = document.getElementById('simple-dm-root');
+          if (root) {
+            root.classList.remove('active');
+            root.classList.remove('chat-open');
+          }
+          const overlay = document.querySelector('.dm-overlay');
+          if (overlay) overlay.classList.remove('active');
+        
+          appSetCurrent(null);
+          appSetMessages([]);
+          appSetSince(0);
+          appSetEditingMessage(null);
+        },
+        key: 'close-b'
+      }, '✕'),
       threads.length === 0
         ? React.createElement('div', { className: 'dm-empty body-medium-regular', key: 'empty' }, 'Чатов пока нет')
         : threads.map(t => React.createElement(ThreadItem, { key: t.id, thread: t, active: t.id === currentId, onSelect }))
@@ -203,7 +223,7 @@
       }),
       React.createElement('div', { key:'btns', className:'dm-composer-btns' }, [
         React.createElement('button', { key:'send', onClick:send, className:'dm-send button-medium primary-button-larger', disabled: blocked && !blockedByMe }, '➤'),
-        editingMessage && React.createElement('button', { key:'cancel', onClick:onCancelEdit, className:'dm-cancel button-medium secondary-button-small' }, 'x')
+        // editingMessage && React.createElement('button', { key:'cancel', onClick:onCancelEdit, className:'dm-cancel button-medium secondary-button-small' }, 'x')
       ])
     ]);
   }
@@ -255,12 +275,15 @@
       setSince(0);
       setEditingMessage(null);
       setInitialLoaded(false);
-
+      
+      const root = document.getElementById('simple-dm-root');
+      if (root) root.classList.add('chat-open');
+      
       await dmApi(`threads/${tid}/read`, { method: 'POST' });
       await loadThreads();
-
+      
       setThreads(prev => prev.map(t => t.id === tid ? {...t, unread_count:0} : t));
-
+      
       const ms = await loadMessages(tid, 0);
       const mapped = ms.map(m => ({ ...m, lang: m.lang || 'auto' }));
       setMessages(mapped);
@@ -509,7 +532,7 @@
                 React.createElement('div', { className:'dm-context-item', key:'block-chat', onClick:async()=>await blockUser() }, iAmBlocker ? 'Разблокировать' : isBlocked ? 'Заблокирован' : 'Заблокировать'),
                 React.createElement('div', { className:'dm-context-item', key:'profile', onClick:()=>openProfile(otherUser.id) }, 'Профиль')
               ]),
-              React.createElement('button', { className:'dm-close-btn', onClick:()=>setCurrent(null), key:'close' }, '✕')
+              React.createElement('button',{className:'dm-close-btn',onClick:()=>{setCurrent(null);const root=document.getElementById('simple-dm-root');if(root)root.classList.remove('chat-open');},key:'close'},'✕')
             ])
           ]),
           React.createElement('div', { className:'dm-translate-toggle', key:'translate' }, [
@@ -541,33 +564,15 @@
           })
         ),
         current && React.createElement(Composer, { key:'composer', onSend:sendMessage, editingMessage, onCancelEdit:cancelEditing, blocked:isBlocked, blockedByMe:iAmBlocker }),
-
-        React.createElement('button', {
-          className: 'dm-close-b',
-          onClick: () => {
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
-            const root = document.getElementById('simple-dm-root');
-            if (root) root.classList.remove('active');
-            const overlay = document.querySelector('.dm-overlay');
-            if (overlay) overlay.classList.remove('active');
-          
-            appSetCurrent(null);
-            appSetMessages([]);
-            appSetSince(0);
-            appSetEditingMessage(null);
-          },
-          key: 'close-b'
-        }, '✕')
-      ])
+      ]),
     ]);
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
       const root = document.getElementById('simple-dm-root');
-      const mainBtn = document.getElementById('dm-toggle-btn-header');
+      const buttons = document.querySelectorAll('.dm-toggle-btn');
 
-      if (!root || !mainBtn) return;
+      if (!root || buttons.length === 0) return;
 
       const overlay = document.createElement('div');
       overlay.className = 'dm-overlay';
@@ -578,20 +583,19 @@
               const threads = await dmApi('threads');
               const unreadTotal = threads.reduce((sum, t) => sum + (t.unread_count || 0), 0);
 
-              let badge = mainBtn.querySelector('.dm-unread-total');
-
-              if (unreadTotal > 0) {
-                  if (!badge) {
-                      badge = document.createElement('span');
-                      badge.className = 'dm-unread-total';
-                      mainBtn.appendChild(badge);
-                  }
-                  badge.textContent = unreadTotal;
-              } else {
-                  if (badge) {
+              buttons.forEach(btn => {
+                  let badge = btn.querySelector('.dm-unread-total');
+                  if (unreadTotal > 0) {
+                      if (!badge) {
+                          badge = document.createElement('span');
+                          badge.className = 'dm-unread-total';
+                          btn.appendChild(badge);
+                      }
+                      badge.textContent = unreadTotal;
+                  } else if (badge) {
                       badge.remove();
                   }
-              }
+              });
           } catch (err) {
               console.warn('Ошибка получения количества непрочитанных сообщений:', err);
           }
@@ -614,6 +618,7 @@
           document.body.style.paddingRight = '';
 
           root.classList.remove('active');
+          root.classList.remove('chat-open');
           overlay.classList.remove('active');
 
           appSetCurrent(null);
@@ -623,17 +628,18 @@
       };
 
       overlay.addEventListener('click', closeDm);
-      mainBtn.addEventListener('click', openDm);
+
+      buttons.forEach(btn => btn.addEventListener('click', openDm));
 
       document.body.addEventListener('click', (e) => {
-          const btn = e.target.closest('.dm-write-btn');
-          if (!btn) return;
+          const writeBtn = e.target.closest('.dm-write-btn');
+          if (!writeBtn) return;
 
-          const userId = btn.dataset.user;
+          const userId = writeBtn.dataset.user;
           if (!userId) return;
 
           appSetCurrent(userId);
-          mainBtn.click();
+          openDm();
       });
 
       ReactDOM.createRoot(root).render(React.createElement(App));
