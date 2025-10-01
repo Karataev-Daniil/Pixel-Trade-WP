@@ -6,12 +6,8 @@ get_header();
 <div class="main__wrapper content-main">
     <div class="container-medium">
         <main>
-            <!-- <h1 class="display-large">
-                <?= t('PixelTrade — маркетплейс в Молдове', 'PixelTrade — Marketplace in Moldova', 'PixelTrade — Piață online în Moldova'); ?>
-            </h1> -->
             <?php
             $featured_categories = [668, 804, 853, 1015, 909, 976, 1036, 1064, 730];
-            // 947,
             if (!empty($featured_categories)):
             ?>
             <section class="featured-categories">
@@ -21,8 +17,6 @@ get_header();
                         if (!$term) continue;
                     
                         $color_id = get_term_meta($cat_id, 'category_image_color', true);
-                        // category_image_color
-                        // category_image_outline
 
                         $color_url = $color_id ? wp_get_attachment_url($color_id) : '';
 
@@ -59,18 +53,21 @@ get_header();
                         </h2>
                         <div class="products-list" id="recommended-products">
                             <?php
-                            // Берём сразу 36 товаров (3 страницы по 12)
+                            $per_page = isset($_POST['per_page']) ? intval($_POST['per_page']) : (wp_is_mobile() ? 12 : 36);
+
                             if (function_exists('get_recommended_products_for_user')) {
-                                $query = get_recommended_products_for_user(36);
+                                $query = get_recommended_products_for_user($per_page);
                             } else {
-                                // fallback
                                 $query = new WP_Query([
                                     'post_type'      => 'products',
-                                    'posts_per_page' => 36,
+                                    'posts_per_page' => $per_page,
                                     'orderby'        => 'date',
                                     'order'          => 'DESC',
                                 ]);
+                                $query->found_posts = $query->found_posts ?? $query->post_count;
                             }
+
+                            $query->found_posts = $query->found_posts ?? count($query->posts);
                         
                             if ($query->have_posts()):
                                 while ($query->have_posts()): $query->the_post();
@@ -83,8 +80,12 @@ get_header();
                             ?>
                         </div>
                         
-                        <?php if ($query->found_posts > 36): ?>
-                            <button id="load-more-products" data-offset="36"><?= t('Загрузить ещё', 'Load more', 'Încarcă mai mult'); ?></button>
+                        <?php if ($query->found_posts > $per_page): ?>
+                            <button id="load-more-products" 
+                                    data-offset="<?= $per_page ?>" 
+                                    data-per-page="<?= $per_page ?>">
+                                <?= t('Загрузить ещё', 'Load more', 'Încarcă mai mult'); ?>
+                            </button>
                         <?php endif; ?>
                     </section>
                         
@@ -93,16 +94,18 @@ get_header();
                         $('#load-more-products').on('click', function(){
                             var btn = $(this);
                             var offset = btn.data('offset');
+                            var perPage = btn.data('per-page');
                         
                             $.post('<?php echo admin_url("admin-ajax.php"); ?>', {
                                 action: 'load_more_products',
-                                offset: offset
+                                offset: offset,
+                                per_page: perPage
                             }, function(response){
                                 if(response.trim() === '') {
-                                    btn.hide(); // больше товаров нет
+                                    btn.hide();
                                 } else {
                                     $('#recommended-products').append(response);
-                                    btn.data('offset', offset + 36); // обновляем смещение
+                                    btn.data('offset', offset + perPage);
                                 }
                             });
                         });
@@ -110,6 +113,7 @@ get_header();
                     </script>
                 </div>
 
+                <?php if ( ! wp_is_mobile() ) : ?>
                 <aside class="sidebar">
                     <section class="sidebar-block">
                         <h3 class="title-medium"><?= t('Последние избранные', 'Latest Favorites', 'Favorite recente'); ?></h3>
@@ -143,7 +147,7 @@ get_header();
                             </a>
                         </div>
                     </section>
-
+                    
                     <section class="sidebar-block">
                         <h3 class="title-medium"><?= t('Новые объявления', 'New Listings', 'Anunțuri noi'); ?></h3>
                         <?php
@@ -161,12 +165,12 @@ get_header();
                             </ul>
                         <?php wp_reset_postdata(); endif; ?>
                     </section>
-
+                            
                     <section class="sidebar-block">
                         <h3 class="title-medium"><?= t('Топ-продажи', 'Top Sales', 'Cele mai vândute'); ?></h3>
                         <?php
                         global $wpdb;
-
+                            
                         $top_products = $wpdb->get_results("
                             SELECT product_id, SUM(views) as total_views
                             FROM {$wpdb->prefix}product_daily_views
@@ -174,7 +178,7 @@ get_header();
                             ORDER BY total_views DESC
                             LIMIT 5
                         ");
-
+                            
                         if (!empty($top_products)): ?>
                             <ul class="products-list-row">
                                 <?php 
@@ -189,7 +193,7 @@ get_header();
                             </ul>
                         <?php endif; ?>
                     </section>
-
+                            
                     <section class="info-blocks">
                         <div class="info-block">
                             <h3><?= t('Преимущества сайта', 'Site Benefits', 'Beneficiile site-ului'); ?></h3>
@@ -199,18 +203,19 @@ get_header();
                                 <li><?= t('Уникальные преимущества', 'Unique Benefits', 'Beneficii unice'); ?></li>
                             </ul>
                         </div>
-
+                            
                         <div class="info-block">
                             <h3><?= t('Реклама / Акции', 'Ads / Promotions', 'Publicitate / Promoții'); ?></h3>
                             <p><?= t('Здесь можно разместить баннеры или акции', 'Place banners or promotions here', 'Aici puteți plasa bannere sau promoții'); ?></p>
                         </div>
-
+                            
                         <div class="info-block">
                             <h3><?= t('О компании', 'About Company', 'Despre companie'); ?></h3>
                             <p><?= t('Краткая информация о компании', 'Short info about the company', 'Informații scurte despre companie'); ?></p>
                         </div>
                     </section>
                 </aside>
+                <?php endif; ?>
             </div>
         </main>
     </div>

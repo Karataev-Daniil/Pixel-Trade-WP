@@ -13,7 +13,7 @@ function clearFieldMessage(id) {
     el.classList.remove('error', 'warning', 'success');
 }
 
-let language = window.language || 'ru';
+window.language = window.language || 'ru'; 
 
 window.t = function(ru, en, ro) {
     if (window.language === 'en') return en;

@@ -34,7 +34,6 @@
     right: -30px;
     width: 28px;
     height: 28px;
-    background: var(--gray_6);
     color: var(--gray_-6);
     border-radius: 50%;
     border: none;
@@ -44,10 +43,9 @@
     align-items: center;
     justify-content: center;
     z-index: 10000;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
-/* Sidebar (Список чатов) */
+/* Sidebar */
 .dm-wrap {
     display: flex;
     height: 100%;
@@ -79,16 +77,16 @@
 .dm-thread.active {
     background: var(--orange_4);
 }
+.dm-thread.active:hover {
+    background: var(--orange_2);
+}
 .dm-thread:hover {
     background: var(--gray_5);
 }
 
 .dm-avatar-wrapper {
+    display: flex;
     position: relative;
-    /* border: 1px solid var(--gray_1);
-    border-radius: 50%;
-    height: 40px;
-    width: 40px; */
 }
 .dm-avatar {
     width: 40px;
@@ -110,11 +108,15 @@
     width: 18px;
     height: 18px;
 }
+.dm-name {
+    line-height: 130%;
+}
 .dm-last {
     color: var(--gray_-2);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 130%;
 }
 
 .dm-thread-meta {
@@ -127,7 +129,6 @@
     font-size: 11px;
 }
 
-/* Чат */
 .dm-chat {
     flex: 1;
     display: flex;
@@ -205,7 +206,7 @@
     margin-top: 2px;
 }
 
-/* Composer (Поле ввода) */
+/* Composer */
 .dm-composer {
     display: flex;
     border-top: 2px solid var(--gray_1);
@@ -244,7 +245,6 @@
     margin: 6px 0;
 }
 
-/* Кнопки перевода */
 .dm-translate-btn {
     margin-left: 8px;
     background: none;
@@ -371,7 +371,7 @@
     position: absolute;
     bottom: -70px;
     left: -85px;
-    display: none; /* по умолчанию скрыто */
+    display: none;
     background: var(--gray_5); 
     border: 1px solid var(--gray_1); 
     border-radius: 4px;
@@ -379,10 +379,9 @@
     z-index: 10;
 }
 .dm-more-menu.active { 
-    display: block; /* показываем, когда активен */
+    display: block;
 }
 
-/* Анимации */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -422,7 +421,6 @@
     }
     .dm-root.chat-open .dm-sidebar .dm-thread-meta,
     .dm-root.chat-open .dm-sidebar .dm-thread .dm-last,
-    .dm-root.chat-open .dm-sidebar-header,
     .dm-root.chat-open .dm-upd,
     .dm-root.chat-open .dm-close-b {
         display: none;
@@ -444,9 +442,9 @@
         flex-direction: column;
         position: absolute;
         top: 0;
-        left: 60px;
+        left: 63px;
         right: 0;
-        width: calc(100% - 60px);
+        width: calc(100% - 63px);
         height: 100%;
         background: var(--gray_4);
         z-index: 10;

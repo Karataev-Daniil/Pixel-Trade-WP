@@ -16,14 +16,16 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
 
     $limit = max(1, (int)$limit);
     $offset = max(0, (int)$offset);
-    $post_type = 'products'; // совпадает с вашим кодом
+    $post_type = 'products';
 
-    // кешируем список id рекомендаций (массив int)
-    $user_key = is_user_logged_in() ? 'user_' . get_current_user_id() : 'ip_' . md5( ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR']) );
+    $user_key = is_user_logged_in() 
+        ? 'user_' . get_current_user_id() 
+        : 'ip_' . md5( $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] );
+
     $cache_key = "recommended_products_{$user_key}_{$post_type}_{$limit}_{$offset}";
     $cached_ids = get_transient($cache_key);
+
     if (is_array($cached_ids) && count($cached_ids) >= 1) {
-        // Возвращаем WP_Query, сохраняя порядок
         return new WP_Query([
             'post_type' => $post_type,
             'post__in' => array_slice($cached_ids, 0, $limit),
@@ -34,7 +36,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
         ]);
     }
 
-    // ==== 1) собираем просмотренные продукты для этого пользователя/по IP ====
+    // ===== 1) просмотренные продукты =====
     $user_id = is_user_logged_in() ? get_current_user_id() : 0;
     $ip_raw = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
     if (strpos($ip_raw, ',') !== false) {
@@ -60,7 +62,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
     $exclude_ids = array_slice($viewed_ids, 0, 10 + $offset);
     $exclude_ids = array_map('intval', $exclude_ids);
 
-    // 2) считаем веса категорий по просмотрам (чтобы понять интересы)
+    // ===== 2) веса категорий =====
     $cats = [];
     foreach ($viewed_ids as $pid) {
         $terms = wp_get_post_terms($pid, 'product_cat', ['fields' => 'ids']);
@@ -74,14 +76,13 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
     arsort($cats);
     $cat_ids = array_keys($cats);
 
-    // Параметры весов 
-    $W_CAT = 1000;   // вес за совпадение по категории
-    $W_POP = 200;    // вес за популярность
-    $W_RANDOM = 5;   // низкий вес для рандомных
+    $W_CAT = 1000;
+    $W_POP = 200;
+    $W_RANDOM = 5;
 
     $candidates = [];
 
-    // 3) кандидаты из релевантных категорий
+    // ===== 3) кандидаты из категорий =====
     if (!empty($cat_ids)) {
         $cat_query_limit = min(300, max($limit * 4, 60));
         $cat_args = [
@@ -106,9 +107,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
             $score_cat = 0;
             if (is_array($tids)) {
                 foreach ($tids as $tid) {
-                    if (isset($cats[$tid])) {
-                        $score_cat += $cats[$tid];
-                    }
+                    if (isset($cats[$tid])) $score_cat += $cats[$tid];
                 }
             }
             if ($score_cat > 0) {
@@ -122,7 +121,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
         wp_reset_postdata();
     }
 
-    // 4) популярные товары (за последние 7 дней) — заполняет оставшееся
+    // ===== 4) популярные товары =====
     $desired_additional = max(0, $limit - count($candidates));
     if ($desired_additional > 0) {
         $limit_pop = max($desired_additional * 3, 20);
@@ -138,26 +137,22 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
         ";
         $popular_rows = $wpdb->get_results( $wpdb->prepare($sql, $limit_pop) );
         $max_views = 0;
+        foreach ($popular_rows as $r) $max_views = max($max_views, (int)$r->total_views);
+
         foreach ($popular_rows as $r) {
-            $max_views = max($max_views, (int)$r->total_views);
-        }
-        $rank = 0;
-        foreach ($popular_rows as $r) {
-            $rank++;
             $pid = (int)$r->product_id;
-            if ($pid <= 0) continue;
-            if (get_post_status($pid) !== 'publish') continue;
-            $pop_score = $max_views ? (int) ( ($r->total_views / $max_views) * $W_POP ) : $W_POP;
-            $candidates[$pid] = max($candidates[$pid] ?? 0, $candidates[$pid] ?? 0);
-            $candidates[$pid] = ($candidates[$pid] ?? 0) + $pop_score;
+            if ($pid <= 0 || get_post_status($pid) !== 'publish') continue;
+            $pop_score = $max_views ? (int)(($r->total_views / $max_views) * $W_POP) : $W_POP;
+            $candidates[$pid] = max($candidates[$pid] ?? 0, $pop_score);
+            $candidates[$pid] += $pop_score;
         }
     }
 
-    // 5) если всё ещё мало — добавляем случайные товары (low-priority)
+    // ===== 5) случайные товары =====
     $remaining = $limit - count($candidates);
     if ($remaining > 0) {
         $exclude_for_random = array_unique(array_merge($exclude_ids, array_keys($candidates)));
-        $rand_pool = min( $remaining * 8, 200 );
+        $rand_pool = min($remaining * 8, 200);
         $rand_args = [
             'post_type' => $post_type,
             'posts_per_page' => $rand_pool,
@@ -175,19 +170,11 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
         wp_reset_postdata();
     }
 
-    // 6) сортируем кандидатов по score и берём top $limit 
-    if (empty($candidates)) {
-        return new WP_Query([
-            'post_type' => $post_type,
-            'posts_per_page' => 0,
-            'no_found_rows' => true,
-        ]);
-    }
+    // ===== 6) сортировка и возврат =====
+    if (empty($candidates)) return new WP_Query(['post_type'=>$post_type,'posts_per_page'=>0,'no_found_rows'=>true]);
 
     arsort($candidates);
-    $recommended_ids = array_map('intval', array_keys($candidates));
-
-    $recommended_ids = array_slice($recommended_ids, 0, $limit);
+    $recommended_ids = array_slice(array_map('intval', array_keys($candidates)), 0, $limit);
 
     set_transient($cache_key, $recommended_ids, MINUTE_IN_SECONDS * 5);
 
@@ -197,7 +184,6 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
         'orderby' => 'post__in',
         'posts_per_page' => $limit,
         'post_status' => 'publish',
-        'no_found_rows' => true,
     ]);
 }
 
@@ -206,13 +192,13 @@ add_action('wp_ajax_nopriv_load_more_products', 'load_more_products_ajax');
 
 function load_more_products_ajax() {
     $offset = intval($_POST['offset']);
-    $limit = 36;
+    $per_page = wp_is_mobile() ? 12 : 36;
 
-    $query = get_recommended_products_for_user($limit, $offset);
+    $query = get_recommended_products_for_user($per_page, $offset);
 
     if ($query->have_posts()) {
         while ($query->have_posts()) : $query->the_post();
-            echo '<div class="product-item">' . get_the_title() . '</div>';
+            get_template_part('template-parts/product/card');
         endwhile;
     }
 
@@ -221,7 +207,5 @@ function load_more_products_ajax() {
 
 add_action('save_post_products', function($post_id, $post, $update){
     $author_id = $post->post_author;
-    if ($author_id) {
-        my_products_clear_cache($author_id);
-    }
+    if ($author_id) my_products_clear_cache($author_id);
 }, 10, 3);

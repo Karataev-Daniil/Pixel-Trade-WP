@@ -684,6 +684,9 @@ button.catalog-toggle-button {
         padding: 0;
         margin: 0;
     }
+    .sidebar-item .dm-unread-total{
+        position: static;
+    }
     .sidebar-item {
         margin-bottom: 16px;
     }
@@ -838,6 +841,10 @@ button.catalog-toggle-button {
         padding: 4px 0;
         z-index: 1000;
         border-top: 2px solid var(--gray_1);
+    }
+    .nav-item .dm-unread-total {
+        right: 20px;
+        top: -3px;
     }
     .nav-item {
         display: flex;

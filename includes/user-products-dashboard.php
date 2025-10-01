@@ -111,12 +111,17 @@ function my_products_get_status_counts($user_id){
     return $counts;
 }
 
-function my_products_clear_cache($user_id){
-    $keys = get_user_meta($user_id,'_my_products_cache_keys',true);
-    if(!empty($keys) && is_array($keys)){
-        foreach($keys as $key) delete_transient($key);
+function my_products_clear_cache($user_id) {
+    global $wpdb;
+    $transients = $wpdb->get_col("
+        SELECT option_name FROM {$wpdb->options}
+        WHERE option_name LIKE '_transient_recommended_products_user_{$user_id}_%'
+           OR option_name LIKE '_transient_timeout_recommended_products_user_{$user_id}_%'
+    ");
+    foreach ($transients as $t) {
+        $key = str_replace('_transient_', '', $t);
+        delete_transient($key);
     }
-    delete_user_meta($user_id,'_my_products_cache_keys');
 }
 
 add_action('wp_ajax_filter_my_products','my_products_filter_callback');
