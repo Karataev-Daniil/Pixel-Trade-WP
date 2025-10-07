@@ -4,26 +4,33 @@ Template Name: Избранное
 */
 get_header();
 
-// Проверка авторизации
+$current_lang = get_current_lang();
+
 if (!is_user_logged_in()) : ?>
-    <div class="favorites-page">
-        <h1><?= t('Избранное', 'Favorites', 'Favorite'); ?></h1>
-        <p>
-            <?= t('Пожалуйста', 'Please', 'Vă rugăm'); ?> 
-            <a href="<?php echo wp_login_url(get_permalink()); ?>">
-                <?= t('войдите', 'log in', 'autentificați-vă'); ?>
-            </a>, 
-            <?= t('чтобы просматривать избранное.', 'to view favorites.', 'pentru a vizualiza favoritele.'); ?>
-        </p>
+    <div class="favorites-products__wrapper content-main">
+        <div class="container-medium">
+            <main>
+                <h1 class="display-medium"><?= t('Избранное', 'Favorites', 'Favorite'); ?></h1>
+                <p class="body-small-regular">
+                    <?= t('Пожалуйста', 'Please', 'Vă rugăm'); ?> 
+                    <a class="link-button" href="<?= esc_url(home_url("/$current_lang/user/login/")); ?>">
+                        <?= t('войдите', 'log in', 'autentificați-vă'); ?>
+                    </a>, 
+                    <?= t('чтобы просматривать избранное.', 'to view favorites.', 'pentru a vizualiza favoritele.'); ?>
+                </p>
+            </main>
+        </div>
     </div>
 <?php
     get_footer();
     exit;
 endif;
 
-// Получаем избранные товары и профили пользователя из новой таблицы
 $favorites_products = favorites_get(get_current_user_id(), 'product');
 $favorites_profiles = favorites_get(get_current_user_id(), 'profile');
+
+$paged = max(1, get_query_var('paged', 1));
+$posts_per_page = 10;
 ?>
 
 <div class="favorites-products__wrapper content-main">
@@ -54,30 +61,20 @@ $favorites_profiles = favorites_get(get_current_user_id(), 'profile');
                     <?php if (!empty($favorites_products)) : ?>
                     <section class="favorites-section <?= empty($favorites_products) ? 'hidden' : ''; ?>" data-section="ads">
                         <?php
-                        $all_posts = [];
                         $category_counts = [];
-
-                        $query = new WP_Query([
+                        $all_posts_for_count = new WP_Query([
                             'post_type' => 'products',
-                            'post__in'  => $favorites_products,
-                            'posts_per_page' => -1,
-                            'orderby' => 'date',
-                            'order' => 'DESC'
+                            'post__in' => $favorites_products,
+                            'posts_per_page' => -1
                         ]);
-
-                        if ($query->have_posts()) :
-                            while ($query->have_posts()) : $query->the_post();
-                                $all_posts[] = get_the_ID();
-
+                        if ($all_posts_for_count->have_posts()) :
+                            while ($all_posts_for_count->have_posts()) : $all_posts_for_count->the_post();
                                 $terms = get_the_terms(get_the_ID(), 'product_cat');
                                 if ($terms && !is_wp_error($terms)) {
-                                    $added = [];
                                     foreach ($terms as $term) {
-                                        $parent = $term->parent ? get_term($term->parent, 'product_cat') : $term;
-                                        if ($parent && !in_array($parent->term_id, $added)) {
-                                            $category_counts[$parent->term_id]['name'] = $parent->name;
-                                            $category_counts[$parent->term_id]['count'] = ($category_counts[$parent->term_id]['count'] ?? 0) + 1;
-                                            $added[] = $parent->term_id;
+                                        if ($term->parent == 0) {
+                                            $category_counts[$term->term_id]['name']  = $term->name;
+                                            $category_counts[$term->term_id]['count'] = ($category_counts[$term->term_id]['count'] ?? 0) + 1;
                                         }
                                     }
                                 }
@@ -86,13 +83,17 @@ $favorites_profiles = favorites_get(get_current_user_id(), 'profile');
                         endif;
                         ?>
 
-                        <?php if (!empty($all_posts)) : ?>
+                        <?php if (!empty($category_counts)) : ?>
                             <div class="favorites-categories">
-                                <button class="category-tag label-small active" data-category="all">
-                                    <?= t('Все', 'All', 'Toate'); ?> <?= count($all_posts); ?>
-                                </button>
+                                <a href="<?= esc_url(add_query_arg('cat', 'all', home_url("/$current_lang/user/favorites/"))); ?>" 
+                                   class="category-tag label-small <?= (!isset($_GET['cat']) || $_GET['cat'] === 'all') ? 'active' : ''; ?>"
+                                   data-category="all">
+                                    <?= t('Все', 'All', 'Toate'); ?> <?= count($favorites_products); ?>
+                                </a>
                                 <?php foreach ($category_counts as $cat_id => $data): ?>
-                                    <button class="category-tag label-small" data-category="<?= $cat_id; ?>">
+                                    <a href="<?= esc_url(add_query_arg('cat', $cat_id, home_url("/$current_lang/user/favorites/"))); ?>" 
+                                       class="category-tag label-small <?= (isset($_GET['cat']) && $_GET['cat'] == $cat_id) ? 'active' : ''; ?>"
+                                       data-category="<?= $cat_id; ?>">
                                         <?= esc_html(
                                             t(
                                                 $data['name'], 
@@ -100,53 +101,116 @@ $favorites_profiles = favorites_get(get_current_user_id(), 'profile');
                                                 get_term_meta($cat_id, 'translation_ro', true)
                                             )
                                         ); ?> <?= $data['count']; ?>
-                                    </button>
+                                    </a>
                                 <?php endforeach; ?>
                             </div>
+                        <?php endif; ?>
 
-                            <div class="favorites-sort">
-                                <button class="sort-btn label-small active" data-sort="new" aria-label="<?= t('Сортировка товаров', 'Sort products', 'Sortare produse'); ?>">
-                                    <svg aria-hidden="true" class="sort-icon" width="24" height="24" viewBox="0 0 24 24">
-                                      <path class="sort-arrow-up" d="M12 2L4 10h16L12 2z" fill="currentColor"/>
-                                      <path class="sort-arrow-down" d="M12 22l8-8H4l8 8z" fill="currentColor"/>
-                                    </svg>
+                        <?php 
+                        $current_order = isset($_GET['order']) ? $_GET['order'] : 'desc';
+                        $is_new_first = $current_order === 'desc';
+                        ?>
+                        <div class="favorites-sort">
+                            <button 
+                                class="sort-btn label-small <?= $is_new_first ? 'active' : ''; ?>" 
+                                data-sort="<?= $is_new_first ? 'new' : 'old'; ?>" 
+                                aria-label="<?= t('Сортировка товаров', 'Sort products', 'Sortare produse'); ?>"
+                            >
+                                <svg aria-hidden="true" class="sort-icon" width="24" height="24" viewBox="0 0 24 24">
+                                  <path class="sort-arrow-up" d="M12 2L4 10h16L12 2z" fill="currentColor"/>
+                                  <path class="sort-arrow-down" d="M12 22l8-8H4l8 8z" fill="currentColor"/>
+                                </svg>
+                                <span class="sort-label">
+                                    <?= $is_new_first ? t('Сначала новые', 'Newest first', 'Mai întâi noi') : t('Сначала старые', 'Oldest first', 'Mai întâi vechi'); ?>
+                                </span>
+                            </button>
+                        </div>
 
-                                    <span class="sort-label"><?= t('Сначала новые', 'Newest first', 'Mai întâi noi'); ?></span>
-                                </button>
-                            </div>
+                        <!-- PRODUCTS LIST -->
+                        <div class="favorites-content">
+                            <ul class="products-list-row" id="favorites-list">
+                                <?php
+                                $tax_query = [];
+                                if (isset($_GET['cat']) && $_GET['cat'] !== 'all') {
+                                    $tax_query = [
+                                        [
+                                            'taxonomy' => 'product_cat',
+                                            'field'    => 'term_id',
+                                            'terms'    => intval($_GET['cat']),
+                                        ],
+                                    ];
+                                }
+                            
+                                $order = (isset($_GET['order']) && $_GET['order'] === 'asc') ? 'ASC' : 'DESC';
+                            
+                                $query = new WP_Query([
+                                    'post_type'      => 'products',
+                                    'post__in'       => $favorites_products,
+                                    'orderby'        => 'date',
+                                    'order'          => $order,
+                                    'posts_per_page' => $posts_per_page,
+                                    'paged'          => $paged,
+                                    'tax_query'      => $tax_query
+                                ]);
 
-                            <div class="favorites-content">
-                                <div class="spinner hidden">
-                                    <div class="dot"></div>
-                                </div>
-
-                                <ul class="products-list-row" id="favorites-list">
-                                    <?php
-                                    $first_ids = array_slice($all_posts, 0, 10);
-                                    $query = new WP_Query([
-                                        'post_type' => 'products',
-                                        'post__in'  => $first_ids,
-                                        'orderby'   => 'date',
-                                        'order'     => 'DESC',
-                                        'posts_per_page' => 10
-                                    ]);
-                                    while ($query->have_posts()): $query->the_post();
+                                if ($query->have_posts()) :
+                                    while ($query->have_posts()) : $query->the_post();
                                         get_template_part('template-parts/product/card-row-large');
                                     endwhile;
                                     wp_reset_postdata();
-                                    ?>
-                                </ul>
-
-                                <?php if (count($all_posts) > 10): ?>
-                                    <button id="load-more" 
-                                        class="primary-button-small button-small"
-                                        data-offset="10" 
-                                        data-ids='<?= json_encode($all_posts); ?>'>
-                                        <?= t('Загрузить ещё', 'Load more', 'Încarcă mai mult'); ?> <?= count($all_posts) - 10; ?>
-                                    </button>
-                                <?php endif; ?>
+                                else :
+                                    echo '<p>' . t('Нет товаров на этой странице.', 'No products on this page.', 'Nu există produse pe această pagină.') . '</p>';
+                                endif;
+                                ?>
+                            </ul>
+                            
+                            <div class="favorites-pagination">
+                                <?php
+                                $base = user_trailingslashit(
+                                    home_url("/$current_lang/user/favorites/%_%/"),
+                                    'paged'
+                                );
+                            
+                                $pagination_links = paginate_links([
+                                    'base'      => add_query_arg('paged', '%#%', $base),
+                                    'format'    => '',
+                                    'total'     => $query->max_num_pages,
+                                    'current'   => $paged,
+                                    'mid_size'  => 1,
+                                    'prev_text' => '«',
+                                    'next_text' => '»',
+                                    'type'      => 'array',
+                                    'add_args'  => isset($_GET['cat']) ? ['cat' => $_GET['cat']] : [],
+                                ]);
+                            
+                                $has_prev = $paged > 1;
+                                $has_next = $paged < $query->max_num_pages;
+                            
+                                echo '<ul class="pagination">';
+                            
+                                if ($has_prev) {
+                                    echo '<li class="item button-small">' . get_previous_posts_link('«') . '</li>';
+                                } else {
+                                    echo '<li class="item button-small disabled"><span>«</span></li>';
+                                }
+                            
+                                if ($pagination_links) {
+                                    foreach ($pagination_links as $link) {
+                                        if (strpos($link, '«') !== false || strpos($link, '»') !== false) continue;
+                                        echo '<li class="item button-small">' . $link . '</li>';
+                                    }
+                                }
+                            
+                                if ($has_next) {
+                                    echo '<li class="item button-small">' . get_next_posts_link('»', $query->max_num_pages) . '</li>';
+                                } else {
+                                    echo '<li class="item button-small disabled"><span>»</span></li>';
+                                }
+                            
+                                echo '</ul>';
+                                ?>
                             </div>
-                        <?php endif; ?>
+                        </div>
                     </section>
                     <?php endif; ?>
 
@@ -177,76 +241,28 @@ $favorites_profiles = favorites_get(get_current_user_id(), 'profile');
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    const productList = document.getElementById("favorites-list");
-    const sortBtn = document.querySelector(".favorites-sort .sort-btn");
-    const categoryWrapper = document.querySelector(".favorites-categories");
+    const categoryTabs = document.querySelectorAll(".favorites-categories .category-tag");
     const mainTabs = document.querySelectorAll(".favorites-main-tabs .main-tab");
     const sections = document.querySelectorAll(".favorites-section");
-    const loadMoreBtn = document.getElementById("load-more");
-    const spinner = document.querySelector(".spinner");
 
-    function updateCategoryFilter() {
-        if (!categoryWrapper) return;
-        const categoryTabs = categoryWrapper.querySelectorAll(".category-tag");
+    categoryTabs.forEach(tab => {
+        tab.onclick = () => {
+            categoryTabs.forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
 
-        categoryTabs.forEach(tab => {
-            tab.onclick = () => {
-                categoryTabs.forEach(t => t.classList.remove("active"));
-                tab.classList.add("active");
-
-                const selectedCat = tab.dataset.category.toString();
-                const items = Array.from(document.querySelectorAll(".product-card-row-large"));
-
-                items.forEach(item => {
-                    const cats = (item.dataset.categories || '').split(",").map(c => c.trim());
-
-                    if (selectedCat === "all" || cats.includes(selectedCat)) {
-                        item.classList.remove("hidden");
-                    } else {
-                        item.classList.add("hidden");
-                    }
-                });
-            };
-        });
-    }
-
-    updateCategoryFilter();
-
-    if (sortBtn) {
-        const arrowUp = sortBtn.querySelector(".sort-arrow-up");
-        const arrowDown = sortBtn.querySelector(".sort-arrow-down");
-
-        sortBtn.addEventListener("click", () => {
-            const items = Array.from(productList.querySelectorAll(".product-card-row-large"));
-            const sort = sortBtn.dataset.sort;
-
-            items.sort((a, b) => {
-                const da = new Date(a.dataset.date);
-                const db = new Date(b.dataset.date);
-                return sort === "new" ? db - da : da - db;
-            });
+            const selectedCat = tab.dataset.category;
+            const items = Array.from(document.querySelectorAll(".product-card-row-large"));
 
             items.forEach(item => {
-                item.style.opacity = 0;
-                setTimeout(() => productList.appendChild(item), 200);
-                setTimeout(() => item.style.opacity = 1, 220);
+                const cats = (item.dataset.categories || '').split(",").map(c => c.trim());
+                if (selectedCat === "all" || cats.includes(selectedCat)) {
+                    item.classList.remove("hidden");
+                } else {
+                    item.classList.add("hidden");
+                }
             });
-
-            const sortLabel = sortBtn.querySelector(".sort-label");
-
-            if (sort === "new") {
-                arrowUp.classList.add("active");
-                arrowDown.classList.remove("active");
-                sortBtn.dataset.sort = "old";
-                sortLabel.textContent = "<?= t('Сначала старые', 'Oldest first', 'Mai întâi vechi'); ?>";
-            } else {
-                arrowUp.classList.remove("active");
-                arrowDown.classList.add("active");
-                sortBtn.dataset.sort = "new";
-                sortLabel.textContent = "<?= t('Сначала новые', 'Newest first', 'Mai întâi noi'); ?>";
-            }
-        });
-    }
+        };
+    });
 
     mainTabs.forEach(tab => {
         tab.addEventListener("click", () => {
@@ -258,38 +274,15 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    if (loadMoreBtn) {
-        loadMoreBtn.addEventListener("click", () => {
-            const offset = parseInt(loadMoreBtn.dataset.offset);
-            const ids = JSON.parse(loadMoreBtn.dataset.ids);
-            const nextIds = ids.slice(offset, offset + 10);
-            if (!nextIds.length) return loadMoreBtn.remove();
-
-            spinner.classList.remove("hidden");
-
-            fetch("<?php echo admin_url('admin-ajax.php'); ?>", {
-                method: "POST",
-                headers: {"Content-Type": "application/x-www-form-urlencoded"},
-                body: new URLSearchParams({
-                    action: "load_more_favorites",
-                    ids: nextIds,
-                    lang: favorites_ajax.lang
-                })
-            })
-            .then(res => res.text())
-            .then(html => {
-                productList.insertAdjacentHTML("beforeend", html);
-                loadMoreBtn.dataset.offset = offset + nextIds.length;
-                updateCategoryFilter();
-
-                const remaining = ids.length - (offset + nextIds.length);
-                if (remaining > 0) {
-                    loadMoreBtn.textContent = "<?= t('Загрузить ещё', 'Load more', 'Încarcă mai mult'); ?> (" + remaining + ")";
-                } else {
-                    loadMoreBtn.remove();
-                }
-            })
-            .finally(() => spinner.classList.add("hidden"));
+    const sortBtn = document.querySelector(".sort-btn");
+    if (sortBtn) {
+        sortBtn.addEventListener("click", () => {
+            const url = new URL(window.location.href);
+            const currentOrder = url.searchParams.get("order") || "desc";
+            const newOrder = currentOrder === "desc" ? "asc" : "desc";
+            url.searchParams.set("order", newOrder);
+            url.searchParams.set("paged", 1);
+            window.location.href = url.toString();
         });
     }
 });

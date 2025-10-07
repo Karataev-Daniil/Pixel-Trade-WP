@@ -61,11 +61,20 @@ function ajax_get_category_features() {
 
     foreach ($features as $feature) {
         $options = $wpdb->get_results($wpdb->prepare("
-            SELECT value_ru, value_en, value_ro
+            SELECT id, value_ru, value_en, value_ro
             FROM wp_feature_options
             WHERE feature_id = %d
             ORDER BY id ASC
         ", $feature['id']), ARRAY_A);
+
+        $formatted_options = array_map(function($opt) {
+            return [
+                'id' => (int) $opt['id'],
+                'ru' => $opt['value_ru'],
+                'en' => $opt['value_en'],
+                'ro' => $opt['value_ro'],
+            ];
+        }, $options);
 
         $result[$feature['key']] = [
             'label' => [
@@ -73,7 +82,7 @@ function ajax_get_category_features() {
                 'en' => $feature['label_en'],
                 'ro' => $feature['label_ro'],
             ],
-            'options' => $options
+            'options' => $formatted_options,
         ];
     }
 

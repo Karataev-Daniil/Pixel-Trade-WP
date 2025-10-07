@@ -266,13 +266,15 @@
 }
 
 .form-group--dynamic-features {
+    display: none !important;
     transition: max-height 0.3s ease, opacity 0.3s ease;
     overflow: hidden;
-    max-height: 0;
+    /* max-height: 0; */
     opacity: 0;
 }
 .form-group--dynamic-features.show {
-    max-height: 2000px;
+    display: block !important;
+    /* max-height: 2000px; */
     opacity: 1;
 }
 .category-features ul {
@@ -305,7 +307,7 @@
 }
 .dynamic-features-fields {
     display: grid;
-    grid-template-columns: repeat(4, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     align-items: end;
     gap: 24px;
     margin: 8px 0 0;
@@ -339,7 +341,7 @@
 }
 .form-group.form-group--type {
     display: grid;
-    grid-template-columns: repeat(4, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     align-items: end;
     gap: 24px;  
 }   
@@ -393,7 +395,7 @@
 .product-edit .category-selectors {
     min-height: 40px;
     display: grid;
-    grid-template-columns: repeat(4, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     width: 100%;
     align-items: end;
     gap: 24px;
@@ -430,8 +432,7 @@
 .product-edit .tab-content h4 {
     margin: 0 0 8px;
 }
-.product-create .tab-content .input-block,
-.product-edit .tab-content .input-block {
+.tab-content .input-block {
     margin: 0 0 24px;
 }
 .product-create .content-setting,
@@ -485,7 +486,6 @@
     top: 0;
     right: 0;
     background-color: var(--gray_5);
-    border-radius: 0 0 0 4px;
 }
 .product-create .form-submit,
 .product-edit .form-submit {
@@ -589,4 +589,45 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+@media screen and (max-width: 768px) {
+
+    
+}
+@media screen and (max-width: 540px) {
+
+}
+@media screen and (max-width: 440px) {
+    .product__wrapper .display-large {
+        font-size: 32px;
+    }
+    .form-group {
+        margin: 0 0 24px;
+    }
+    .product-create .form-group, .product-edit .form-group {
+        gap: 8px;
+    }
+    .tab-content .input-block {
+        margin: 0 0 8px;
+    }
+    .product-create .gallery-preview, .product-edit .gallery-preview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(50px, 70px));
+        gap: 8px;
+    }
+    .btn-upload {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(50px, 70px));
+        gap: 8px;
+    }
+    .btn-upload__text {
+        font-size: 12px;
+    }
+    .form-group__right, .form-group__left {
+        gap: 8px;
+    }
+    .product-create .form-submit, .product-edit .form-submit {
+        width: 100%;
+    }
 }

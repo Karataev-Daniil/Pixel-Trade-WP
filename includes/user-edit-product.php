@@ -32,7 +32,7 @@ function handle_product_edit_form_submission() {
     $categories = $_POST['product_categories'] ?? [];
     if (!is_array($categories)) $categories = [];
 
-    // --- Server-side validation ---
+    // Server-side validation
     $errors = [];
     if (!$title) $errors[$title_field] = t('Заполните заголовок', 'Please fill the title', 'Completați titlul');
     if (!$content) $errors[$content_field] = t('Заполните описание', 'Please fill the content', 'Completați descrierea');
@@ -44,7 +44,7 @@ function handle_product_edit_form_submission() {
         redirect_with_error($errors, $_POST, wp_get_referer());
     }
 
-    // --- Update post ---
+    // Update post
     wp_update_post([
         'ID'           => $product_id,
         'post_title'   => $title,

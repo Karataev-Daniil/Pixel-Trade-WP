@@ -1,34 +1,55 @@
 <?php
 add_action('init', function() {
+    $langs = ['ru', 'ro', 'en'];
+    $langs_regex = implode('|', $langs);
+
+    // Products
     add_rewrite_rule(
-        '^(ru|en|ro)/products/([^/]+)/?$',
+        "^($langs_regex)/products/([^/]+)/?$",
         'index.php?post_type=products&name=$matches[2]',
         'top'
     );
 
+    // Categories
     add_rewrite_rule(
-        '^(ru|en|ro)/categories/(.+)/?$',
+        "^($langs_regex)/categories/(.+)/?$",
         'index.php?product_cat=$matches[2]',
         'top'
     );
 
+    // Favorites (with pagination)
     add_rewrite_rule(
-        '^(ru|en|ro)/(.*)/?$',
+        "^($langs_regex)/user/favorites/page/([0-9]+)/?$",
+        'index.php?pagename=user/favorites&paged=$matches[2]',
+        'top'
+    );
+
+    // Favorites (main)
+    add_rewrite_rule(
+        "^($langs_regex)/user/favorites/?$",
+        'index.php?pagename=user/favorites',
+        'top'
+    );
+
+    // Pages
+    add_rewrite_rule(
+        "^($langs_regex)/(.*)/?$",
         'index.php?pagename=$matches[2]',
         'top'
     );
 
+    // Front page
     $front_id = get_option('page_on_front');
 
     if ($front_id && $front_id != 0) {
         add_rewrite_rule(
-            '^(ru|en|ro)/?$',
+            "^($langs_regex)/?$",
             'index.php?page_id=' . $front_id,
             'top'
         );
     } else {
         add_rewrite_rule(
-            '^(ru|en|ro)/?$',
+            "^($langs_regex)/?$",
             'index.php?post_type=post',
             'top'
         );

@@ -17,6 +17,8 @@ get_header();
             <?php endif; ?>
 
             <form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post" class="form-ui">
+                <?php wp_nonce_field('login_action', 'login_nonce'); ?>
+
                 <div class="auth__field input-block">
                     <label for="username" class="label-large">
                         <?php echo t('Имя пользователя или email', 'Username or Email', 'Nume utilizator sau Email'); ?>
@@ -32,7 +34,7 @@ get_header();
                 </div>
 
                 <div class="auth__field input-block">
-                    <input type="submit" name="kayo_login" value="<?php echo t('Войти', 'Login', 'Autentificare'); ?>" class="primary-button-medium button-medium">
+                    <input type="submit" name="login" value="<?php echo t('Войти', 'Login', 'Autentificare'); ?>" class="primary-button-medium button-medium">
                 </div>
             </form>
 

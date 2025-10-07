@@ -220,6 +220,7 @@ get_header();
         </main>
     </div>
 </div>
+<div id="cpb-root"></div>
 <?php
 get_footer();
 ?>

@@ -45,16 +45,25 @@ function dm_is_translatable($text){
     return false;
 }
 
-if(!function_exists('translate_text')){
-    function translate_text($text, $target_lang = 'ru', $source_lang = 'auto'){
-        if (!defined('OPENAI_API_KEY') || !dm_is_translatable($text)) return $text;
+if (!function_exists('translate_text')) {
+    function translate_text($text, $target_lang = 'ru', $source_lang = 'auto') {
+        if (!defined('OPENAI_API_KEY') || !dm_is_translatable($text)) {
+            return $text;
+        }
+
         $api_key = OPENAI_API_KEY;
-        $lang_map = ['en'=>'English','ro'=>'Romanian','ru'=>'Russian'];
+        $lang_map = ['en' => 'English', 'ro' => 'Romanian', 'ru' => 'Russian'];
         $target_name = $lang_map[$target_lang] ?? $target_lang;
         $source_name = $lang_map[$source_lang] ?? 'auto';
+
         $messages = [[
-            'role'=>'user',
-            'content'=>"You are a professional translator. Translate from {$source_name} to {$target_name}:\n\"".trim($text)."\""
+            'role' => 'user',
+            'content' => "You are a professional translator. Translate the following text from {$source_name} to {$target_name} accurately. 
+                          - Preserve punctuation, numbers, proper nouns, and original spelling. 
+                          - Do NOT guess or invent words. 
+                          - If translation is impossible, return the original text exactly as it is. 
+                          - Do NOT add quotes, explanations, or extra formatting. 
+                          Output only the translation or the original text:\n".trim($text)
         ]];
 
         $response = wp_remote_post('https://api.openai.com/v1/chat/completions', [
@@ -63,16 +72,31 @@ if(!function_exists('translate_text')){
                 'Content-Type'  => 'application/json',
             ],
             'body' => json_encode([
-                'model'=>'gpt-3.5-turbo',
-                'messages'=>$messages,
-                'temperature'=>0.3
+                'model' => 'gpt-4o-mini',
+                'messages' => $messages,
+                'temperature' => 0.2
             ]),
-            'timeout'=>20
+            'timeout' => 20
         ]);
 
-        if(is_wp_error($response)) return $text;
+        if (is_wp_error($response)) {
+            error_log('OpenAI WP error: ' . $response->get_error_message());
+            return $text;
+        }
+
+        if (wp_remote_retrieve_response_code($response) !== 200) {
+            error_log('OpenAI API error: ' . wp_remote_retrieve_body($response));
+            return $text;
+        }
+
         $body = json_decode(wp_remote_retrieve_body($response), true);
-        return $body['choices'][0]['message']['content'] ?? $text;
+        $translated = $body['choices'][0]['message']['content'] ?? '';
+
+        if (!$translated) {
+            return $text;
+        }
+
+        return trim($translated);
     }
 }
 

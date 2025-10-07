@@ -24,6 +24,16 @@ function clearMessageForField(fieldIdOrName) {
         msgEl.textContent = '';
         msgEl.classList.remove('error', 'warning', 'success', 'info');
     }
+
+    let field = document.getElementById(fieldIdOrName) || document.querySelector(`[name="${fieldIdOrName}"]`);
+    if (field && field.tagName === 'INPUT' && field.type === 'hidden') {
+        field = null;
+    }
+
+    if (field && ['INPUT','TEXTAREA','SELECT'].includes(field.tagName)) {
+        field.classList.remove('error', 'success');
+    }
+
     if (fieldIdOrName.startsWith('product_title') || fieldIdOrName.startsWith('product_content')) {
         const translationMessage = document.getElementById('translation-message');
         if (translationMessage) {
@@ -109,7 +119,6 @@ function checkTranslationsBeforeSubmit() {
         }
     });
 
-    // Если только один перевод
     if (filledCount === 1 && missingLangs.length > 0) {
         if (!translationChecked) {
             translationMessage.textContent = `Вы не заполнили переводы для языков: ${missingLangs.join(', ')}. 
@@ -117,12 +126,11 @@ function checkTranslationsBeforeSubmit() {
             translationMessage.classList.remove('error', 'warning', 'success');
             translationMessage.classList.add('info');
             translationChecked = true;
-            return false; // блокируем первый сабмит
+            return false;
         }
-        return true; // второй клик — отправляем
+        return true;
     }
 
-    // Если вообще нет переводов
     if (filledCount === 0) {
         if (!translationChecked) {
             translationMessage.textContent = `У вас нет переводов. Заполните хотя бы один язык.`;
@@ -134,24 +142,39 @@ function checkTranslationsBeforeSubmit() {
         return true;
     }
 
-    return true; // всё ок — отправляем
+    return true;
 }
 
 
 // Set field message
 function setFieldMessage(id, message = '', type = '') {
-    const el = document.getElementById('message_' + id);
-    if (!el) return;
-    el.textContent = message;
-    el.classList.remove('error', 'warning', 'success', 'info');
-    if (type) el.classList.add(type);
+    const msgEl = document.getElementById('message_' + id);
+    let field = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+
+    if (msgEl) {
+        msgEl.textContent = message;
+        msgEl.classList.remove('error', 'warning', 'success', 'info');
+        if (type) msgEl.classList.add(type);
+    }
+
+    if (field) {
+        // Skip hidden inputs
+        if (field.tagName === 'INPUT' && field.type === 'hidden') {
+            field = null;
+        }
+    }
+
+    if (field && ['INPUT','TEXTAREA','SELECT'].includes(field.tagName)) {
+        field.classList.remove('error', 'success');
+        if (type === 'error') field.classList.add('error');
+        if (type === 'success') field.classList.add('success');
+    }
 }
 
 function validateForm(form) {
     let valid = true;
-    const errors = {}; // собираем ошибки для консоли
+    const errors = {};
 
-    // Categories
     const selectedCategories = form.querySelector('#selected_categories_input');
     if (!selectedCategories.value) {
         setFieldMessage('selected_categories', 'Выберите хотя бы одну категорию', 'error');
@@ -159,7 +182,6 @@ function validateForm(form) {
         valid = false;
     }
 
-    // Titles + Descriptions (хотя бы один язык должен быть заполнен)
     const titleIds = ['product_title', 'title_en', 'title_ro'];
     const contentIds = ['product_content', 'description_en', 'description_ro'];
 
@@ -300,7 +322,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopPropagation();
                 return false;
             }
-            // Всё ок, форма отправится
         });
     }
 

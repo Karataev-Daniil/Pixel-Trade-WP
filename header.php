@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- SEO Title (уникальный для каждой страницы) -->
+    <!-- SEO Title -->
     <title><?php if (function_exists('get_custom_title')) { echo get_custom_title(); } else { wp_title('|', true, 'right'); } ?></title>
 
     <!-- Meta Description -->
@@ -41,7 +41,7 @@
 
     <?php wp_head(); ?>
   </head>
-  <body <?php body_class(); ?>>
+  <body>
     <?php if ( wp_is_mobile() ) : ?>
       <?php get_template_part('template-parts/header-mobile'); ?>
     <?php else : ?>

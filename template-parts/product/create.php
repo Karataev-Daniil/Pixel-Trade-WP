@@ -31,7 +31,7 @@ const existingDynamicFields = <?php
                             <label class="form-label label-large" for="product_type">
                                 <?php echo t('Тип объявления', 'Listing type', 'Tip anunț'); ?>
                             </label>
-                            <select id="product_type" name="product_type" class="form-select select--secondary body-medium-regular">
+                            <select id="product_type" name="product_type" class="form-select select--secondary body-small-regular">
                                 <option value="sell" <?php selected($old['product_type'] ?? '', 'sell'); ?>><?php echo t('Продам', 'Sell', 'Vând'); ?></option>
                                 <option value="buy" <?php selected($old['product_type'] ?? '', 'buy'); ?>><?php echo t('Куплю', 'Buy', 'Cumpăr'); ?></option>
                             </select>
@@ -119,7 +119,7 @@ const existingDynamicFields = <?php
                         <div class="tab-content <?php if ($language === $lang) echo 'active'; ?>" id="tab-<?php echo $lang; ?>" data-lang="<?php echo $lang; ?>">
                             <div class="input-block">
                                 <label class="label-large"><?php echo t('Название', 'Title', 'Titlu'); ?></label>
-                                <input type="text" class="form-input input--secondary body-medium-regular" 
+                                <input type="text" class="form-input input--secondary body-small-regular" 
                                        name="<?php echo $fields['title']; ?>"
                                        value="<?php echo esc_attr($old[$fields['title']] ?? ''); ?>"
                                        placeholder="<?php echo t('Введите название', 'Enter title', 'Introduceți titlul'); ?>"
@@ -132,7 +132,7 @@ const existingDynamicFields = <?php
                             </div>
                             <div class="input-block">
                                 <label class="label-large"><?php echo t('Описание', 'Description', 'Descriere'); ?></label>
-                                <textarea name="<?php echo $fields['content']; ?>" rows="12" class="form-textarea textarea--secondary body-medium-regular"
+                                <textarea name="<?php echo $fields['content']; ?>" rows="12" class="form-textarea textarea--secondary body-small-regular"
                                           placeholder="<?php echo t('Введите описание', 'Enter description', 'Introduceți descrierea'); ?>"
                                           data-lang="<?php echo $lang; ?>"><?php echo esc_textarea($old[$fields['content']] ?? ''); ?></textarea>
                                 <small class="form-hint body-small-regular">0 / 2000</small>
@@ -180,7 +180,7 @@ const existingDynamicFields = <?php
                             <label class="form-label label-large"><?php echo t('Цена', 'Price', 'Preț'); ?></label>
                             <div class="price-input-wrapper">
                                 <div class="input-block">
-                                    <input type="number" step="0.01" name="product_price" class="form-input input--secondary body-medium-regular"
+                                    <input type="number" step="0.01" name="product_price" class="form-input input--secondary body-small-regular"
                                            placeholder="<?php echo t('Укажите цену', 'Enter the price', 'Introduceți prețul'); ?>"
                                            min="0.01" max="1000000"
                                            value="<?php echo esc_attr($old['product_price'] ?? ''); ?>">
@@ -191,7 +191,7 @@ const existingDynamicFields = <?php
                                     </div>
                                 </div>
                                 <div class="input-block">
-                                    <select name="product_currency" class="form-select select--secondary body-medium-regular">
+                                    <select name="product_currency" class="form-select select--secondary body-small-regular">
                                         <option value="lei" <?php selected($old['product_currency'] ?? '', 'lei'); ?>>lei</option>
                                         <option value="usd" <?php selected($old['product_currency'] ?? '', 'usd'); ?>>usd</option>
                                         <option value="eur" <?php selected($old['product_currency'] ?? '', 'eur'); ?>>eur</option>

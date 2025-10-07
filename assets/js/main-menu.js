@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // --- Elements ---
+    // Elements
     const els = {
         // Desktop
         catalogToggle: document.querySelector("#catalogToggle"),
@@ -25,10 +25,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const menuWrapper = els.avatar?.closest(".user-menu");
 
-    // --- Catalog functions ---
+    // Catalog functions
     const resetCatalogActive = () => {
         els.catalogDropdown?.querySelectorAll(".is-active").forEach(el => el.classList.remove("is-active"));
         els.catalogDropdown?.querySelectorAll(".is-open").forEach(el => el.classList.remove("is-open"));
+    };
+    
+    const updateHeaderActive = () => {
+        const isActive = (els.catalogDropdown?.classList.contains("is-open") || 
+                          menuWrapper?.classList.contains("active"));
+        els.header.classList.toggle("header-active", isActive);
     };
 
     const closeAllMainBlocks = () => {
@@ -36,11 +42,12 @@ document.addEventListener("DOMContentLoaded", () => {
         els.catalogToggle?.setAttribute("aria-expanded", "false");
         els.catalogOverlay?.classList.remove("is-active");
         menuWrapper?.classList.remove("active");
+        document.body.classList.remove("body-lock");
         resetCatalogActive();
         updateHeaderActive();
     };
 
-    // --- Desktop Catalog ---
+    // Desktop Catalog
     els.catalogToggle?.addEventListener("click", e => {
         e.stopPropagation();
         const isOpen = !els.catalogDropdown.classList.contains("is-open");
@@ -55,6 +62,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const firstSub = els.catalogDropdown.querySelector(".catalog-subcategories__item");
             firstMain?.classList.add("is-active");
             firstSub?.classList.add("is-active");
+            document.body.classList.add("body-lock");
+        } else {
+            document.body.classList.remove("body-lock");
         }
 
         setTimeout(updateHeaderActive, 0);
@@ -89,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
         toggle.parentElement.classList.toggle("open");
     });
 
-    // --- User menu ---
+    // User menu
     els.avatar?.addEventListener("click", e => {
         e.stopPropagation();
         const isOpen = !menuWrapper.classList.contains("active");
@@ -98,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(updateHeaderActive, 0);
     });
 
-    // --- Global click close ---
+    // Global click close
     document.addEventListener("click", e => {
         if (!e.target.closest(".catalog-wrapper, .user-menu, .search-panel")) {
             closeAllMainBlocks();
@@ -106,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(updateHeaderActive, 0);
     });
 
-    // --- Search Desktop ---
+    // Search Desktop
     const updateSearchState = () => {
         if (!els.searchField || !els.searchPanel) return;
         closeAllMainBlocks();
@@ -123,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     updateSearchState();
 
-    // --- Theme toggle ---
+    // Theme toggle
     const getCookie = name => document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`))?.[2] || null;
     const setTheme = theme => {
         document.documentElement.setAttribute("data-theme", theme);
@@ -138,17 +148,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- Header scroll & active ---
+    // Header scroll & active
     window.addEventListener("scroll", () => {
         els.header.classList.toggle("header-scrolled", window.scrollY > 50);
     });
-    const updateHeaderActive = () => {
-        const isActive = (els.catalogDropdown?.classList.contains("is-open") || 
-                          menuWrapper?.classList.contains("active"));
-        els.header.classList.toggle("header-active", isActive);
-    };
 
-    // --- Mobile Sidebar ---
+    // Mobile Sidebar
     els.burgerButton?.addEventListener("click", () => {
         els.mobileSidebar?.classList.add("open");
         els.mobileOverlay?.classList.add("active");
@@ -162,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
         els.mobileOverlay?.classList.remove("active");
     });
 
-    // --- Mobile Search ---
+    // Mobile Search
     els.searchToggle?.addEventListener("click", () => {
         els.mobileSearchPanel?.classList.add("active");
     });
@@ -170,9 +175,56 @@ document.addEventListener("DOMContentLoaded", () => {
         els.mobileSearchPanel?.classList.remove("active");
     });
 
-    // --- Mobile Language Switcher (если есть) ---
+    // Mobile Language Switcher
     els.mobileLangToggle?.addEventListener("click", () => {
         els.mobileLangToggle.classList.toggle("active");
-        // здесь можно добавить логику смены языка
+
+    });
+});
+                        document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('search-field');
+    const suggestions = document.getElementById('search-suggestions');
+    const clearBtn = document.getElementById('clear-search');
+    let timer;
+
+    input.addEventListener('input', () => {
+        const q = input.value.trim();
+        if (!q) {
+            suggestions.innerHTML = '';
+            return;
+        }
+
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            fetch(`${ajaxurl}?action=search_products&q=${encodeURIComponent(q)}`)
+                .then(res => res.json())
+                .then(res => {
+                    suggestions.innerHTML = '';
+                    if (!res.success || !res.data.length) return;
+
+                    res.data.slice(0, 5).forEach(post => { // показываем только 5 результатов
+                        const li = document.createElement('li');
+                        li.className = 'search-suggestion-item';
+                        li.innerHTML = `
+                            <a href="${post.permalink}">
+                                ${post.title} ${post.title_en ? '(' + post.title_en + ')' : ''} ${post.title_ro ? '(' + post.title_ro + ')' : ''}
+                            </a>
+                        `;
+                        suggestions.appendChild(li);
+                    });
+                });
+        }, 250); // задержка, чтобы не дергать базу при каждом вводе
+    });
+
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+        suggestions.innerHTML = '';
+    });
+
+    // Закрыть подсказки при клике вне формы
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-form')) {
+            suggestions.innerHTML = '';
+        }
     });
 });

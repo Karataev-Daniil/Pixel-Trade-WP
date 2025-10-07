@@ -52,6 +52,7 @@ function initCategorySelectors() {
 
         const select = document.createElement('select');
         select.name = 'product_categories[]';
+        select.id = `product_categories_level_${level}`;
         select.dataset.level = level;
         select.classList.add('category-select', 'select--secondary', 'body-small-regular');
 
@@ -109,13 +110,10 @@ function initCategorySelectors() {
             input.appendChild(defaultOption);
 
             fieldData.options.forEach(opt => {
-                const val = typeof opt === 'object'
-                    ? opt[lang] || opt['en'] || opt['ru'] || Object.values(opt)[0]
-                    : opt;
-
+                const label = opt[lang] || opt.en || opt.ru || Object.values(opt)[0];
                 const option = document.createElement('option');
-                option.value = val;
-                option.textContent = val;
+                option.value = opt.id;
+                option.textContent = label;
                 input.appendChild(option);
             });
         } else {

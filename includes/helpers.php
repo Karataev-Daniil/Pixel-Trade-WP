@@ -100,3 +100,27 @@ function get_translated_region($author_id) {
     }
     return '';
 }
+
+function get_current_lang() {
+    return $GLOBALS['language'] ?? 'ru';
+}
+
+function get_feature_option_label_by_id($option_id, $lang = 'ru') {
+    global $wpdb;
+
+    if (!is_numeric($option_id)) {
+        return esc_html($option_id);
+    }
+
+    $option = $wpdb->get_row($wpdb->prepare("
+        SELECT value_ru, value_en, value_ro 
+        FROM {$wpdb->prefix}feature_options 
+        WHERE id = %d
+    ", intval($option_id)), ARRAY_A);
+
+    if (!$option) {
+        return '';
+    }
+
+    return $option[$lang] ?? $option['ru'] ?? reset($option);
+}

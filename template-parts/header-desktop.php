@@ -54,6 +54,7 @@
                                 <?php endforeach; ?>
                             </ul>
                         </div>
+                        
                         <button id="theme-toggle-button" class="theme-icon-button">
                             <span class="icon-sun"><?php echo file_get_contents(get_template_directory() . '/images/sun.svg'); ?></span>
                             <span class="icon-sun-solid"><?php echo file_get_contents(get_template_directory() . '/images/sun-solid.svg'); ?></span>
@@ -106,12 +107,10 @@
                 </div>
             </div>
         </section>
-                    
-            <!-- Второй этаж -->
+
         <section class="header-bottom__wrapper" aria-label="<?= t('Основная навигация', 'Main Navigation', 'Navigație principală'); ?>">
             <div class="container-medium">
                 <nav class="header-bottom" aria-label="<?= t('Навигационное меню', 'Navigation Menu', 'Meniu de navigare'); ?>">  
-                    <!-- Каталог -->
                     <div class="catalog-wrapper">
                         <button class="secondary-button-small catalog-toggle-button"
                                 id="catalogToggle"
@@ -189,19 +188,68 @@
                                 </div>
                             </div>
                         <?php endif; ?>
-                        <div class="catalog-overlay"></div>
                     </div>
-                                  
-                    <!-- Поиск -->
-                    <form role="search" method="get" class="search-form search-panel has-content" action="<?= esc_url(home_url('/blog/')); ?>">
+
+                    <form role="search" method="get" class="search-form search-panel has-content" action="<?= esc_url(home_url('/search-products/')); ?>">
                         <input id="search-field" class="search-field body-medium-regular"
                                placeholder="<?= esc_attr(t('Поиск товаров', 'Search products', 'Caută produse')); ?>"
-                               value="<?= get_search_query(); ?>"
-                               name="s" />
+                               value="" 
+                               name="q"
+                               autocomplete="off" />
                         <button type="button" id="clear-search" class="search-clear-button" aria-label="<?= t('Очистить поиск', 'Clear search', 'Șterge căutarea'); ?>"></button>
+                        <ul id="search-suggestions" class="search-suggestions"></ul>
                     </form>
-                                    
-                    <!-- Подать объявление -->
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('search-field');
+    const suggestions = document.getElementById('search-suggestions');
+    const clearBtn = document.getElementById('clear-search');
+    let timer;
+
+    input.addEventListener('input', () => {
+        const q = input.value.trim();
+        if (!q) {
+            suggestions.innerHTML = '';
+            return;
+        }
+
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            fetch(`${ajaxurl}?action=search_products&q=${encodeURIComponent(q)}`)
+                .then(res => res.json())
+                .then(res => {
+                    suggestions.innerHTML = '';
+                    if (!res.success || !res.data.length) return;
+
+                    res.data.slice(0, 5).forEach(post => { // показываем только 5 результатов
+                        const li = document.createElement('li');
+                        li.className = 'search-suggestion-item';
+                        li.innerHTML = `
+                            <a href="${post.permalink}">
+                                ${post.title} ${post.title_en ? '(' + post.title_en + ')' : ''} ${post.title_ro ? '(' + post.title_ro + ')' : ''}
+                            </a>
+                        `;
+                        suggestions.appendChild(li);
+                    });
+                });
+        }, 250); // задержка, чтобы не дергать базу при каждом вводе
+    });
+
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+        suggestions.innerHTML = '';
+    });
+
+    // Закрыть подсказки при клике вне формы
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-form')) {
+            suggestions.innerHTML = '';
+        }
+    });
+});
+
+                    </script>
+
                     <a href="/add-product" class="primary-button-small">
                         <?= t('Подать объявление', 'Post Ad', 'Adaugă anunț'); ?>
                     </a>           
@@ -210,3 +258,4 @@
         </section>
     </div>
 </header>
+<div class="catalog-overlay"></div>

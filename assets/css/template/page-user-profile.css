@@ -1,12 +1,13 @@
 .user-profile {
     display: flex;
     align-items: flex-start;
+    align-content: flex-start;
     gap: 16px;
     flex-wrap: wrap;
 }
 .profile-sidebar {
     position: sticky;
-    top: 78px;
+    top: 158px;
     width: 300px;
     padding: 12px 12px 12px 0;
 }
@@ -92,6 +93,7 @@
 }
 .user-profile .user-products h2 {
     color: var(--gray_-6);
+    margin: 0;
 }
 .user-profile .products-grid .product-card .product-title {
     color: var(--gray_-6);
@@ -101,7 +103,23 @@
 @media (max-width: 768px) {
     .user-profile .products-grid {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 16px;
+        gap: 8px;
+    }
+    .user-profile .banner-wrapper {
+        display: none;
+    }
+    .user-profile .profile-sidebar {
+        position: relative;
+        top: 0;
+        padding: 0;
+        width: 100%;
+    }
+    .user-profile .avatar-frame {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 80px;
+        height: 80px;
     }
 
     .user-profile .profile-info h1 {

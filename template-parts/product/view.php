@@ -180,16 +180,7 @@ $allowed_cats = array_intersect(array_keys($features), $post_cats);
                                                     ?? $field['label']['ru'] 
                                                     ?? $key;
                                             
-                                                if (!empty($field['options']) && is_array($field['options'])) {
-                                                    foreach ($field['options'] as $opt) {
-                                                        if (in_array($value, $opt, true)) {
-                                                            $value = $opt[$current_lang] 
-                                                                ?? $opt['ru'] 
-                                                                ?? $value;
-                                                            break;
-                                                        }
-                                                    }
-                                                }
+                                                $value = get_feature_option_label_by_id($value, $current_lang);
                                                 ?>
                                                 <li class="body-small-medium feature-item">
                                                     <span class="feature-label-dots">

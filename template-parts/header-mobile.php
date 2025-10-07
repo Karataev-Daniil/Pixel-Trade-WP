@@ -32,7 +32,6 @@
 
         $user_nicename = $current_user->user_nicename;
 
-        // Define current language and path for language switcher
         $languages = ['ru' => 'Рус', 'en' => 'Eng', 'ro' => 'Rom'];
         $current_path = trim($_SERVER['REQUEST_URI'], '/');
         $parts = explode('/', $current_path);
@@ -50,92 +49,99 @@
 
         <nav class="sidebar-nav">
             <ul>
-                <!-- User -->
-                <li class="sidebar-item user-block">
-                    <a class="title-smaller" href="/<?= $lang ?>/user/<?= $user_nicename ?>">
-                        <?= $avatar_img; ?>
-                        <p class="label-small"><?= esc_html($current_user->display_name); ?></p>
-                    </a>
-                </li>
-
-                <hr> <!-- Divider -->
-
-                <!-- Main actions -->
-                <li class="sidebar-item">
-                    <a href="/<?= $lang ?>/">
-                        <?php echo file_get_contents(get_template_directory() . '/images/icon-home.svg'); ?>
-                        <p class="label-small"><?= t('Главная', 'Home', 'Acasă'); ?></p>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/<?= $lang ?>/add-product">
-                        <?php echo file_get_contents(get_template_directory() . '/images/icon-add.svg'); ?>
-                        <p class="label-small"><?= t('Добавить объявление', 'Add Listing', 'Adaugă anunț'); ?></p>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/<?= $lang ?>/user/products">
-                        <?php echo file_get_contents(get_template_directory() . '/images/icon-my-products.svg'); ?>
-                        <p class="label-small"><?= t('Мои товары', 'My Products', 'Produsele mele'); ?></p>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/<?= $lang ?>/user/favorites">
-                        <?php echo file_get_contents(get_template_directory() . '/images/icon-favorites.svg'); ?>
-                        <p class="label-small"><?= t('Избранное', 'Favorites', 'Favorite'); ?></p>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="/<?= $lang ?>/user/settings">
-                        <?php echo file_get_contents(get_template_directory() . '/images/icon-settings.svg'); ?>
-                        <p class="label-small"><?= t('Настройки', 'Settings', 'Setări'); ?></p>
-                    </a>
-                </li>
-
-                <hr> <!-- Divider -->
-
-                <!-- System actions -->
-                <li class="sidebar-item">
-                    <a href="<?= wp_logout_url(home_url("/$lang/")); ?>">
-                        <?php echo file_get_contents(get_template_directory() . '/images/icon-logout.svg'); ?>
-                        <p class="label-small"><?= t('Выход', 'Logout', 'Ieșire'); ?></p>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <button id="theme-toggle-button" class="theme-icon-button">
-                        <span class="icon-sun"><?php echo file_get_contents(get_template_directory() . '/images/sun.svg'); ?></span>
-                        <span class="icon-sun-solid"><?php echo file_get_contents(get_template_directory() . '/images/sun-solid.svg'); ?></span>
-                        <span class="icon-moon"><?php echo file_get_contents(get_template_directory() . '/images/moon.svg'); ?></span>
-                        <span class="icon-moon-solid"><?php echo file_get_contents(get_template_directory() . '/images/moon-solid.svg'); ?></span>
-                        <p class="label-small"><?= t('Тема', 'Theme', 'Temă'); ?></p>
-                    </button>
-                </li>
-
-                <!-- Language switcher -->
-                <li class="sidebar-item dropdown">
-                    <button class="dropdown__button label-small">
-                        <?php echo file_get_contents(get_template_directory() . '/images/icon-language.svg'); ?>
-                        <p class="label-small"><?= esc_html(strtoupper($current_lang)) ?></p>
-                    </button>
-                    <ul class="dropdown__list">
-                        <?php foreach ($languages as $lang => $label): ?>
-                            <?php if ($lang === $current_lang) continue; ?>
-                            <li class="dropdown__item label-small">
-                                <a href="<?= esc_url(home_url("/$lang/$path_without_lang")) ?>"><?= esc_html(strtoupper($lang)) ?></a>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                </li>
-
-                <hr> <!-- Divider -->
-
-                <!-- Messages -->
-                <li class="sidebar-item">
-                    <button id="dm-toggle-btn-header" class="label-small dm-toggle-btn">
-                        <?php echo file_get_contents(get_template_directory() . '/images/icon-messages.svg'); ?>
-                        <p class="label-small"><?= t('Сообщения', 'Messages', 'Mesaje'); ?></p>
-                    </button>
-                </li>
+                <?php if (is_user_logged_in()) : ?>
+                    <!-- User info -->
+                    <li class="sidebar-item user-block">
+                        <a class="title-smaller" href="/<?= $lang ?>/user/<?= $user_nicename ?>">
+                            <?= $avatar_img; ?>
+                            <p class="label-small"><?= esc_html($current_user->display_name); ?></p>
+                        </a>
+                    </li>
+                
+                    <hr>
+                
+                    <!-- Main actions -->
+                    <li class="sidebar-item">
+                        <a href="/<?= $lang ?>/">
+                            <?php echo file_get_contents(get_template_directory() . '/images/icon-home.svg'); ?>
+                            <p class="label-small"><?= t('Главная', 'Home', 'Acasă'); ?></p>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="/<?= $lang ?>/add-product">
+                            <?php echo file_get_contents(get_template_directory() . '/images/icon-add.svg'); ?>
+                            <p class="label-small"><?= t('Добавить объявление', 'Add Listing', 'Adaugă anunț'); ?></p>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="/<?= $lang ?>/user/products">
+                            <?php echo file_get_contents(get_template_directory() . '/images/icon-my-products.svg'); ?>
+                            <p class="label-small"><?= t('Мои товары', 'My Products', 'Produsele mele'); ?></p>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="/<?= $lang ?>/user/favorites">
+                            <?php echo file_get_contents(get_template_directory() . '/images/icon-favorites.svg'); ?>
+                            <p class="label-small"><?= t('Избранное', 'Favorites', 'Favorite'); ?></p>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="/<?= $lang ?>/user/settings">
+                            <?php echo file_get_contents(get_template_directory() . '/images/icon-settings.svg'); ?>
+                            <p class="label-small"><?= t('Настройки', 'Settings', 'Setări'); ?></p>
+                        </a>
+                    </li>
+                
+                    <hr>
+                
+                    <!-- System actions -->
+                    <li class="sidebar-item">
+                        <a href="<?= wp_logout_url(home_url("/$lang/")); ?>">
+                            <?php echo file_get_contents(get_template_directory() . '/images/icon-logout.svg'); ?>
+                            <p class="label-small"><?= t('Выход', 'Logout', 'Ieșire'); ?></p>
+                        </a>
+                    </li>
+                
+                    <!-- Theme toggle -->
+                    <li class="sidebar-item">
+                        <button id="theme-toggle-button" class="theme-icon-button">
+                            <span class="icon-sun"><?php echo file_get_contents(get_template_directory() . '/images/sun.svg'); ?></span>
+                            <span class="icon-sun-solid"><?php echo file_get_contents(get_template_directory() . '/images/sun-solid.svg'); ?></span>
+                            <span class="icon-moon"><?php echo file_get_contents(get_template_directory() . '/images/moon.svg'); ?></span>
+                            <span class="icon-moon-solid"><?php echo file_get_contents(get_template_directory() . '/images/moon-solid.svg'); ?></span>
+                            <p class="label-small"><?= t('Тема', 'Theme', 'Temă'); ?></p>
+                        </button>
+                    </li>
+                
+                    <!-- Messages -->
+                    <li class="sidebar-item">
+                        <button id="dm-toggle-btn-header" class="label-small dm-toggle-btn">
+                            <?php echo file_get_contents(get_template_directory() . '/images/icon-messages.svg'); ?>
+                            <p class="label-small"><?= t('Сообщения', 'Messages', 'Mesaje'); ?></p>
+                        </button>
+                    </li>
+                
+                <?php else: ?>
+                    <!-- Guest: show only basic links -->
+                    <li class="sidebar-item">
+                        <a href="/<?= $lang ?>/">
+                            <?php echo file_get_contents(get_template_directory() . '/images/icon-home.svg'); ?>
+                            <p class="label-small"><?= t('Главная', 'Home', 'Acasă'); ?></p>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="/<?= $lang ?>/user/favorites">
+                            <?php echo file_get_contents(get_template_directory() . '/images/icon-favorites.svg'); ?>
+                            <p class="label-small"><?= t('Избранное', 'Favorites', 'Favorite'); ?></p>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="/<?= $lang ?>/login">
+                            <?php echo file_get_contents(get_template_directory() . '/images/icon-login.svg'); ?>
+                            <p class="label-small"><?= t('Вход', 'Login', 'Autentificare'); ?></p>
+                        </a>
+                    </li>
+                <?php endif; ?>
             </ul>
         </nav>
     </div>

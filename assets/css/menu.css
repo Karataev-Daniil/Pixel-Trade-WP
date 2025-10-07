@@ -112,24 +112,19 @@ body {
     transition: top 0.3s ease;
     width: 100%;
 }
-.search-panel.search-active {
-    top: 28px;
-}
 .search-field {
-    background-color: var(--gray_6);
-    border: 1px solid var(--gray_0);
-    border-radius: 6px;
-    box-sizing: border-box;
-    color: var(--gray_-6);
     min-height: 40px;
     padding: 4px 12px 4px 16px;
-    transition: padding-top 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
-    width: 100%;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background: var(--gray_2);
+    border: 1px solid var(--gray_1);
+    color: var(--gray_-5);
+    backdrop-filter: blur(6px);
+    transition: all 0.3s ease;
 }
 .search-field.search-active {
-    padding-top: 12px;
-    padding-bottom: 12px;
-    border-radius: 12px;
+    
 }
 .search-field::placeholder {
     color: var(--gray_0);
@@ -140,9 +135,9 @@ body {
 }
 .search-field:focus,
 .search-field:not(:placeholder-shown) {
-    background-color: var(--orange_4);
     border: 1px solid var(--orange_0);
-    color: var(--gray_-6);
+    background: rgba(255,255,255,0.15);
+    box-shadow: 0 0 8px rgba(255,140,0,0.4);
 }
 .search-field:focus:not(:placeholder-shown) {
     background-color: var(--orange_3);
@@ -423,8 +418,11 @@ button.catalog-toggle-button {
     z-index: 50;
 }
 .catalog-dropdown.is-open {
-    background-color: var(--gray_5);
-    border-bottom: 2px solid var(--gray_1);
+    background-color: var(--bg-header-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom: 4px solid var(--gray_3);
     display: flex;
     gap: 16px;
 }
@@ -553,6 +551,7 @@ button.catalog-toggle-button {
 .catalog-overlay.is-active {
     opacity: 1;
     pointer-events: auto;
+    z-index: 2;
 }
 
 /* 9. DM Toggle */
@@ -602,6 +601,32 @@ button.catalog-toggle-button {
     top: 0;
     width: 18px;
 }
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 999;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.search-suggestion-item a {
+    display: block;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #333;
+}
+
+.search-suggestion-item a:hover {
+    background: #f2f2f2;
+}
+
 @media screen and (max-width: 768px) {
     .header--mobile {
         display: flex;

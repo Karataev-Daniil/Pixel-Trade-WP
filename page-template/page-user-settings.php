@@ -83,8 +83,20 @@ $phone = get_user_meta($user_id, 'phone', true);
                 </div>
 
                 <div class="user-settings__field input-block">
-                    <label class="label-large" for="phone"><?php echo t('Телефон', 'Phone', 'Telefon'); ?></label>
+                    <label class="label-large" for="phone">
+                        <?= t('Телефон', 'Phone', 'Telefon'); ?>
+                    </label>
                     <input type="text" name="phone" value="<?= esc_attr($phone); ?>" class="input--primary" placeholder="">
+                                    
+                    <label>
+                        <input type="checkbox" name="phone_visibility" value="all" 
+                            <?= checked(get_user_meta($user_id, 'phone_visibility', true), 'all'); ?>>
+                        <?= t(
+                            'Показывать номер телефона в моих объявлениях', 
+                            'Show phone number in my listings', 
+                            'Afișează numărul de telefon în anunțurile mele'
+                        ); ?>
+                    </label>
                 </div>
 
                 <div class="user-settings__field input-block" style="margin-top: 20px;">

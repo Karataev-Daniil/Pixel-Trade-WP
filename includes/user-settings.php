@@ -134,6 +134,13 @@ add_action('admin_post_save_user_settings', function() {
     if (isset($_POST['phone'])) {
         update_user_meta($user_id, 'phone', sanitize_text_field($_POST['phone']));
     }
+
+    if (isset($_POST['phone_visibility']) && in_array($_POST['phone_visibility'], ['all','registered','none'])) {
+        update_user_meta($user_id, 'phone_visibility', $_POST['phone_visibility']);
+    } else {
+        update_user_meta($user_id, 'phone_visibility', 'none');
+    }
+
     if (isset($_FILES['avatar']) && !empty($_FILES['avatar']['name'])) {
         require_once(ABSPATH . 'wp-admin/includes/file.php');
         require_once(ABSPATH . 'wp-admin/includes/image.php');
