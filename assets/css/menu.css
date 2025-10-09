@@ -104,27 +104,37 @@ body {
 
 /* 4. Search Panel */
 .search-panel {
+    position: relative;
     display: flex;
     flex-direction: column;
-    min-height: 40px;
-    position: relative;
     top: 0;
     transition: top 0.3s ease;
     width: 100%;
 }
-.search-field {
-    min-height: 40px;
-    padding: 4px 12px 4px 16px;
+.search-wrapper {
+    position: relative;
     box-sizing: border-box;
-    border-radius: 12px;
-    background: var(--gray_2);
+    overflow: hidden;
     border: 1px solid var(--gray_1);
-    color: var(--gray_-5);
-    backdrop-filter: blur(6px);
-    transition: all 0.3s ease;
+    border-radius: 12px;
+    padding: 4px 12px 4px 64px;
+    max-height: 40px;
+    min-height: 40px;
 }
-.search-field.search-active {
-    
+.search-field {
+    position: absolute;
+    left: 80px;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: auto;
+    padding: 0 40px 0 12px;
+    background: var(--gray_2);
+    border: none !important;
+    box-sizing: border-box;
+    color: var(--gray_-5);
+    border-radius: 0 12px 12px 0;
+    transition: all 0.3s ease;
 }
 .search-field::placeholder {
     color: var(--gray_0);
@@ -151,34 +161,32 @@ body {
     background-color: var(--orange_3);
     border: 1px solid var(--orange_-1);
 }
-
-/* 5. Search Clear Button */
 .search-clear-button {
-    align-items: center;
-    background-color: transparent;
-    cursor: pointer;
     display: none;
-    height: 20px;
-    justify-content: center;
-    padding: 0;
     position: absolute;
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
     width: 20px;
+    height: 20px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    padding: 0;
 }
 .search-field:not(:placeholder-shown) ~ .search-clear-button {
     display: flex;
 }
 .search-clear-button::before,
 .search-clear-button::after {
-    background-color: var(--gray_-6);
-    border-radius: 50%;
     content: '';
-    height: 1px;
     position: absolute;
-    transition: background-color 0.3s ease;
     width: 15px;
+    height: 1px;
+    background-color: var(--gray_-6);
+    border-radius: 1px;
+    transition: background-color 0.3s ease;
 }
 .search-clear-button::before {
     transform: rotate(45deg);
@@ -190,6 +198,75 @@ body {
 .search-clear-button:hover::after {
     background-color: var(--orange_0);
 }
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: -2px;
+    right: -2px;
+    background: var(--gray_5);
+    border-bottom: 4px solid var(--gray_3);
+    border-left: 4px solid var(--gray_3);
+    border-right: 4px solid var(--gray_3);
+    border-radius: 0 0 6px 6px;
+    max-height: 1200px;
+    overflow-y: auto;
+    z-index: 9999;
+    list-style: none;
+    margin: 10px 0 0 0;
+    padding: 10px 16px 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.search-suggestions.active {
+    opacity: 1;
+}
+.search-section {
+    color: var(--gray_5);
+    border-bottom: 1px solid var(--gray_3);
+    padding: 16px 0;
+}
+.search-section:last-child {
+    border-bottom: none;
+}
+.search-section-title {
+    color: var(--gray_-6);
+    margin: 0 0 8px 0;
+}
+.search-suggestion-item a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    color: var(--gray_-5);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.search-icon-button {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 100%;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    background-color: var(--orange_0);
+    cursor: pointer;
+}
+.search-icon-button svg {
+    width: 24px;
+    height: 24px;
+    fill: transparent;
+    stroke: var(--gray_-6);
+    transition: fill 0.3s ease;
+}
+
 
 /* 6. Theme Toggle */
 .theme-icon-button {
@@ -600,31 +677,6 @@ button.catalog-toggle-button {
     right: 0;
     top: 0;
     width: 18px;
-}
-.search-suggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: #fff;
-    border: 1px solid #ddd;
-    max-height: 300px;
-    overflow-y: auto;
-    z-index: 999;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.search-suggestion-item a {
-    display: block;
-    padding: 8px 12px;
-    text-decoration: none;
-    color: #333;
-}
-
-.search-suggestion-item a:hover {
-    background: #f2f2f2;
 }
 
 @media screen and (max-width: 768px) {

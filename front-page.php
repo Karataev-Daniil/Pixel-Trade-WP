@@ -47,65 +47,75 @@ get_header();
 
             <div class="content-columns">
                 <div class="product-grid" style="flex:1;">
+                    <?php
+                    $per_page = wp_is_mobile() ? 12 : 36;
+
+                    $query = get_recommended_products_for_user($per_page, 0);
+                    $total = $query->found_posts;
+                    $shown_ids = wp_list_pluck($query->posts, 'ID');
+                    ?>
+
                     <section class="recommended-products">
-                        <h2 class="display-small">
-                            <?= t('Рекомендации для вас', 'Recommendations for you', 'Recomandări pentru tine'); ?>
-                        </h2>
+                        <h2 class="display-small"><?= t('Рекомендации для вас','Recommendations for you','Recomandări pentru tine'); ?></h2>
+
                         <div class="products-list" id="recommended-products">
                             <?php
-                            $per_page = isset($_POST['per_page']) ? intval($_POST['per_page']) : (wp_is_mobile() ? 12 : 36);
-
-                            if (function_exists('get_recommended_products_for_user')) {
-                                $query = get_recommended_products_for_user($per_page);
-                            } else {
-                                $query = new WP_Query([
-                                    'post_type'      => 'products',
-                                    'posts_per_page' => $per_page,
-                                    'orderby'        => 'date',
-                                    'order'          => 'DESC',
-                                ]);
-                                $query->found_posts = $query->found_posts ?? $query->post_count;
-                            }
-
-                            $query->found_posts = $query->found_posts ?? count($query->posts);
-                        
                             if ($query->have_posts()):
                                 while ($query->have_posts()): $query->the_post();
                                     get_template_part('template-parts/product/card'); 
                                 endwhile;
                                 wp_reset_postdata();
                             else:
-                                echo '<p>'.t('Товары не найдены', 'Products not found', 'Produse nu au fost găsite').'</p>';
+                                echo '<p>'.t('Товары не найдены','Products not found','Produse nu au fost găsite').'</p>';
                             endif;
                             ?>
                         </div>
                         
-                        <?php if ($query->found_posts > $per_page): ?>
-                            <button id="load-more-products" 
-                                    data-offset="<?= $per_page ?>" 
-                                    data-per-page="<?= $per_page ?>">
-                                <?= t('Загрузить ещё', 'Load more', 'Încarcă mai mult'); ?>
+                        <?php if ($total > $per_page): ?>
+                            <button id="load-more-recommended"
+                                    data-offset="<?= $per_page ?>"
+                                    data-per-page="<?= $per_page ?>"
+                                    data-total="<?= $total ?>"
+                                    data-shown-ids="<?= implode(',', $shown_ids) ?>">
+                                <?= t('Загрузить ещё','Load more','Încarcă mai mult'); ?>
                             </button>
                         <?php endif; ?>
                     </section>
                         
                     <script>
                     jQuery(document).ready(function($){
-                        $('#load-more-products').on('click', function(){
+                        $('#load-more-recommended').on('click', function(){
                             var btn = $(this);
-                            var offset = btn.data('offset');
-                            var perPage = btn.data('per-page');
+                            var offset = parseInt(btn.data('offset'));
+                            var perPage = parseInt(btn.data('per-page'));
+                            var total = parseInt(btn.data('total'));
+                            var shownIds = btn.data('shown-ids') ? btn.data('shown-ids').toString().split(',').map(Number) : [];
+                        
+                            btn.prop('disabled', true);
                         
                             $.post('<?php echo admin_url("admin-ajax.php"); ?>', {
-                                action: 'load_more_products',
+                                action: 'load_more_recommended',
                                 offset: offset,
-                                per_page: perPage
+                                per_page: perPage,
+                                shown_ids: shownIds
                             }, function(response){
                                 if(response.trim() === '') {
                                     btn.hide();
                                 } else {
                                     $('#recommended-products').append(response);
-                                    btn.data('offset', offset + perPage);
+
+                                    var newIds = $(response).map(function(){ return $(this).data('id'); }).get();
+                                    shownIds = shownIds.concat(newIds);
+                                    btn.data('shown-ids', shownIds.join(','));
+                                
+                                    offset += perPage;
+                                    btn.data('offset', offset);
+                                
+                                    btn.prop('disabled', false);
+                                
+                                    if(offset >= total){
+                                        btn.hide();
+                                    }
                                 }
                             });
                         });

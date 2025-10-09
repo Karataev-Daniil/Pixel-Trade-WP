@@ -273,6 +273,9 @@
     z-index: 1000;
     min-width: 160px;
     padding: 8px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 .dm-context-item {
     color: var(--gray_-5);

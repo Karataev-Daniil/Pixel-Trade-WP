@@ -1,6 +1,7 @@
 let typingInterval;
 let waitInterval;
 
+// Получение активной вкладки
 function getActiveTab() {
     const activeTab = document.querySelector('.tab-content.active');
     if (!activeTab) return null;
@@ -8,6 +9,7 @@ function getActiveTab() {
     return { tab: activeTab, lang };
 }
 
+// Установка сообщения
 function setMessage(id, text, type) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -15,6 +17,7 @@ function setMessage(id, text, type) {
     el.className = `form-message body-small-regular ${type}`;
 }
 
+// Эффект печати текста
 function typeMessage(id, text, loop = false, type = '') {
     const el = document.getElementById(id);
     if (!el) return;
@@ -28,11 +31,11 @@ function typeMessage(id, text, loop = false, type = '') {
         el.textContent = '';
         el.className = `form-message body-small-regular ${type}`;
         index = 0;
-      
+
         typingInterval = setInterval(() => {
             el.textContent += text[index];
             index++;
-          
+
             if (index >= text.length) {
                 clearInterval(typingInterval);
                 if (loop) {
@@ -53,6 +56,7 @@ function typeMessage(id, text, loop = false, type = '') {
     startTyping();
 }
 
+// Остановка печати
 function stopTyping(id, finalText, type = '') {
     clearInterval(typingInterval);
     clearInterval(waitInterval);
@@ -62,19 +66,29 @@ function stopTyping(id, finalText, type = '') {
     el.className = `form-message body-small-regular ${type}`;
 }
 
+// Закрыть дропдаун
+function closeDropdown() {
+    const dropdown = document.querySelector('.translation-dropdown');
+    if (dropdown) dropdown.classList.remove('show');
+}
+
+// Генерация переводов
 async function generateTranslations() {
+    closeDropdown();
+
     const active = getActiveTab();
     if (!active) return;
 
     const { tab, lang } = active;
-    const title = tab.querySelector('input')?.value.trim() || '';
-    const desc = tab.querySelector('textarea')?.value.trim() || '';
+    const inputName = lang === 'ru' ? 'product_title' : 'title_' + lang;
+    const textareaName = lang === 'ru' ? 'product_content' : 'description_' + lang;
 
-    if (!title && !desc) {
-        return setMessage('translation-message', 'Пустой текст для перевода', 'error');
-    }
+    const title = tab.querySelector(`input[name="${inputName}"]`)?.value.trim() || '';
+    const desc  = tab.querySelector(`textarea[name="${textareaName}"]`)?.value.trim() || '';
 
-    typeMessage('translation-message', 'Генерация переводов', true, 'info');
+    if (!title && !desc) return setMessage('action-message', 'Пустой текст для перевода', 'error');
+
+    typeMessage('action-message', 'Генерация переводов', true, 'info');
 
     try {
         const resp = await fetch(translationVars.ajaxUrl, {
@@ -88,53 +102,54 @@ async function generateTranslations() {
                 lang
             })
         });
-      
+
         const data = await resp.json();
-        stopTyping('translation-message', '', '');
-      
-        if (!data.success || !data.data) {
-            return setMessage('translation-message', data.error || 'Ошибка при генерации', 'error');
-        }
-      
+        stopTyping('action-message', '', '');
+
+        if (!data.success || !data.data) return setMessage('action-message', data.error || 'Ошибка при генерации', 'error');
+
         const translations = data.data;
-      
+
         ['ru','en','ro'].forEach(l => {
             if (l === lang || !translations[l]) return;
 
             const tabTarget = document.querySelector(`.tab-content[data-lang="${l}"]`);
             if (!tabTarget) return;
 
-            const inputName = l === 'ru' ? 'product_title' : 'title_' + l;
-            const textareaName = l === 'ru' ? 'product_content' : 'description_' + l;
+            const inputNameTarget = l === 'ru' ? 'product_title' : 'title_' + l;
+            const textareaNameTarget = l === 'ru' ? 'product_content' : 'description_' + l;
 
-            const input = tabTarget.querySelector(`input[name="${inputName}"]`);
-            const textarea = tabTarget.querySelector(`textarea[name="${textareaName}"]`);
+            const input = tabTarget.querySelector(`input[name="${inputNameTarget}"]`);
+            const textarea = tabTarget.querySelector(`textarea[name="${textareaNameTarget}"]`);
 
             if (input && translations[l].title) input.value = translations[l].title.replace(/\\n/g, '\n');
             if (textarea && translations[l].desc) textarea.value = translations[l].desc.replace(/\\n/g, '\n');
         });
-      
-        setMessage('translation-message', 'Переводы готовы', 'success');
+
+        setMessage('action-message', 'Переводы готовы', 'success');
     } catch (e) {
         console.error(e);
-        stopTyping('translation-message', 'Ошибка при генерации', 'error');
+        stopTyping('action-message', 'Ошибка при генерации', 'error');
     }
 }
 
-async function showImproveOptions() {
+// Улучшение текста
+async function improveText() {
+    closeDropdown();
+
     const active = getActiveTab();
     if (!active) return;
 
     const { tab, lang } = active;
-    const titleEl = tab.querySelector('input[name^="title"]');
-    const descEl = tab.querySelector('textarea[name^="description"], textarea[name^="product_content"]');
+    const inputName = lang === 'ru' ? 'product_title' : 'title_' + lang;
+    const textareaName = lang === 'ru' ? 'product_content' : 'description_' + lang;
 
-    if (!titleEl.value.trim() && !descEl.value.trim()) {
-        setMessage('translation-message', 'Пустой текст для улучшения', 'error');
-        return;
-    }
+    const titleEl = tab.querySelector(`input[name="${inputName}"]`);
+    const descEl  = tab.querySelector(`textarea[name="${textareaName}"]`);
 
-    typeMessage('translation-message', 'Улучшаем текст', true, 'info');
+    if (!titleEl?.value.trim() && !descEl?.value.trim()) return setMessage('action-message', 'Пустой текст для улучшения', 'error');
+
+    typeMessage('action-message', 'Улучшаем текст', true, 'info');
 
     try {
         const resp = await fetch(translationVars.ajaxUrl, {
@@ -150,33 +165,37 @@ async function showImproveOptions() {
         });
 
         const data = await resp.json();
-        stopTyping('translation-message', '', '');
+        stopTyping('action-message', '', '');
 
         if (data.error) {
             console.error('Improve text error:', data.raw || data.error);
-            setMessage('translation-message', data.error || 'Ошибка при улучшении текста', 'error');
-            return;
+            return setMessage('action-message', data.error || 'Ошибка при улучшении текста', 'error');
         }
 
         if (data.title) titleEl.value = data.title.replace(/\\n/g, '\n');
         if (data.desc) descEl.value = data.desc.replace(/\\n/g, '\n');
 
-        setMessage('translation-message', 'Текст улучшен', 'success');
-
+        setMessage('action-message', 'Текст улучшен', 'success');
     } catch (err) {
         console.error(err);
-        stopTyping('translation-message', 'Ошибка при улучшении текста', 'error');
+        stopTyping('action-message', 'Ошибка при улучшении текста', 'error');
     }
 }
 
+// SEO текст
 async function generateSEOText() {
+    closeDropdown();
+
     const active = getActiveTab();
     if (!active) return;
 
     const { tab, lang } = active;
-    const descEl = tab.querySelector('textarea[name^="description"], textarea[name^="product_content"]');
+    const textareaName = lang === 'ru' ? 'product_content' : 'description_' + lang;
+    const descEl = tab.querySelector(`textarea[name="${textareaName}"]`);
 
-    typeMessage('translation-message', 'Генерируем SEO текст', true, 'info');
+    if (!descEl?.value.trim()) return setMessage('action-message', 'Пустой текст для SEO', 'error');
+
+    typeMessage('action-message', 'Генерируем SEO текст', true, 'info');
 
     try {
         const resp = await fetch(translationVars.ajaxUrl, {
@@ -191,40 +210,31 @@ async function generateSEOText() {
         });
 
         const data = await resp.json();
-        stopTyping('translation-message', '', '');
+        stopTyping('action-message', '', '');
 
-        if (data.error) {
-            setMessage('translation-message', data.error, 'error');
-            return;
-        }
+        if (data.error) return setMessage('action-message', data.error, 'error');
 
         if (data.seo_text) descEl.value = data.seo_text.replace(/\\n/g, '\n');
 
-        setMessage('translation-message', 'SEO текст готов', 'success');
-
+        setMessage('action-message', 'SEO текст готов', 'success');
     } catch (err) {
         console.error(err);
-        stopTyping('translation-message', 'Ошибка при генерации SEO текста', 'error');
+        stopTyping('action-message', 'Ошибка при генерации SEO текста', 'error');
     }
 }
 
+// Dropdown
 document.addEventListener('DOMContentLoaded', () => {
-    const dropdown = document.querySelector('.dropdown');
+    const dropdown = document.querySelector('.translation-dropdown');
     const actionBtn = document.getElementById('translation-action-button');
+
     if (actionBtn && dropdown) {
-        actionBtn.addEventListener('click', () => dropdown.classList.toggle('open'));
+        actionBtn.addEventListener('click', () => dropdown.classList.toggle('show'));
     }
 
-    if (translationVars.activeTab) {
-        const activeLang = translationVars.activeTab;
-        const activeTab = document.querySelector(`.tab-content[data-lang="${activeLang}"]`) || document.getElementById(`tab-${activeLang}`);
-        if (activeTab) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            activeTab.classList.add('active');
-
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            const btn = document.querySelector(`.tab-btn[data-tab="tab-${activeLang}"]`);
-            if (btn) btn.classList.add('active');
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target)) {
+            dropdown.classList.remove('show');
         }
-    }
+    });
 });

@@ -15,7 +15,6 @@ function custom_enqueue_assets() {
         'popup'            => '/assets/css/ui-kit/popup.css',
         'menu'             => '/assets/css/menu.css',
         'footer-menu'      => '/assets/css/footer-menu.css',
-        'test-ui-page'     => '/assets/css/template/test-ui-page.css',
         'slick-css'        => '/includes/slick/slick.css',
     ];
 
@@ -59,6 +58,13 @@ function custom_enqueue_assets() {
         true
     );
 
+    wp_localize_script('main-menu', 'ajax_object', [
+        'ajaxurl' => admin_url('admin-ajax.php'),
+        'icons'   => [
+            'category' => file_get_contents(get_template_directory() . '/images/icon-category.svg'),
+            'user'     => file_get_contents(get_template_directory() . '/images/icon-user.svg'),
+        ],
+    ]);
 
     wp_enqueue_script(
         'slick-js',

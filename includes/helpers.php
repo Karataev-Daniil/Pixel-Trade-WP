@@ -1,4 +1,8 @@
 <?php
+add_action('admin_menu', function() {
+    remove_menu_page('edit.php');
+});
+
 function resize_image_url($image, $width = 150, $height = 150) {
     if (is_numeric($image)) {
         $image = wp_get_attachment_url($image);

@@ -3,15 +3,9 @@ add_action('wp_ajax_load_more_favorites', 'load_more_favorites_callback');
 add_action('wp_ajax_nopriv_load_more_favorites', 'load_more_favorites_callback');
 
 /**
- * Улучшенные рекомендации продуктов для пользователя.
- *
- * Возвращает WP_Query с постами в порядке убывания score (первый — наиболее релевантный).
- *
- * @param int $limit  Кол-во возвращаемых постов (по умолчанию 36)
- * @param int $offset Пагинация/сдвиг (влияет на то, какие просмотренные товары исключаются)
- * @return WP_Query
+ * Get recommended products for user
  */
-function get_recommended_products_for_user($limit = 36, $offset = 0) {
+function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_ids_custom = []) {
     global $wpdb;
 
     $limit = max(1, (int)$limit);
@@ -36,7 +30,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
         ]);
     }
 
-    // ===== 1) просмотренные продукты =====
+    // 1) просмотренные продукты
     $user_id = is_user_logged_in() ? get_current_user_id() : 0;
     $ip_raw = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
     if (strpos($ip_raw, ',') !== false) {
@@ -61,8 +55,9 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
 
     $exclude_ids = array_slice($viewed_ids, 0, 10 + $offset);
     $exclude_ids = array_map('intval', $exclude_ids);
+    $exclude_ids = array_merge($exclude_ids, $exclude_ids_custom); // добавляем уже показанные ID
 
-    // ===== 2) веса категорий =====
+    // 2) веса категорий
     $cats = [];
     foreach ($viewed_ids as $pid) {
         $terms = wp_get_post_terms($pid, 'product_cat', ['fields' => 'ids']);
@@ -82,7 +77,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
 
     $candidates = [];
 
-    // ===== 3) кандидаты из категорий =====
+    // 3) кандидаты из категорий
     if (!empty($cat_ids)) {
         $cat_query_limit = min(300, max($limit * 4, 60));
         $cat_args = [
@@ -121,7 +116,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
         wp_reset_postdata();
     }
 
-    // ===== 4) популярные товары =====
+    // 4) популярные товары
     $desired_additional = max(0, $limit - count($candidates));
     if ($desired_additional > 0) {
         $limit_pop = max($desired_additional * 3, 20);
@@ -148,7 +143,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
         }
     }
 
-    // ===== 5) случайные товары =====
+    // 5) случайные товары
     $remaining = $limit - count($candidates);
     if ($remaining > 0) {
         $exclude_for_random = array_unique(array_merge($exclude_ids, array_keys($candidates)));
@@ -170,7 +165,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
         wp_reset_postdata();
     }
 
-    // ===== 6) сортировка и возврат =====
+    // 6) сортировка и возврат
     if (empty($candidates)) return new WP_Query(['post_type'=>$post_type,'posts_per_page'=>0,'no_found_rows'=>true]);
 
     arsort($candidates);
@@ -187,14 +182,18 @@ function get_recommended_products_for_user($limit = 36, $offset = 0) {
     ]);
 }
 
-add_action('wp_ajax_load_more_products', 'load_more_products_ajax');
-add_action('wp_ajax_nopriv_load_more_products', 'load_more_products_ajax');
+/**
+ * AJAX: Load more recommended products
+ */
+add_action('wp_ajax_load_more_recommended', 'load_more_recommended_ajax');
+add_action('wp_ajax_nopriv_load_more_recommended', 'load_more_recommended_ajax');
 
-function load_more_products_ajax() {
-    $offset = intval($_POST['offset']);
-    $per_page = wp_is_mobile() ? 12 : 36;
+function load_more_recommended_ajax() {
+    $offset = intval($_POST['offset'] ?? 0);
+    $per_page = intval($_POST['per_page'] ?? (wp_is_mobile() ? 12 : 36));
+    $shown_ids = isset($_POST['shown_ids']) ? array_map('intval', explode(',', $_POST['shown_ids'])) : [];
 
-    $query = get_recommended_products_for_user($per_page, $offset);
+    $query = get_recommended_products_for_user($per_page, $offset, $shown_ids);
 
     if ($query->have_posts()) {
         while ($query->have_posts()) : $query->the_post();
@@ -202,8 +201,11 @@ function load_more_products_ajax() {
         endwhile;
     }
 
+    wp_reset_postdata();
     wp_die();
 }
+
+
 
 add_action('save_post_products', function($post_id, $post, $update){
     $author_id = $post->post_author;

@@ -135,6 +135,23 @@ window.existingDynamicFields = <?php
                                 </div>
                             </div>
                         <?php endforeach; ?>
+                        <div class="translation-dropdown">
+                            <div id="translation-action-button" class="button secondary-button-small">
+                                <?php echo t('Действия с текстом', 'Text Actions', 'Acțiuni text'); ?>
+                            </div>
+                            <div class="dropdown-content">
+                                <div class="dropdown-item tertiary-button-small button-small" onclick="generateTranslations()">
+                                    <?php echo t('Сгенерировать переводы', 'Generate Translations', 'Generează traduceri'); ?>
+                                </div>
+                                <div class="dropdown-item tertiary-button-small button-small" onclick="improveText()">
+                                    <?php echo t('Улучшить текст', 'Improve Text', 'Îmbunătățește textul'); ?>
+                                </div>
+                                <div class="dropdown-item tertiary-button-small button-small" onclick="generateSEOText()">
+                                    <?php echo t('Сгенерировать SEO-текст', 'Generate SEO Text', 'Generează text SEO'); ?>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="action-message" class="form-message body-medium-regular"></div>
                     </section>
 
                     <!-- Gallery -->

@@ -4,6 +4,7 @@ $lang = $GLOBALS['language'] ?? 'ru';
 $current_cat = get_queried_object();
 
 // $features = get_product_category_features()[$current_cat->term_id] ?? [];
+$per_page = wp_is_mobile() ? 12 : 35;
 ?>
 
 <div class="category__wrapper content-main">
@@ -61,7 +62,8 @@ $current_cat = get_queried_object();
                 </div>
             <?php endif; ?>
 
-            <!-- <?php if (!empty($features) && is_array($features)) : ?>
+            <!-- Фильтры (закомментированы)
+            <?php if (!empty($features) && is_array($features)) : ?>
                 <form id="category-filters" class="category-filters">
                     <?php foreach ($features as $key => $feature) : ?>
                         <?php if (empty($feature['options'])) continue; ?>
@@ -83,17 +85,14 @@ $current_cat = get_queried_object();
                 </form>
             <?php endif; ?> -->
 
-
             <div class="category__products">
                 <div id="products-container">
                     <div class="category__products-list products-list">
                         <?php
-                        $paged = get_query_var('paged') ?: 1;
-
                         $args = [
                             'post_type' => 'products',
-                            'posts_per_page' => 24,
-                            'paged' => $paged,
+                            'posts_per_page' => $per_page,
+                            'paged' => 1,
                             'tax_query' => [
                                 [
                                     'taxonomy' => 'product_cat',
@@ -102,46 +101,24 @@ $current_cat = get_queried_object();
                                 ]
                             ],
                         ];
-                    
-                        $meta_query = [];
-                        if (!empty($features) && is_array($features)) {
-                            foreach ($features as $key => $feature) {
-                                $val = $_GET[$key] ?? '';
-                                if ($val !== '') {
-                                    $meta_query[] = [
-                                        'key'     => '_' . $key,
-                                        'value'   => sanitize_text_field($val),
-                                        'compare' => 'LIKE',
-                                    ];
-                                }
-                            }
-                        }
-
-                        if (!empty($meta_query)) {
-                            $args['meta_query'] = $meta_query;
-                        }
 
                         $products_query = new WP_Query($args);
-                    
+
                         if ($products_query->have_posts()) :
                             while ($products_query->have_posts()) : $products_query->the_post();
                                 get_template_part('template-parts/product/card');
                             endwhile;
                         else :
-                            echo '<p>Ничего не найдено</p>';
+                            echo '<p>' . t('Ничего не найдено', 'Nothing found', 'Nimic găsit') . '</p>';
                         endif;
-                    
+
                         wp_reset_postdata();
                         ?>
                     </div>
-                    
-                    <?php if ($products_query->max_num_pages > 1) : ?>
-                        <button id="load-more" class="category__load-more button-small"
-                                data-page="1"
-                                data-max="<?= $products_query->max_num_pages; ?>">
-                            <?= t('Показать еще','Load more','Arată mai mult'); ?>
-                        </button>
-                    <?php endif; ?>
+
+                    <button id="load-more" class="category__load-more primary-button-medium button-medium">
+                        <?= t('Показать еще','Load more','Arată mai mult'); ?>
+                    </button>
                 </div>
             </div>
         </main>
@@ -150,53 +127,45 @@ $current_cat = get_queried_object();
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const loader = document.querySelector('.loader');
     const productsList = document.querySelector('.products-list');
     const loadMoreBtn = document.getElementById('load-more');
-    const form = document.getElementById('category-filters');
+    let offset = <?= $per_page; ?>;
+    const perPage = <?= $per_page; ?>;
+    const catId = <?= $current_cat->term_id; ?>;
 
-    let currentPage = 1;
-    const cat_id = <?= $current_cat->term_id ?>;
+    function loadProducts() {
+        if (!loadMoreBtn) return;
 
-    function loadProducts(page = 1, append = false) {
-        loader.style.display = 'flex';
+        loadMoreBtn.disabled = true;
+
         const formData = new FormData();
-        for (const [key, value] of new FormData(form)) {
-            const trimmed = value.trim();
-            if (trimmed !== '' && trimmed !== 'Любое') {
-                formData.append(key, trimmed);
-            }
-        }
-
-        formData.append('paged', page);
-        formData.append('cat_id', cat_id);
+        formData.append('offset', offset);
+        formData.append('cat_id', catId);
         formData.append('action', 'load_more_products');
 
         fetch('<?= admin_url('admin-ajax.php'); ?>', { method: 'POST', body: formData })
             .then(res => res.text())
-            .then(data => {
-                if (!append) productsList.innerHTML = '';
-                productsList.insertAdjacentHTML('beforeend', data);
-                loader.style.display = 'none';
-                currentPage = page;
-                const maxPage = parseInt(loadMoreBtn.dataset.max);
-                if (currentPage < maxPage) loadMoreBtn.style.display = 'inline-block';
-                else loadMoreBtn.style.display = 'none';
+            .then(html => {
+                if (html.trim() !== '') {
+                    productsList.insertAdjacentHTML('beforeend', html);
+                    offset += perPage;
+
+                    const newItems = html.split('class="product-card"').length - 1;
+                    if (newItems < perPage) {
+                        loadMoreBtn.style.display = 'none';
+                    } else {
+                        loadMoreBtn.style.display = 'inline-block';
+                        loadMoreBtn.disabled = false;
+                    }
+                } else {
+                    loadMoreBtn.style.display = 'none';
+                }
             });
     }
 
-
-    loadProducts();
-
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        currentPage = 1;
-        loadProducts(1, false);
-    });
-
-    loadMoreBtn.addEventListener('click', function() {
-        loadProducts(currentPage + 1, true);
-    });
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', loadProducts);
+    }
 });
 </script>
 
