@@ -38,6 +38,13 @@
     <!-- Favicon -->
     <link rel="icon" id="favicon-dark" href="<?= get_template_directory_uri(); ?>/images/favicon-light.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="<?= get_template_directory_uri(); ?>/assets/img/apple-touch-icon.png">
+    <script>
+    if (!document.cookie.includes('theme=')) {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = prefersDark ? 'dark' : 'light';
+        document.cookie = `theme=${theme}; path=/; max-age=${30*24*60*60}`;
+    }
+    </script>
 
     <?php wp_head(); ?>
   </head>

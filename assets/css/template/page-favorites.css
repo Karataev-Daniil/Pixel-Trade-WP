@@ -1,9 +1,7 @@
-/* Заголовки */
 .favorites-products h1 {
     margin: 0 0 40px;
 }
 
-/* Вкладки главного меню */
 .favorites-main-tabs { 
     display: flex; 
     gap: 24px; 
@@ -19,7 +17,6 @@
     border-bottom: 2px solid var(--gray_-6); 
 }
 
-/* Категории */
 .favorites-categories { 
     display: flex; 
     flex-wrap: wrap; 
@@ -40,7 +37,6 @@
     color: #fff;
 }
 
-/* Сортировка */
 .favorites-sort { 
     margin-bottom: 16px; 
 }
@@ -74,16 +70,15 @@
 
 .sort-arrow-up,
 .sort-arrow-down {
-    opacity: 0.3; /* неактивная */
+    opacity: 0.3;
     transition: opacity 0.2s;
 }
 
 .sort-arrow-up.active,
 .sort-arrow-down.active {
-    opacity: 1; /* активная */
+    opacity: 1;
 }
 
-/* Секция товаров */
 .favorites-section {
     display: flex;
     flex-direction: column;
@@ -100,14 +95,12 @@
     pointer-events: none;
 }
 
-/* Список товаров */
 .products-list-row {
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
 }
 
-/* Спиннер */
 .spinner {
     display: flex;
     justify-content: center;

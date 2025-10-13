@@ -15,7 +15,7 @@ $is_favorite = in_array($post_id, $favorites);
 $author_id    = get_post_field('post_author', $post_id);
 $author_name  = get_the_author_meta('display_name', $author_id);
 $author_phone = get_user_meta($author_id, 'phone', true);
-$phone_visibility = get_user_meta($author_id, 'phone_visibility', true); // 'all', 'registered', 'none'
+$phone_visibility = get_user_meta($author_id, 'phone_visibility', true);
 
 $author_region = get_user_meta($author_id, 'region', true);
 $regions = get_option('available_regions_multi', []);

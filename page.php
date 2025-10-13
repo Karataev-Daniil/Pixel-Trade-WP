@@ -1,11 +1,10 @@
 <?php
 get_header();
 
-// Рекурсивный вывод категорий с вложенностями
 function render_product_cat_tree($parent_id = 0) {
     $terms = get_terms([
         'taxonomy'   => 'product_cat',
-        'hide_empty' => false, // показать все, даже пустые
+        'hide_empty' => false,
         'parent'     => $parent_id,
         'orderby'    => 'name',
         'order'      => 'ASC',
@@ -15,9 +14,8 @@ function render_product_cat_tree($parent_id = 0) {
         echo '<ul>';
         foreach ($terms as $term) {
             echo '<li>';
-            echo $term->name . ' (' . $term->slug . ')'; // можно добавить ID: $term->term_id
+            echo $term->name . ' (' . $term->slug . ')';
 
-            // рекурсивный вызов для вложенных
             render_product_cat_tree($term->term_id);
 
             echo '</li>';
@@ -26,7 +24,6 @@ function render_product_cat_tree($parent_id = 0) {
     }
 }
 
-// Запускаем с родительских категорий
 render_product_cat_tree(0);
 
 get_footer();

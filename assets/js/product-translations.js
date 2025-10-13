@@ -1,7 +1,6 @@
 let typingInterval;
 let waitInterval;
 
-// Получение активной вкладки
 function getActiveTab() {
     const activeTab = document.querySelector('.tab-content.active');
     if (!activeTab) return null;
@@ -9,7 +8,6 @@ function getActiveTab() {
     return { tab: activeTab, lang };
 }
 
-// Установка сообщения
 function setMessage(id, text, type) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -17,7 +15,6 @@ function setMessage(id, text, type) {
     el.className = `form-message body-small-regular ${type}`;
 }
 
-// Эффект печати текста
 function typeMessage(id, text, loop = false, type = '') {
     const el = document.getElementById(id);
     if (!el) return;
@@ -56,7 +53,6 @@ function typeMessage(id, text, loop = false, type = '') {
     startTyping();
 }
 
-// Остановка печати
 function stopTyping(id, finalText, type = '') {
     clearInterval(typingInterval);
     clearInterval(waitInterval);
@@ -66,13 +62,11 @@ function stopTyping(id, finalText, type = '') {
     el.className = `form-message body-small-regular ${type}`;
 }
 
-// Закрыть дропдаун
 function closeDropdown() {
     const dropdown = document.querySelector('.translation-dropdown');
     if (dropdown) dropdown.classList.remove('show');
 }
 
-// Генерация переводов
 async function generateTranslations() {
     closeDropdown();
 
@@ -133,7 +127,6 @@ async function generateTranslations() {
     }
 }
 
-// Улучшение текста
 async function improveText() {
     closeDropdown();
 
@@ -182,7 +175,6 @@ async function improveText() {
     }
 }
 
-// SEO текст
 async function generateSEOText() {
     closeDropdown();
 
@@ -223,7 +215,6 @@ async function generateSEOText() {
     }
 }
 
-// Dropdown
 document.addEventListener('DOMContentLoaded', () => {
     const dropdown = document.querySelector('.translation-dropdown');
     const actionBtn = document.getElementById('translation-action-button');

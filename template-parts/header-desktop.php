@@ -1,10 +1,8 @@
 <header class="header">
     <div class="header__wrapper main-navigation">
-        <!-- Первый этаж -->
         <section class="header-top__wrapper" aria-label="<?= t('Верхняя панель', 'Top panel', 'Panou superior'); ?>">
             <div class="container-medium">
                 <div class="header-top">
-                    <!-- Логотип и информация -->
                     <div class="header-top-left">
                         <div class="logo logo-hover">
                             <a href="/" aria-label="<?= t('На главную', 'Home', 'Acasă'); ?>" class="logo-link">
@@ -25,7 +23,6 @@
                         </div>
                     </div>
 
-                    <!-- Переключатели -->
                     <div class="header-top-right">
                         <?php
                         $languages = ['ru' => 'Рус', 'en' => 'Eng', 'ro' => 'Rom'];

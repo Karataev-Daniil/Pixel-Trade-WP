@@ -2,7 +2,6 @@
 add_action('rest_api_init', function(){
     global $wpdb;
 
-    // GET /threads — получение списка чатов
     register_rest_route('dm/v1','/threads',[
         'methods'=>'GET',
         'permission_callback'=>fn()=>is_user_logged_in(),
@@ -50,7 +49,6 @@ add_action('rest_api_init', function(){
         }
     ]);
 
-    // POST /threads — создание чата
     register_rest_route('dm/v1','/threads',[
         'methods'=>'POST',
         'permission_callback'=>fn()=>is_user_logged_in(),

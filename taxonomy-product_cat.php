@@ -62,7 +62,7 @@ $per_page = wp_is_mobile() ? 12 : 35;
                 </div>
             <?php endif; ?>
 
-            <!-- Фильтры (закомментированы)
+            <!--
             <?php if (!empty($features) && is_array($features)) : ?>
                 <form id="category-filters" class="category-filters">
                     <?php foreach ($features as $key => $feature) : ?>

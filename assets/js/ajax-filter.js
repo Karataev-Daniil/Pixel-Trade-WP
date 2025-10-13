@@ -13,7 +13,7 @@ jQuery(document).ready(function ($) {
     });
   }
 
-  fetchProducts(); // Автозагрузка
+  fetchProducts();
 
   $('#filter-form').on('submit', function (e) {
     e.preventDefault();

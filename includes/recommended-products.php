@@ -30,7 +30,6 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
         ]);
     }
 
-    // 1) просмотренные продукты
     $user_id = is_user_logged_in() ? get_current_user_id() : 0;
     $ip_raw = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
     if (strpos($ip_raw, ',') !== false) {
@@ -55,9 +54,8 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
 
     $exclude_ids = array_slice($viewed_ids, 0, 10 + $offset);
     $exclude_ids = array_map('intval', $exclude_ids);
-    $exclude_ids = array_merge($exclude_ids, $exclude_ids_custom); // добавляем уже показанные ID
+    $exclude_ids = array_merge($exclude_ids, $exclude_ids_custom);
 
-    // 2) веса категорий
     $cats = [];
     foreach ($viewed_ids as $pid) {
         $terms = wp_get_post_terms($pid, 'product_cat', ['fields' => 'ids']);
@@ -77,7 +75,6 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
 
     $candidates = [];
 
-    // 3) кандидаты из категорий
     if (!empty($cat_ids)) {
         $cat_query_limit = min(300, max($limit * 4, 60));
         $cat_args = [
@@ -116,7 +113,6 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
         wp_reset_postdata();
     }
 
-    // 4) популярные товары
     $desired_additional = max(0, $limit - count($candidates));
     if ($desired_additional > 0) {
         $limit_pop = max($desired_additional * 3, 20);
@@ -143,7 +139,6 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
         }
     }
 
-    // 5) случайные товары
     $remaining = $limit - count($candidates);
     if ($remaining > 0) {
         $exclude_for_random = array_unique(array_merge($exclude_ids, array_keys($candidates)));
@@ -165,7 +160,6 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
         wp_reset_postdata();
     }
 
-    // 6) сортировка и возврат
     if (empty($candidates)) return new WP_Query(['post_type'=>$post_type,'posts_per_page'=>0,'no_found_rows'=>true]);
 
     arsort($candidates);

@@ -47,8 +47,7 @@ $phone = get_user_meta($user_id, 'phone', true);
                            value="<?php echo esc_attr($current_user->user_email); ?>" 
                            class="input--primary" placeholder="">
                 </div>
-
-                <!-- Аватар -->
+                
                 <div class="">
                     <label class="label-large"><?php echo t('Фото профиля', 'Profile Photo', 'Fotografie de profil'); ?></label>
                     <div class="avatar-wrapper">

@@ -27,7 +27,6 @@ add_action('rest_api_init', function(){
         }
     ]);
 
-    // POST /send_message — для внешней отправки с указанием receiver_id
     register_rest_route('dm/v1','/send_message', [
         'methods'=>'POST',
         'permission_callback'=>fn()=>is_user_logged_in(),

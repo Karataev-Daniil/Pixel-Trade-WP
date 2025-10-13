@@ -194,15 +194,10 @@ add_action('admin_post_save_user_settings', function() {
         return $avatar;
     }, 10, 5);
 
-        // ✅ редирект на страницу пользователя
     $user = get_userdata($user_id);
     $user_nicename = $user->user_nicename;
 
-    // Если у тебя кастомный роут вида /user/{slug}
     $redirect_url = home_url('/user/' . $user_nicename . '/');
-
-    // Если хочешь стандартный WordPress /author/{slug}, то:
-    // $redirect_url = get_author_posts_url($user_id);
 
     wp_redirect($redirect_url);
     exit;

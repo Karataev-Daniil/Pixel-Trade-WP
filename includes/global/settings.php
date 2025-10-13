@@ -44,3 +44,25 @@ function generate_random_filename($filename) {
     $random_name = wp_generate_password(12, false, false);
     return $random_name . '.' . $ext;
 }
+function set_user_preferences() {
+    if (isset($_GET['lang'])) {
+        $language = sanitize_text_field($_GET['lang']);
+        setcookie('lang', $language, time() + (30 * 24 * 60 * 60), '/');
+    } elseif (isset($_COOKIE['lang'])) {
+        $language = sanitize_text_field($_COOKIE['lang']);
+    } else {
+        $browser_lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+        switch ($browser_lang) {
+            case 'ro':
+                $language = 'ro';
+                break;
+            case 'en':
+                $language = 'en';
+                break;
+            default:
+                $language = 'ru';
+        }
+    }
+    $GLOBALS['language'] = $language;
+}
+add_action('init', 'set_user_preferences');

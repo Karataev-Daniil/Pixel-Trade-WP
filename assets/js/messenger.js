@@ -568,21 +568,56 @@
     ]);
   }
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  document.addEventListener('DOMContentLoaded', () => {
       const root = document.getElementById('simple-dm-root');
-      const buttons = document.querySelectorAll('.dm-toggle-btn');
-
-      if (!root || buttons.length === 0) return;
-
+      if (!root || root._reactRootContainer) return;
+    
+      // Overlay
       const overlay = document.createElement('div');
       overlay.className = 'dm-overlay';
       document.body.appendChild(overlay);
-
+    
+      // Render App
+      ReactDOM.createRoot(root).render(React.createElement(App));
+    
+      // Buttons
+      const buttons = document.querySelectorAll('.dm-toggle-btn');
+      const openDm = () => {
+          const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+          document.body.style.overflow = 'hidden';
+          document.body.style.paddingRight = scrollBarWidth + 'px';
+          root.classList.add('active');
+          overlay.classList.add('active');
+      };
+      const closeDm = () => {
+          document.body.style.overflow = '';
+          document.body.style.paddingRight = '';
+          root.classList.remove('active');
+          root.classList.remove('chat-open');
+          overlay.classList.remove('active');
+          appSetCurrent(null);
+          appSetMessages([]);
+          appSetSince(0);
+          appSetEditingMessage(null);
+      };
+    
+      overlay.addEventListener('click', closeDm);
+      buttons.forEach(btn => btn.addEventListener('click', openDm));
+    
+      document.body.addEventListener('click', (e) => {
+          const writeBtn = e.target.closest('.dm-write-btn');
+          if (!writeBtn) return;
+          const userId = writeBtn.dataset.user;
+          if (!userId) return;
+          appSetCurrent(userId);
+          openDm();
+      });
+    
+      // Unread count
       async function updateUnreadCount() {
           try {
               const threads = await dmApi('threads');
               const unreadTotal = threads.reduce((sum, t) => sum + (t.unread_count || 0), 0);
-
               buttons.forEach(btn => {
                   let badge = btn.querySelector('.dm-unread-total');
                   if (unreadTotal > 0) {
@@ -600,50 +635,10 @@
               console.warn('Ошибка получения количества непрочитанных сообщений:', err);
           }
       }
-
       updateUnreadCount();
       setInterval(updateUnreadCount, 10000);
-
-      const openDm = () => {
-          const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
-          document.body.style.overflow = 'hidden';
-          document.body.style.paddingRight = scrollBarWidth + 'px';
-
-          root.classList.add('active');
-          overlay.classList.add('active');
-      };
-
-      const closeDm = () => {
-          document.body.style.overflow = '';
-          document.body.style.paddingRight = '';
-
-          root.classList.remove('active');
-          root.classList.remove('chat-open');
-          overlay.classList.remove('active');
-
-          appSetCurrent(null);
-          appSetMessages([]);
-          appSetSince(0);
-          appSetEditingMessage(null);
-      };
-
-      overlay.addEventListener('click', closeDm);
-
-      buttons.forEach(btn => btn.addEventListener('click', openDm));
-
-      document.body.addEventListener('click', (e) => {
-          const writeBtn = e.target.closest('.dm-write-btn');
-          if (!writeBtn) return;
-
-          const userId = writeBtn.dataset.user;
-          if (!userId) return;
-
-          appSetCurrent(userId);
-          openDm();
-      });
-
-      ReactDOM.createRoot(root).render(React.createElement(App));
   });
+
 
   window.openDmWithUser = async function(userId){
     try{

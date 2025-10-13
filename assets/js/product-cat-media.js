@@ -1,5 +1,4 @@
 jQuery(document).ready(function ($) {
-    // Открытие медиа-библиотеки
     $(document).on('click', '.category_image_upload_button', function (e) {
         e.preventDefault();
 
@@ -22,7 +21,6 @@ jQuery(document).ready(function ($) {
         mediaUploader.open();
     });
 
-    // Удаление изображения
     $(document).on('click', '.category_image_remove_button', function (e) {
         e.preventDefault();
 

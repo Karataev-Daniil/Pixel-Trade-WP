@@ -212,7 +212,7 @@ body {
     overflow-y: auto;
     z-index: 9999;
     list-style: none;
-    margin: 10px 0 0 0;
+    margin: 9px 0 0 0;
     padding: 10px 16px 0;
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -706,6 +706,9 @@ button.catalog-toggle-button {
     }
     .burger-button,
     .search-icon-button {
+        width: 24px;
+        height: 24px;
+        position: static;
         background: none;
         border: none;
         padding: 6px;

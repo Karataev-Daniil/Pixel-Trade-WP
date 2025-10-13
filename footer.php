@@ -2,8 +2,7 @@
       <div class="footer__wrapper">
         <div class="container-medium">
           <div class="footer__top">
-            
-            <!-- Логотип и описание -->
+
             <div class="footer__logo-block">
               <a href="/" class="footer__logo" aria-label="На главную">
                 <?php echo file_get_contents(get_template_directory() . '/images/logo.svg'); ?>
@@ -12,8 +11,7 @@
                 <?= t('Надежный маркетплейс для Молдовы', 'A trusted marketplace for Moldova', 'O piață de încredere pentru Moldova'); ?>
               </p>
             </div>
-                
-            <!-- Навигация по разделам -->
+
             <div class="footer__nav">
               <div class="footer__column">
                 <h4 class="label-medium"><?= t('Маркетплейс', 'Marketplace', 'Piață'); ?></h4>
@@ -41,8 +39,8 @@
               </div>
             </div>
           </div>
-        </div>     
-          <!-- Низ футера -->
+        </div>
+
         <div class="footer__bottom-wrapper">
           <div class="container-medium">
             <div class="footer__bottom">
@@ -58,6 +56,7 @@
         </div>
       </div>
     </footer>
+    <div id="chatbot-root"></div>
     <div id="simple-dm-root" class="dm-root"></div>
     <?php wp_footer(); ?>
 </body>

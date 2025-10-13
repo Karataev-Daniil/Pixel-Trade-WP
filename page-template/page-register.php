@@ -90,12 +90,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const emailInput = document.getElementById('reg_email');
     const passwordInput = document.getElementById('reg_password');
 
-    // Вспомогательные функции
     function setFieldMessage(fieldId, message, type) {
         const msgBlock = document.getElementById(fieldId + "_message");
         if (msgBlock) {
             msgBlock.textContent = message;
-            msgBlock.className = "form-message " + type; // используем CSS классы
+            msgBlock.className = "form-message " + type;
         }
     }
 
@@ -103,11 +102,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const msgBlock = document.getElementById(fieldId + "_message");
         if (msgBlock) {
             msgBlock.textContent = "";
-            msgBlock.className = "form-message"; // сброс к дефолту
+            msgBlock.className = "form-message";
         }
     }
 
-    // Подсветка требований к паролю на лету
     passwordInput.addEventListener("input", function () {
         const value = passwordInput.value;
         document.getElementById("pw_length").style.color = value.length >= 8 ? "green" : "red";
@@ -122,20 +120,17 @@ document.addEventListener('DOMContentLoaded', function () {
         clearFieldMessage('reg_email');
         clearFieldMessage('reg_password');
 
-        // Проверка имени пользователя
         if (usernameInput.value.trim().length < 3) {
             setFieldMessage('reg_username', 'Имя пользователя должно содержать минимум 3 символа.', 'error');
             valid = false;
         }
 
-        // Проверка email
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailPattern.test(emailInput.value.trim())) {
             setFieldMessage('reg_email', 'Введите корректный email.', 'error');
             valid = false;
         }
 
-        // Проверка пароля
         const password = passwordInput.value;
         if (password.length < 8) {
             setFieldMessage('reg_password', 'Пароль должен содержать минимум 8 символов.', 'error');
@@ -151,11 +146,10 @@ document.addEventListener('DOMContentLoaded', function () {
         return valid;
     }
 
-    // Отправка формы
     form.addEventListener('submit', function (e) {
         e.preventDefault();
 
-        if (!validateForm()) return; // 🚫 если не прошло валидацию — не отправляем
+        if (!validateForm()) return;
 
         const formData = new FormData(form);
         formData.append('action', 'ajax_register_user');
