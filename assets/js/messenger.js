@@ -1,0 +1,660 @@
+(function(){
+  const defaultAvatar = SIMPLE_DM.defaultAvatar;
+  const { useState, useEffect, useRef, useCallback } = React;
+
+  window.dmApi = async function(path, opts={}){
+    try{
+      const fetchOpts = {
+        headers: { 'X-WP-Nonce': SIMPLE_DM.nonce },
+        credentials: 'same-origin',
+        ...opts
+      };
+      if(opts.body) fetchOpts.headers['Content-Type'] = 'application/json';
+
+      const res = await fetch(SIMPLE_DM.rest + path, fetchOpts);
+      if(!res.ok){
+        const errText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errText}`);
+      }
+      return res.json();
+    } catch(err){
+      console.error('dmApi error:', err);
+      throw err;
+    }
+  };
+
+  const translationCache = new Map();
+  let globalOpenThread = null;
+
+  function ChatList({ threads, currentId, onSelect }){
+    return React.createElement('div', { className: 'dm-sidebar' }, [
+      React.createElement('div', { className: 'dm-sidebar-header title-medium', key: 'header' }, 'Чаты'),
+      React.createElement('button', {
+        className: 'dm-close-b',
+        onClick: () => {
+          document.body.style.overflow = '';
+          document.body.style.paddingRight = '';
+          const root = document.getElementById('simple-dm-root');
+          if (root) {
+            root.classList.remove('active');
+            root.classList.remove('chat-open');
+          }
+          const overlay = document.querySelector('.dm-overlay');
+          if (overlay) overlay.classList.remove('active');
+        
+          appSetCurrent(null);
+          appSetMessages([]);
+          appSetSince(0);
+          appSetEditingMessage(null);
+        },
+        key: 'close-b'
+      }, '✕'),
+      threads.length === 0
+        ? React.createElement('div', { className: 'dm-empty body-medium-regular', key: 'empty' }, 'Чатов пока нет')
+        : threads.map(t => React.createElement(ThreadItem, { key: t.id, thread: t, active: t.id === currentId, onSelect }))
+    ]);
+  }
+
+  function ThreadItem({ thread, active, onSelect }) {
+    const otherUser = thread.other_user || {};
+    return React.createElement('button', {
+      className: 'dm-thread button-medium' + (active ? ' active' : ''),
+      onClick: () => onSelect(thread.id)
+    }, [
+      React.createElement('div', { key: 'avatar-wrapper', className: 'dm-avatar-wrapper', style: { position: 'relative' } }, [
+        React.createElement('img', { 
+          key: 'av', 
+          src: otherUser.avatar || defaultAvatar, 
+          className: 'dm-avatar', 
+          alt: otherUser.name || 'Удалённый пользователь' 
+        }),
+        thread.unread_count > 0 && React.createElement('span', { key: 'unread', className: 'dm-unread-badge'}, thread.unread_count)
+      ]),
+      React.createElement('div', { key: 'meta', className: 'dm-thread-meta' }, [
+        React.createElement('div', { key: 'name', className: 'dm-name title-medium' }, otherUser.name || 'Удалённый пользователь'),
+        React.createElement('div', { key: 'last', className: 'dm-last body-small-regular' }, thread.last_message ? thread.last_message.slice(0,40) : 'Нет сообщений')
+      ]),
+      React.createElement('div', { key: 'time', className: 'dm-upd body-small-regular' }, formatDateTime(thread.updated))
+    ]);
+  }
+
+
+  function formatDateTime(ts){
+    const d = new Date(ts*1000);
+    const day = String(d.getDate()).padStart(2,'0');
+    const month = String(d.getMonth()+1).padStart(2,'0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  function Message({ m, autoTranslate, onEdit, openMenuId, setOpenMenuId }) {
+    const mine = m.author === SIMPLE_DM.currentUser.id;
+    const [translated, setTranslated] = React.useState(null);
+    const [loading, setLoading] = React.useState(false);
+    const visible = openMenuId === m.id;
+    const msgRef = React.useRef(null);
+
+    const doTranslate = React.useCallback(async () => {
+      if (translationCache.has(m.id)) {
+        setTranslated(translationCache.get(m.id));
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await dmApi('translate_message', {
+          method: 'POST',
+          body: JSON.stringify({
+            text: m.content,
+            target_lang: SIMPLE_DM.currentUser.language || 'ru',
+            source_lang: m.lang || 'auto'
+          })
+        });
+        if (res.translated && res.translated !== '##SKIP##') {
+          translationCache.set(m.id, res.translated);
+          setTranslated(res.translated);
+        }
+      } catch (err) {
+        console.warn('Ошибка перевода:', err.message);
+      } finally {
+        setLoading(false);
+      }
+    }, [m]);
+
+    const handleContextMenu = (e) => {
+      if (mine) {
+        e.preventDefault();
+        setOpenMenuId(m.id);
+      }
+    };
+
+    React.useEffect(() => {
+      if (!visible) return;
+      const closeMenu = () => setOpenMenuId(null);
+      document.addEventListener('click', closeMenu);
+      return () => document.removeEventListener('click', closeMenu);
+    }, [visible, setOpenMenuId]);
+
+    React.useEffect(() => {
+      if (autoTranslate && !mine && !translated && !m.system) doTranslate();
+    }, [autoTranslate, mine, translated, doTranslate, m.system]);
+
+    const bubbleContent = translated || m.content;
+    const timestamp = new Date(m.created * 1000).toLocaleTimeString();
+
+    return React.createElement('div', {
+      className: 'dm-msg ' + (mine ? 'mine' : ''),
+      onContextMenu: handleContextMenu,
+      ref: msgRef
+    }, [
+      React.createElement('div', {
+        key: 'bubble',
+        className: 'dm-bubble body-medium-regular'
+      }, bubbleContent),
+
+      React.createElement('div', {
+        key: 'meta',
+        className: 'dm-ts body-small-regular'
+      }, [timestamp,
+         m.edited && React.createElement('span', { key:'edited', className:'dm-edited' }, ' (отредактировано)'),
+         !mine && !autoTranslate && !translated && React.createElement('button', {
+           key: 'btn',
+           className: 'dm-translate-btn button-small',
+           onClick: doTranslate,
+           disabled: loading
+         }, loading ? 'Перевожу...' : 'Перевести')]
+      ),
+
+      visible && React.createElement('div', {
+        key: 'menu',
+        className: 'dm-context-menu dm-context-below'
+      }, [
+        React.createElement('div', {
+          key: 'edit',
+          className: 'dm-context-item button-small link-button',
+          onClick: () => { onEdit(m); setOpenMenuId(null); }
+        }, 'Редактировать'),
+
+        React.createElement('div', {
+          key: 'delete',
+          className: 'dm-context-item button-small link-button',
+          onClick: () => { alert('Удаление'); setOpenMenuId(null); }
+        }, 'Удалить')
+      ])
+    ]);
+  }
+
+  function Composer({ onSend, editingMessage, onCancelEdit, blocked, blockedByMe }){
+    const [value, setValue] = useState(editingMessage?.content || '');
+    const textareaRef = useRef(null);
+
+    useEffect(() => { 
+      setValue(editingMessage?.content || ''); 
+      textareaRef.current?.focus(); 
+    }, [editingMessage]);
+
+    const send = async () => {
+        if(!value.trim()) return;
+        if(blocked && !blockedByMe){
+            showPopup({ 
+                title: t('Ошибка','Error','Eroare'), 
+                message: t(
+                    'Вы не можете отправлять сообщения — чат заблокирован.',
+                    'You cannot send messages — chat is blocked.',
+                    'Nu puteți trimite mesaje — chatul este blocat.'
+                ),
+                type: 'warning'
+            });
+            return;
+        }
+        await onSend(value, editingMessage?.id);
+        setValue('');
+    };
+
+    return React.createElement('div', { className:'dm-composer' }, [
+      React.createElement('textarea', {
+        key:'ta',
+        ref: textareaRef,
+        value,
+        onChange: e => setValue(e.target.value),
+        placeholder: blocked && !blockedByMe ? 'Вы заблокированы — отправка сообщений недоступна.' : 'Ваше сообщение…',
+        className:'body-medium-regular input--primary',
+        onKeyDown: e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); } },
+        disabled: blocked && !blockedByMe
+      }),
+      React.createElement('div', { key:'btns', className:'dm-composer-btns' }, [
+        React.createElement('button', { key:'send', onClick:send, className:'dm-send button-medium primary-button-larger', disabled: blocked && !blockedByMe }, '➤'),
+        // editingMessage && React.createElement('button', { key:'cancel', onClick:onCancelEdit, className:'dm-cancel button-medium secondary-button-small' }, 'x')
+      ])
+    ]);
+  }
+
+  function App(){
+    const [threads, setThreads] = useState([]);
+    const [current, setCurrent] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const [since, setSince] = useState(0);
+    const [autoTranslate, setAutoTranslate] = useState(false);
+    const [editingMessage, setEditingMessage] = useState(null);
+    const [initialLoaded, setInitialLoaded] = useState(false);
+    const [openMenuId, setOpenMenuId] = useState(null);
+    const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+
+    // expose setters globally to stop updates when chat closed
+    window.appSetCurrent = setCurrent;
+    window.appSetMessages = setMessages;
+    window.appSetSince = setSince;
+    window.appSetEditingMessage = setEditingMessage;
+
+    const loadThreads = useCallback(async () => {
+      const data = await dmApi('threads');
+      setThreads(data);
+    }, []);
+
+    const loadMessages = useCallback(async (tid, sinceTs = 0) => {
+      const ms = await dmApi(`threads/${tid}/messages${sinceTs ? `?since=${sinceTs}` : ''}`);
+
+      const mapped = ms.map(m => {
+        const sys = m.system || false;
+        const evt = m.event_type || null;
+        const created = m.created || Math.floor(new Date().getTime()/1000);
+      
+        return { ...m, system: sys, event: evt, created };
+      });
+    
+      return mapped;
+    }, []);
+
+    const scrollToBottom = useCallback(() => {
+      const el = document.querySelector('.dm-messages');
+      if(el) el.scrollTop = el.scrollHeight;
+    }, []);
+
+    const openThread = useCallback(async (tid) => {
+      setCurrent(tid);
+      setMessages([]);
+      setSince(0);
+      setEditingMessage(null);
+      setInitialLoaded(false);
+      
+      const root = document.getElementById('simple-dm-root');
+      if (root) root.classList.add('chat-open');
+      
+      await dmApi(`threads/${tid}/read`, { method: 'POST' });
+      await loadThreads();
+      
+      setThreads(prev => prev.map(t => t.id === tid ? {...t, unread_count:0} : t));
+      
+      const ms = await loadMessages(tid, 0);
+      const mapped = ms.map(m => ({ ...m, lang: m.lang || 'auto' }));
+      setMessages(mapped);
+      if(ms.length) setSince(Math.floor(ms[ms.length-1].created));
+      setInitialLoaded(true);
+      setTimeout(scrollToBottom, 0);
+    }, [loadMessages, scrollToBottom, loadThreads]);
+
+    const sendMessage = useCallback(async (content, editId=null) => {
+      if (!current) return;
+
+      const currentThread = threads.find(t => t.id === current);
+      if (!currentThread) return;
+
+      if (editId) {
+        const res = await dmApi(`messages/${editId}/edit`, {
+          method:'POST',
+          body: JSON.stringify({ text: content })
+        });
+        if (res.success) {
+          setMessages(prev => prev.map(m => 
+            m.id === editId ? { ...m, content, edited:true } : m
+          ));
+          setEditingMessage(null);
+          scrollToBottom();
+        }
+      } else {
+        if (currentThread.blocked && currentThread.blocked_by !== SIMPLE_DM.currentUser.id) {
+          alert('Вы заблокированы — вы не можете отправлять сообщения в этом чате.');
+          return;
+        }
+      
+        await dmApi(`threads/${current}/messages`, { 
+          method:'POST', 
+          body: JSON.stringify({ content }) 
+        });
+
+        const ms = await loadMessages(current, since);
+        const mapped = ms.map(m => ({
+          ...m,
+          lang: m.lang || 'auto',
+          system: m.meta?._system === 1 || m.meta?._system === "1",
+          event: m.meta?._event || null
+        }));
+      
+        setMessages(prev => [...prev, ...mapped]);
+        if (ms.length) setSince(Math.floor(ms[ms.length-1].created));
+        scrollToBottom();
+        await loadThreads();
+      }
+    }, [current, threads, loadMessages, since, scrollToBottom, loadThreads]);
+
+    const startEditing = (message) => setEditingMessage(message);
+    const cancelEditing = () => setEditingMessage(null);
+
+    useEffect(()=>{ loadThreads(); }, [loadThreads]);
+
+    useEffect(()=>{
+      const params = new URLSearchParams(window.location.search);
+      const tid = params.get('thread');
+      if(tid && threads.length) openThread(parseInt(tid));
+    }, [threads, openThread]);
+
+    useEffect(() => {
+      const interval = setInterval(async () => {
+        try { await loadThreads(); }
+        catch(err){ console.warn(err); }
+      }, 10000);
+      return () => clearInterval(interval);
+    }, [loadThreads]);
+
+    useEffect(() => {
+      if (!current || !initialLoaded) return;
+    
+      const interval = setInterval(async () => {
+        try {
+          const ms = await loadMessages(current, since || 0);
+          if (ms.length) {
+            setMessages(prev => [...prev, ...ms.map(m => ({ ...m, lang: m.lang || 'auto' }))]);
+            setSince(Math.floor(ms[ms.length - 1].created));
+          
+            const updatedThreads = await dmApi('threads');
+            setThreads(updatedThreads);
+          
+            scrollToBottom();
+          }
+        } catch (err) {
+          console.warn('Ошибка при обновлении сообщений:', err);
+        }
+      }, 3000);
+    
+      return () => clearInterval(interval);
+    }, [current, since, loadMessages, scrollToBottom, initialLoaded]);
+
+    useEffect(()=>{ globalOpenThread = openThread; return ()=>{ globalOpenThread=null; } }, [openThread]);
+
+    const blockUser = useCallback(async () => {
+        if (!current) return;
+        const currentThread = threads?.find(t => t.id === current);
+        if (!currentThread) return;
+
+        const isBlocked = !!currentThread.blocked;
+        const iAmBlocker = Number(currentThread.blocked_by) === Number(SIMPLE_DM.currentUser.id);
+
+        if (isBlocked) {
+            if (!iAmBlocker) {
+                showPopup({
+                    title: t('Ошибка','Error','Eroare'),
+                    message: t(
+                        'Вы не можете разблокировать — чат заблокирован другим пользователем.',
+                        'You cannot unblock — chat is blocked by another user.',
+                        'Nu puteți debloca — chatul este blocat de alt utilizator.'
+                    ),
+                    type: 'warning'
+                });
+                return;
+            }
+            showPopup({
+                title: t('Подтверждение','Confirmation','Confirmare'),
+                message: t('Разблокировать чат?','Unblock chat?','Deblocați chatul?'),
+                type: 'info',
+                buttons: [
+                    { text: t('Отмена','Cancel','Anulare'), callback: () => {}, className:'secondary' },
+                    { text: t('Ок','Ok','Ok'), callback: async () => {
+                        try {
+                            await dmApi(`threads/${current}/block`, { method: 'DELETE' });
+                            await loadThreads();
+                        } catch (err) {
+                            showPopup({ 
+                                title: t('Ошибка','Error','Eroare'), 
+                                message: t('Ошибка при разблокировке: ','Error unblocking: ','Eroare la deblocare: ') + err.message, 
+                                type: 'danger' 
+                            });
+                        }
+                    }, className:'primary'}
+                ]
+            });
+        } else {
+            showPopup({
+                title: t('Подтверждение','Confirmation','Confirmare'),
+                message: t(
+                    'Вы уверены, что хотите заблокировать пользователя?',
+                    'Are you sure you want to block this user?',
+                    'Sigur doriți să blocați acest utilizator?'
+                ),
+                type: 'info',
+                buttons: [
+                    { 
+                        text: t('Нет','No','Nu'), 
+                        callback: () => {}, 
+                        className:'secondary-button-small' 
+                    },
+                    { 
+                        text: t('Да','Yes','Da'), 
+                        callback: async () => {
+                            try {
+                                await dmApi(`threads/${current}/block`, { method: 'POST' });
+                                await loadThreads();
+                            } catch (err) {
+                                showPopup({ 
+                                    title: t('Ошибка','Error','Eroare'), 
+                                    message: t(
+                                        'Ошибка при блокировке: ',
+                                        'Error blocking: ',
+                                        'Eroare la blocare: '
+                                    ) + err.message, 
+                                    type: 'danger' 
+                                });
+                            }
+                        }, 
+                        className:'secondary-button-small'
+                    }
+                ]
+            });
+        }
+    }, [current, threads, loadThreads]);
+
+    const messagesWithDates = [];
+    let lastDate = null;
+    messages.forEach(m=>{
+      const msgDate = new Date(m.created*1000);
+      const dateStr = msgDate.toLocaleDateString();
+      if(dateStr!==lastDate){
+        messagesWithDates.push({ type:'date', date:dateStr, id:'date-'+msgDate.getTime() });
+        lastDate = dateStr;
+      }
+      messagesWithDates.push(m);
+    });
+
+    const currentThread = threads.find(t=>t.id===current);
+    const otherUser = currentThread?.other_user || {};
+
+    const deleteCurrentThread = async ()=> {
+        if(!current) return;
+
+        showPopup({
+            title: t('Подтверждение','Confirmation','Confirmare'),
+            message: t('Вы уверены, что хотите удалить чат и все его сообщения?','Are you sure you want to delete the chat and all messages?','Sigur doriți să ștergeți chatul și toate mesajele?'),
+            type: 'info',
+            buttons: [
+                { text: t('Отмена','Cancel','Anulare'), callback: () => {}, className:'secondary' },
+                { text: t('Ок','Ok','Ok'), callback: async () => {
+                    try{
+                        const res = await dmApi(`threads/${current}`, { method:'DELETE' });
+                        setThreads(prev => prev.filter(t=>t.id!==current));
+                        setCurrent(null);
+                        setMessages([]);
+                        setSince(0);
+                        setEditingMessage(null);
+                        setMoreMenuOpen(false);
+                        showPopup({ 
+                            title: t('Успех','Success','Succes'), 
+                            message: t('Чат успешно удалён','Chat successfully deleted','Chat șters cu succes'), 
+                            type: 'success' 
+                        });
+                    } catch(err){
+                        showPopup({ 
+                            title: t('Ошибка','Error','Eroare'), 
+                            message: t('Ошибка при удалении чата: ','Error deleting chat: ','Eroare la ștergerea chatului: ') + err.message, 
+                            type: 'danger' 
+                        });
+                    }
+                }, className:'primary'}
+            ]
+        });
+    };
+
+    const isBlocked = !!currentThread?.blocked;
+    const iAmBlocker = Number(currentThread?.blocked_by) === Number(SIMPLE_DM.currentUser.id);
+
+    return React.createElement('div', { className:'dm-wrap' }, [
+      React.createElement(ChatList, { key:'list', threads, currentId:current, onSelect: openThread }),
+      React.createElement('div', { key:'chat', className:'dm-chat' }, [
+        !current && React.createElement('div', { className:'dm-placeholder body-medium-regular', key:'placeholder' }, 'Выберите чат'),
+        current && React.createElement('div', { key:'chat-header-wrapper' }, [
+          React.createElement('div', { key:'chat-header', className:'dm-chat-header' }, [
+            React.createElement('img', { key:'av', src: otherUser.avatar || SIMPLE_DM.defaultAvatar, className:'dm-avatar-large', alt: otherUser.name || 'Удалённый пользователь' }),
+            React.createElement('div', { key:'info', className:'dm-chat-info' }, [
+              React.createElement('div', { className:'dm-name title-medium', key:'name' }, otherUser.name||'Удалённый пользователь'),
+              React.createElement('div', { className:'dm-start body-small-regular', key:'start' }, 'Начало переписки: '+(messages[0]?new Date(messages[0].created*1000).toLocaleDateString():'-'))
+            ]),
+            React.createElement('div', { className:'dm-chat-actions', key:'actions' }, [
+              React.createElement('button', { className:'dm-more-btn', onClick:()=>setMoreMenuOpen(!moreMenuOpen), key:'btn' }, '⋮'),
+              React.createElement('div', { className:'dm-more-menu' + (moreMenuOpen?' active':''), key:'menu' }, [
+                React.createElement('div', { className:'dm-context-item', key:'delete-chat', onClick:deleteCurrentThread }, 'Удалить чат'),
+                React.createElement('div', { className:'dm-context-item', key:'block-chat', onClick:async()=>await blockUser() }, iAmBlocker ? 'Разблокировать' : isBlocked ? 'Заблокирован' : 'Заблокировать'),
+                React.createElement('div', { className:'dm-context-item', key:'profile', onClick:()=>openProfile(otherUser.id) }, 'Профиль')
+              ]),
+              React.createElement('button',{className:'dm-close-btn',onClick:()=>{setCurrent(null);const root=document.getElementById('simple-dm-root');if(root)root.classList.remove('chat-open');},key:'close'},'✕')
+            ])
+          ]),
+          React.createElement('div', { className:'dm-translate-toggle', key:'translate' }, [
+            React.createElement('button', { onClick:()=>setAutoTranslate(!autoTranslate), className:'button-medium', key:'toggle' }, autoTranslate?'Убрать авто перевод':'Включить авто перевод')
+          ])
+        ]),
+        current && React.createElement('div', { className:'dm-messages', key:'messages' },
+          messagesWithDates.map(m => {
+            if (m.type === 'date') 
+              return React.createElement('div', { key: m.id, className: 'dm-date-separator body-small-regular' }, m.date);
+          
+            if (m.system) {
+                const sysMsg = m.event === 'blocked' 
+                    ? t('системное сообщение: чат заблокирован', 'system message: chat blocked', 'mesaj de sistem: chat blocat')
+                    : t('системное сообщение: чат разблокирован', 'system message: chat unblocked', 'mesaj de sistem: chat deblocat');
+
+                return React.createElement('div', {
+                    key: m.id,
+                    className: 'dm-message dm-system-message',
+                    'data-system': true
+                }, [
+                    React.createElement('div', { key: 'txt', className: 'dm-message-content' }, m.content),
+                    React.createElement('div', { key: 'sig', className: 'dm-system-signature' }, 
+                        `${new Date(m.created*1000).toLocaleTimeString()} - ${sysMsg}`)
+                ]);
+            }
+          
+            return React.createElement(Message, { key: m.id, m, autoTranslate, onEdit:startEditing, openMenuId, setOpenMenuId });
+          })
+        ),
+        current && React.createElement(Composer, { key:'composer', onSend:sendMessage, editingMessage, onCancelEdit:cancelEditing, blocked:isBlocked, blockedByMe:iAmBlocker }),
+      ]),
+    ]);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+      const root = document.getElementById('simple-dm-root');
+      if (!root || root._reactRootContainer) return;
+    
+      // Overlay
+      const overlay = document.createElement('div');
+      overlay.className = 'dm-overlay';
+      document.body.appendChild(overlay);
+    
+      // Render App
+      ReactDOM.createRoot(root).render(React.createElement(App));
+    
+      // Buttons
+      const buttons = document.querySelectorAll('.dm-toggle-btn');
+      const openDm = () => {
+          const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+          document.body.style.overflow = 'hidden';
+          document.body.style.paddingRight = scrollBarWidth + 'px';
+          root.classList.add('active');
+          overlay.classList.add('active');
+      };
+      const closeDm = () => {
+          document.body.style.overflow = '';
+          document.body.style.paddingRight = '';
+          root.classList.remove('active');
+          root.classList.remove('chat-open');
+          overlay.classList.remove('active');
+          appSetCurrent(null);
+          appSetMessages([]);
+          appSetSince(0);
+          appSetEditingMessage(null);
+      };
+    
+      overlay.addEventListener('click', closeDm);
+      buttons.forEach(btn => btn.addEventListener('click', openDm));
+    
+      document.body.addEventListener('click', (e) => {
+          const writeBtn = e.target.closest('.dm-write-btn');
+          if (!writeBtn) return;
+          const userId = writeBtn.dataset.user;
+          if (!userId) return;
+          appSetCurrent(userId);
+          openDm();
+      });
+    
+      // Unread count
+      async function updateUnreadCount() {
+          try {
+              const threads = await dmApi('threads');
+              const unreadTotal = threads.reduce((sum, t) => sum + (t.unread_count || 0), 0);
+              buttons.forEach(btn => {
+                  let badge = btn.querySelector('.dm-unread-total');
+                  if (unreadTotal > 0) {
+                      if (!badge) {
+                          badge = document.createElement('span');
+                          badge.className = 'dm-unread-total';
+                          btn.appendChild(badge);
+                      }
+                      badge.textContent = unreadTotal;
+                  } else if (badge) {
+                      badge.remove();
+                  }
+              });
+          } catch (err) {
+              console.warn('Ошибка получения количества непрочитанных сообщений:', err);
+          }
+      }
+      updateUnreadCount();
+      setInterval(updateUnreadCount, 10000);
+  });
+
+
+  window.openDmWithUser = async function(userId){
+    try{
+      const res = await dmApi('threads', { method:'POST', body:JSON.stringify({ user_id: userId }) });
+      if(globalOpenThread) globalOpenThread(res.thread_id);
+      const root = document.getElementById('simple-dm-root');
+      if(root) root.style.display='block';
+    } catch(err){
+      alert('Ошибка: '+err.message);
+    }
+  };
+
+  document.addEventListener('click', (e)=>{
+    if(e.target && e.target.classList.contains('dm-write-btn')){
+      const uid = e.target.getAttribute('data-user');
+      if(uid) window.openDmWithUser(uid);
+    }
+  });
+})();

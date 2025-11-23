@@ -4,20 +4,13 @@ function t($ru, $en, $ro) {
     return $language == 'en' ? $en : ($language == 'ro' ? $ro : $ru);
 }
 
-function set_language_cookie() {
-    if (isset($_GET['lang'])) {
-        $language = $_GET['lang'];
-        setcookie('language', $language, time() + (30 * 24 * 60 * 60), '/');
-    } elseif (isset($_COOKIE['language'])) {
-        $language = $_COOKIE['language']; 
-    } else {
-        $language = 'ru';
+if (!function_exists('get_category_name_translated')) {
+    function get_category_name_translated($term, $lang) {
+        if ($lang==='en') return get_term_meta($term->term_id,'translation_en',true) ?: $term->name;
+        if ($lang==='ro') return get_term_meta($term->term_id,'translation_ro',true) ?: $term->name;
+        return $term->name;
     }
-
-    $GLOBALS['language'] = $language;
 }
-add_action('init', 'set_language_cookie');
-
 function set_theme_cookie() {
     if (isset($_GET['theme'])) {
         $theme = $_GET['theme'];
@@ -31,3 +24,45 @@ function set_theme_cookie() {
     $GLOBALS['theme'] = $theme;
 }
 add_action('init', 'set_theme_cookie');
+
+function generate_product_slug() {
+    global $wpdb;
+
+    do {
+        $number = mt_rand(1000000, 9999999);
+        $exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = 'products'",
+            $number
+        ));
+    } while ($exists);
+
+    return $number;
+}
+
+function generate_random_filename($filename) {
+    $ext = pathinfo($filename, PATHINFO_EXTENSION);
+    $random_name = wp_generate_password(12, false, false);
+    return $random_name . '.' . $ext;
+}
+function set_user_preferences() {
+    if (isset($_GET['lang'])) {
+        $language = sanitize_text_field($_GET['lang']);
+        setcookie('lang', $language, time() + (30 * 24 * 60 * 60), '/');
+    } elseif (isset($_COOKIE['lang'])) {
+        $language = sanitize_text_field($_COOKIE['lang']);
+    } else {
+        $browser_lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+        switch ($browser_lang) {
+            case 'ro':
+                $language = 'ro';
+                break;
+            case 'en':
+                $language = 'en';
+                break;
+            default:
+                $language = 'ru';
+        }
+    }
+    $GLOBALS['language'] = $language;
+}
+add_action('init', 'set_user_preferences');

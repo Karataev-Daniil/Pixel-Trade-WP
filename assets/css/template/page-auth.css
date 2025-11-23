@@ -1,0 +1,40 @@
+.auth__wrapper {
+    width: 100%;
+    max-width: 600px; 
+    margin: 40px auto;
+}
+.auth__title {
+    margin: 0 0 28px;
+}
+
+.auth__field {
+    margin: 0 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.auth__note {
+    display: flex;
+    gap: 8px;
+}
+
+.popup {
+    position: fixed;
+    inset: 0;
+    background: var(--gray_6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.popup__content {
+    background: var(--gray_6);
+    padding: 20px;
+    border-radius: 12px;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 5px 15px var(--shadow);
+}
+#popup-close {
+    margin-top: 15px;
+}

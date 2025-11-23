@@ -1,0 +1,76 @@
+.universal-popup-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: var(--popup-bg);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 9999;
+}
+.universal-popup {
+  background: var(--gray_6);
+  padding: 40px 24px 20px;
+  border-radius: 8px;
+  max-width: 400px;
+  min-width: 400px;
+  text-align: center;
+  border-top: 4px solid transparent;
+  position: relative;
+}
+.universal-popup h3.popup-title {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--gray_-6);
+}
+.universal-popup p.popup-message {
+  margin: 0 0 15px 0;
+  color: var(--gray_-2);
+}
+.universal-popup .popup-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.universal-popup .popup-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+.universal-popup .popup-icon {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 24px;
+  height: 24px;
+}
+.universal-popup .popup-btn {
+  width: 100%;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.universal-popup.success { 
+  border-top-color: var(--success_0); 
+}
+.universal-popup.error { 
+  border-top-color: var(--red_0); 
+}
+.universal-popup.warning { 
+  border-top-color: var(--orange_0); 
+}
+.universal-popup.info { 
+  border-top-color: var(--aqua_0); 
+}
+/* Адаптив для оверлея */
+@media (max-width: 440px) {
+  .universal-popup {
+    min-width: 340px;
+    max-width: 340px;
+  }
+}

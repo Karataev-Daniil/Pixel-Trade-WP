@@ -1,15 +1,8 @@
-    <div id="chat-popup" style="display:none; position:fixed; bottom:20px; right:20px; width:300px; background:#fff; border:1px solid #ccc; padding:10px;">
-        <div id="chat-messages" style="height:200px; overflow-y:auto; border-bottom:1px solid #ddd;"></div>
-        <input type="text" id="chat-input" placeholder="Введите сообщение">
-        <button id="send-chat">Отправить</button>
-    </div>
-
     <footer class="footer" role="contentinfo">
       <div class="footer__wrapper">
         <div class="container-medium">
           <div class="footer__top">
-            
-            <!-- Логотип и описание -->
+
             <div class="footer__logo-block">
               <a href="/" class="footer__logo" aria-label="На главную">
                 <?php echo file_get_contents(get_template_directory() . '/images/logo.svg'); ?>
@@ -18,8 +11,7 @@
                 <?= t('Надежный маркетплейс для Молдовы', 'A trusted marketplace for Moldova', 'O piață de încredere pentru Moldova'); ?>
               </p>
             </div>
-                
-            <!-- Навигация по разделам -->
+
             <div class="footer__nav">
               <div class="footer__column">
                 <h4 class="label-medium"><?= t('Маркетплейс', 'Marketplace', 'Piață'); ?></h4>
@@ -38,17 +30,17 @@
                 </ul>
               </div>
               <div class="footer__column">
-                <h4 class="label-medium"><?= t('Аккаунт', 'Account', 'Contul meu'); ?></h4>
+                <h4 class="label-medium"><?= t('Аккаунт', 'user', 'Contul meu'); ?></h4>
                 <ul>
-                  <li><a class="link-button" href="/account/login"><?= t('Вход', 'Login', 'Autentificare'); ?></a></li>
-                  <li><a class="link-button" href="/account/settings"><?= t('Настройки', 'Settings', 'Setări'); ?></a></li>
+                  <li><a class="link-button" href="/user/login"><?= t('Вход', 'Login', 'Autentificare'); ?></a></li>
+                  <li><a class="link-button" href="/user/settings"><?= t('Настройки', 'Settings', 'Setări'); ?></a></li>
                   <li><a class="link-button" href="/my-products"><?= t('Мои товары', 'My Products', 'Produsele mele'); ?></a></li>
                 </ul>
               </div>
             </div>
           </div>
-        </div>     
-          <!-- Низ футера -->
+        </div>
+
         <div class="footer__bottom-wrapper">
           <div class="container-medium">
             <div class="footer__bottom">
@@ -64,6 +56,8 @@
         </div>
       </div>
     </footer>
+    <div id="chatbot-root"></div>
+    <div id="simple-dm-root" class="dm-root"></div>
     <?php wp_footer(); ?>
 </body>
 </html>

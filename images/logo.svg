@@ -1,8 +1,11 @@
-<svg width="150" height="35" viewBox="35 30 75 35" xmlns="http://www.w3.org/2000/svg">
-  <text x="0" y="60" class="title-largest" fill="var(--orange_-5)">
+<svg viewBox="0 0 150 35" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" preserveAspectRatio="xMinYMid meet">
+  <text x="0" y="30" class="title-largest" fill="var(--orange_-5)">
     <tspan x="0">P</tspan><tspan x="25">xel</tspan>
   </text>
-  <line class="i-letter" x1="22" y1="45" x2="22" y2="60" stroke="var(--orange_-5)" stroke-width="4" />
-  <rect class="dot" x="19" y="37" width="6" height="6" rx="3" ry="3" fill="var(--orange_0)" />
-  <text x="65" y="60" class="title-largest" fill="var(--orange_0)">Trade</text>
+  
+  <!-- Dot and line for "i" -->
+  <line x1="22" y1="14.5" x2="22" y2="30" stroke="var(--orange_-5)" stroke-width="4"></line>
+  <rect x="19" y="7.5" width="6" height="6" rx="3" ry="3" fill="var(--orange_0)"></rect>
+
+  <text x="65" y="30" class="title-largest" fill="var(--orange_0)">Trade</text>
 </svg>

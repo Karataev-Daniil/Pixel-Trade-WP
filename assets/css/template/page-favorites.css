@@ -1,0 +1,146 @@
+.favorites-products h1 {
+    margin: 0 0 40px;
+}
+
+.favorites-main-tabs { 
+    display: flex; 
+    gap: 24px; 
+    margin: 0 0 20px; 
+}
+.favorites-main-tabs .main-tab { 
+    padding: 8px 0; 
+    cursor: pointer; 
+    transition: color 0.2s ease, border-bottom 0.2s ease;
+}
+.favorites-main-tabs .main-tab.active { 
+    font-weight: bold; 
+    border-bottom: 2px solid var(--gray_-6); 
+}
+
+.favorites-categories { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 8px; 
+    margin: 16px 0; 
+}
+.category-tag { 
+    padding: 6px 12px; 
+    cursor: pointer; 
+    border-radius: 4px;
+    background-color: var(--gray_4); 
+    color: var(--gray_-6);
+    transition: background-color 0.2s ease, color 0.2s ease;
+    text-decoration: none;
+}
+.category-tag.active { 
+    background: var(--orange_0); 
+    color: #fff;
+}
+
+.favorites-sort { 
+    margin-bottom: 16px; 
+}
+.sort-btn { 
+    margin-right: 10px; 
+    cursor: pointer; 
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+.sort-btn .sort-icon {
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+}
+.sort-arrow-up,
+.sort-arrow-down {
+    transition: all 0.2s ease;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+.sort-arrow-up.active,
+.sort-arrow-down.active {
+    fill: var(--orange_0);
+    stroke: none;
+}
+
+.sort-arrow-up,
+.sort-arrow-down {
+    opacity: 0.3;
+    transition: opacity 0.2s;
+}
+
+.sort-arrow-up.active,
+.sort-arrow-down.active {
+    opacity: 1;
+}
+
+.favorites-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: opacity 0.3s ease, height 0.3s ease;
+    opacity: 1;
+    height: auto;
+    pointer-events: auto;
+}
+.favorites-section.hidden {
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.products-list-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+    height: 50px;
+}
+.spinner.hidden {
+    display: none;
+}
+.spinner .dot {
+    width: 10px;
+    height: 10px;
+    background: var(--orange_0);
+    border-radius: 50%;
+    animation: bounce 0.6s infinite alternate;
+}
+@keyframes bounce {
+    to { transform: translateY(-10px); }
+}
+
+#load-more {
+    display: block;
+    margin: 16px auto;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.product-card-row-large {
+  transition: opacity 0.3s ease, height 0.3s ease, margin 0.3s ease, padding 0.3s ease, order 0.3s ease;
+  overflow: hidden;
+  order: 0;
+}
+.product-card-row-large.hidden {
+  opacity: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+  order: 9999;
+}

@@ -1,51 +1,116 @@
-body {
-  background-color: var(--gray_6);
-  color: var(--gray_-5);
-  margin: 0;
-  padding: 0;
+.home h1, .home h2, .home h3, .home h4 {
+  margin: 0 0 20px;
+}
+.sidebar-block {
+  margin: 0 0 40px;
+}
+.featured-categories {
+  margin: 0 0 40px;
+}
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 12px;
 }
 
+.category-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 16px;
+  min-height: 110px;
+
+  color: var(--gray_-6);
+  background-color: var(--gray_4);
+  border-radius: 12px;
+
+  text-decoration: none;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  transition: background-color 0.4s ease, 
+              transform 0.3s ease, 
+              box-shadow 0.4s ease;
+  cursor: pointer;
+}
+
+.category-card span {
+  font-weight: 600;
+  max-width: 120px;
+  transition: color 0.4s ease, text-shadow 0.4s ease;
+}
+.category-card__image {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  max-width: 140px;
+  pointer-events: none;
+  transition: transform 0.4s ease;
+}
+.category-card__image img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+
+  filter: brightness(0.95) saturate(1.1) contrast(1.05)
+          drop-shadow(0 5px 10px rgba(0, 0, 0, 0.25));
+  transition: transform 0.4s ease, 
+              opacity 0.4s ease, 
+              filter 0.4s ease;
+}
+.category-card:hover {
+  background: linear-gradient(135deg, var(--orange_4), var(--orange_5));
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+.category-card:hover span {
+  color: var(--gray_-3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.category-card:hover .category-card__image img {
+  transform: scale(1.1) rotate(-2deg);
+  filter: brightness(1) saturate(1.2) 
+          drop-shadow(0 8px 16px var(--shadow));
+}
+
+.category-avtomobili { grid-column: span 3; }
+.category-avtomobili .category-card__image { top: -40px; max-width: 220px; }
+
+.category-detskiy-mir { grid-column: span 2; }
+.category-detskiy-mir .category-card__image { right: -20px; bottom: -20px; max-width: 140px; }
+
+.category-dom-i-interer { grid-column: span 2; }
+.category-dom-i-interer .category-card__image { right: -40px; bottom: -30px; max-width: 170px; }
+
+.category-zootovary { grid-column: span 2; }
+.category-zootovary .category-card__image { right: -25px; bottom: -35px; max-width: 170px;}
+
+.category-krasota-i-zdorove { grid-column: span 2; }
+.category-krasota-i-zdorove .category-card__image { right: -40px; bottom: -80px; max-width: 170px; }
+
+.category-nedvizhimost { grid-column: span 3; }
+.category-nedvizhimost .category-card__image { bottom: -120px; max-width: 180px; }
+
+.category-odezhda-obuv-i-aksessuary { grid-column: span 2; }
+.category-odezhda-obuv-i-aksessuary .category-card__image { right: -10px; bottom: -10px; max-width: 120px; }
+
+.category-sport-i-otdyh { grid-column: span 2; }
+.category-sport-i-otdyh .category-card__image { max-width: 140px; }
+
+.category-elektronika { grid-column: span 2; }
+.category-elektronika .category-card__image { right: 0; bottom: 0; max-width: 110px; }
+
 .content-columns {
-    display: flex; 
-    padding: 60px 0;
-    gap: 40px; 
-    flex-wrap: wrap;
+  display: flex; 
+  gap: 16px; 
+  flex-wrap: wrap;
 }
 
 .sidebar {
-  background-color: var(--gray_5);
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-.sidebar label {
-  cursor: pointer;
-  color: var(--gray_-3);
-}
-.sidebar input[type="radio"] {
-  margin-right: 8px;
-}
-.sidebar select {
-  background-color: var(--gray_6);
-  border: 1px solid var(--gray_2);
-  padding: 8px 12px;
-  border-radius: 8px;
-  color: var(--gray_-4);
-}
-
-.product-grid {
-  background-color: var(--gray_6);
-}
-#product-results {
-  margin-bottom: 40px;
-}
-#product-results .product-card {
-  background-color: var(--gray_5);
-  border: 1px solid var(--gray_3);
-  padding: 16px;
-  border-radius: 12px;
-  text-align: center;
-  transition: box-shadow 0.2s;
+  width: 300px;
+  /* padding: 12px 0 12px 12px; */
+  height: fit-content;
 }
 
 .pagination {
@@ -65,4 +130,109 @@ body {
 .pagination .current {
   background-color: var(--orange_0);
   color: white;
+}
+
+
+.category-toggle {
+  cursor: pointer;
+  display: block;
+  padding: 4px 0;
+}
+.category-toggle.has-children::before {
+  content: "▶";
+  display: inline-block;
+  margin-right: 5px;
+  transition: transform 0.3s;
+}
+.category-toggle.open::before {
+  transform: rotate(90deg);
+}
+.sub-category {
+  margin-left: 15px;
+}
+.category-list li {
+  cursor: pointer;
+}
+.category-list li.active > label {
+  color: var(--orange_0);
+}
+.category-list label {
+  display: block;
+  padding: 4px 0;
+  transition: color 0.2s, font-weight 0.2s;
+}
+.recommended-products h2 {
+  margin: 0 0 8px;
+}
+.sidebar {
+  margin: 24px 0 0;
+}
+.sidebar-block h3 {
+  margin: 0 0 8px;
+}
+@media screen and (max-width: 1024px) {
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 83px);
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+
+    scrollbar-width: none;
+  }
+
+  .categories-grid::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 440px) {
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 62px);
+    margin: 0 -8px;
+    padding: 0 8px;
+    gap: 8px;
+  }
+  .category-card {
+    min-height: 100px;
+    padding: 12px;
+  }
+  .category-card__image {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+  }
+  .category-avtomobili .category-card__image img { 
+    bottom: -50px;
+  }
+  .category-detskiy-mir .category-card__image img {
+    top: -10px;
+  }
+  .category-dom-i-interer .category-card__image img {
+    top: -10px;
+    left: -10px;
+  }
+  .category-nedvizhimost .category-card__image img {
+    top: -30px;
+  }
+  .category-zootovary .category-card__image img {
+    top: -20px;
+    left: -10px;
+  }
+  .category-krasota-i-zdorove .category-card__image img {
+    top: -30px;
+    left: -20px;
+  }
+  .category-elektronika .category-card__image img {
+    left: -10px;
+  }
+  .category-card__image img {
+    position: relative;
+    width: 75%;
+  }
+  .featured-categories {
+    margin: 0 0 24px;
+  }
 }

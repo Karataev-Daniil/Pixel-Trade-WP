@@ -1,135 +1,72 @@
-/* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
-/* inter-100 - cyrillic_latin */
+/* inter-100 - cyrillic_latin_latin-ext */
 @font-face {
-  font-display: swap; 
+  font-display: swap;
   font-family: 'Inter';
   font-style: normal;
   font-weight: 100;
-  src: url('../fonts/inter-v18-cyrillic_latin-100.woff2') format('woff2');
+  src: url('../fonts/inter-v18-cyrillic_latin_latin-ext-100.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
-
-/* inter-200 - cyrillic_latin */
+/* inter-200 - cyrillic_latin_latin-ext */
 @font-face {
-  font-display: swap; 
+  font-display: swap;
   font-family: 'Inter';
   font-style: normal;
   font-weight: 200;
-  src: url('../fonts/inter-v18-cyrillic_latin-200.woff2') format('woff2'); 
+  src: url('../fonts/inter-v18-cyrillic_latin_latin-ext-200.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
-
-/* inter-300 - cyrillic_latin */
+/* inter-300 - cyrillic_latin_latin-ext */
 @font-face {
-  font-display: swap; 
+  font-display: swap;
   font-family: 'Inter';
   font-style: normal;
   font-weight: 300;
-  src: url('../fonts/inter-v18-cyrillic_latin-300.woff2') format('woff2'); 
+  src: url('../fonts/inter-v18-cyrillic_latin_latin-ext-300.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
-
-/* inter-regular - cyrillic_latin */
+/* inter-regular - cyrillic_latin_latin-ext */
 @font-face {
-  font-display: swap; 
+  font-display: swap;
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  src: url('../fonts/inter-v18-cyrillic_latin-regular.woff2') format('woff2'); 
+  src: url('../fonts/inter-v18-cyrillic_latin_latin-ext-regular.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
-
-/* inter-500 - cyrillic_latin */
+/* inter-500 - cyrillic_latin_latin-ext */
 @font-face {
-  font-display: swap; 
+  font-display: swap;
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  src: url('../fonts/inter-v18-cyrillic_latin-500.woff2') format('woff2'); 
+  src: url('../fonts/inter-v18-cyrillic_latin_latin-ext-500.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
-
-/* inter-600 - cyrillic_latin */
+/* inter-600 - cyrillic_latin_latin-ext */
 @font-face {
-  font-display: swap; 
+  font-display: swap;
   font-family: 'Inter';
   font-style: normal;
   font-weight: 600;
-  src: url('../fonts/inter-v18-cyrillic_latin-600.woff2') format('woff2'); 
+  src: url('../fonts/inter-v18-cyrillic_latin_latin-ext-600.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
-
-/* inter-700 - cyrillic_latin */
+/* inter-700 - cyrillic_latin_latin-ext */
 @font-face {
-  font-display: swap; 
+  font-display: swap;
   font-family: 'Inter';
   font-style: normal;
   font-weight: 700;
-  src: url('../fonts/inter-v18-cyrillic_latin-700.woff2') format('woff2'); 
+  src: url('../fonts/inter-v18-cyrillic_latin_latin-ext-700.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
-
-/* inter-800 - cyrillic_latin */
+/* inter-800 - cyrillic_latin_latin-ext */
 @font-face {
-  font-display: swap; 
+  font-display: swap;
   font-family: 'Inter';
   font-style: normal;
   font-weight: 800;
-  src: url('../fonts/inter-v18-cyrillic_latin-800.woff2') format('woff2'); 
+  src: url('../fonts/inter-v18-cyrillic_latin_latin-ext-800.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
-
-/* inter-900 - cyrillic_latin */
+/* inter-900 - cyrillic_latin_latin-ext */
 @font-face {
-  font-display: swap; 
+  font-display: swap;
   font-family: 'Inter';
   font-style: normal;
   font-weight: 900;
-  src: url('../fonts/inter-v18-cyrillic_latin-900.woff2') format('woff2'); 
-}
-
-
-
-
-
-/* ibm-plex-sans-200 - cyrillic */
-@font-face {
-  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
-  font-family: 'IBM Plex Sans';
-  font-style: normal;
-  font-weight: 200;
-  src: url('../fonts/ibm-plex-sans-v21-cyrillic-200.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
-}
-/* ibm-plex-sans-300 - cyrillic */
-@font-face {
-  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
-  font-family: 'IBM Plex Sans';
-  font-style: normal;
-  font-weight: 300;
-  src: url('../fonts/ibm-plex-sans-v21-cyrillic-300.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
-}
-/* ibm-plex-sans-regular - cyrillic */
-@font-face {
-  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
-  font-family: 'IBM Plex Sans';
-  font-style: normal;
-  font-weight: 400;
-  src: url('../fonts/ibm-plex-sans-v21-cyrillic-regular.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
-}
-/* ibm-plex-sans-500 - cyrillic */
-@font-face {
-  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
-  font-family: 'IBM Plex Sans';
-  font-style: normal;
-  font-weight: 500;
-  src: url('../fonts/ibm-plex-sans-v21-cyrillic-500.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
-}
-
-/* Circe-Regular - cyrillic */
-@font-face {
-  font-family: 'Circe';
-  font-display: swap;
-  font-style: normal;
-  font-weight: normal;
-  src: url("../fonts/Circe-Regular.woff2") format("woff2");
-}
-
-@font-face {
-  font-family: 'Circe';
-  font-display: swap;
-  font-style: normal;
-  font-weight: bold;
-  src: url("../fonts/Circe-Bold.woff2") format("woff2");
+  src: url('../fonts/inter-v18-cyrillic_latin_latin-ext-900.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }

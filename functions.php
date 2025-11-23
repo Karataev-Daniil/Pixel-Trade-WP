@@ -1,162 +1,199 @@
 <?php
+// Helpers / Global
 require_once get_template_directory() . '/includes/global/settings.php';
 require_once get_template_directory() . '/includes/helpers.php';
+require_once get_template_directory() . '/includes/custom-seo.php';
 
 require_once get_template_directory() . '/includes/enqueue-assets.php';
+require_once get_template_directory() . '/includes/image-sizes.php';
 
+// Post Types & Roles
 require_once get_template_directory() . '/includes/custom-post-types.php';
 require_once get_template_directory() . '/includes/user-roles.php';
+require_once get_template_directory() . '/includes/product-helpers.php';
 
+// User Actions
 require_once get_template_directory() . '/includes/user-registration.php';
 require_once get_template_directory() . '/includes/user-login.php';
+require_once get_template_directory() . '/includes/user-settings.php';
+require_once get_template_directory() . '/includes/user-create-product.php';
 require_once get_template_directory() . '/includes/user-edit-product.php';
+require_once get_template_directory() . '/includes/user-delete-product.php';
+require_once get_template_directory() . '/includes/user-favorites.php';
+require_once get_template_directory() . '/includes/user-products-dashboard.php';
+require_once get_template_directory() . '/includes/user-messenger/user-messenger.php';
 
-require_once get_template_directory() . '/includes/ajax/filter-products.php';
-
+// Admin / Moderation
 require_once get_template_directory() . '/includes/admin-approval.php';
 
-require_once get_template_directory() . '/includes/openai-api.php';
+// AI / Translation
+require_once get_template_directory() . '/includes/translation-product-ai.php';
 
+// Language Redirect / Handling
+require_once get_template_directory() . '/includes/language-redirect.php';
 
-add_action('wp_ajax_get_subcategories', 'get_subcategories_ajax');
-add_action('wp_ajax_nopriv_get_subcategories', 'get_subcategories_ajax');
+// AJAX Handlers
+require_once get_template_directory() . '/includes/ajax-products.php';
 
-function get_subcategories_ajax() {
-    $parent_id = isset($_GET['parent']) ? intval($_GET['parent']) : 0;
+// Recommended Products (Homepage)
+require_once get_template_directory() . '/includes/recommended-products.php';
 
-    $terms = get_terms([
+// User Public Profile
+require_once get_template_directory() . '/includes/user-public-profile.php';
+
+// ajax chatbot
+require_once get_template_directory() . '/includes/ajax-chatbot.php';
+
+add_action('wp_ajax_search_products', 'ajax_search_products');
+add_action('wp_ajax_nopriv_search_products', 'ajax_search_products');
+
+function ajax_search_products() {
+    $query = trim(sanitize_text_field($_GET['q'] ?? ''));
+    if (!$query) {
+        wp_send_json_success([]);
+    }
+
+    global $wpdb;
+
+    $results = [
+        'categories'     => [],
+        'users'          => [],
+        'popular_queries'=> [],
+        'products_html'  => ''
+    ];
+
+    $all_terms = get_terms([
         'taxonomy'   => 'product_cat',
         'hide_empty' => false,
-        'parent'     => $parent_id,
+        'number'     => 100,
     ]);
 
-    $result = [];
-    foreach ($terms as $term) {
-        $result[] = [
-            'term_id' => $term->term_id,
-            'name'    => [
-                'ru' => $term->name, // по умолчанию, имя терма на русском
-                'en' => get_term_meta($term->term_id, 'translation_en', true) ?: $term->name,
-                'ro' => get_term_meta($term->term_id, 'translation_ro', true) ?: $term->name,
-            ],
+    $count_cats = 0;
+    foreach ($all_terms as $term) {
+        $meta_ro = get_term_meta($term->term_id, 'translation_ro', true);
+        $meta_en = get_term_meta($term->term_id, 'translation_en', true);
+
+        if (
+            stripos($term->name, $query) !== false ||
+            stripos((string)$meta_ro, $query) !== false ||
+            stripos((string)$meta_en, $query) !== false
+        ) {
+            $results['categories'][] = [
+                'id'   => $term->term_id,
+                'name' => $term->name,
+                'link' => get_term_link($term)
+            ];
+            $count_cats++;
+            if ($count_cats >= 10) break;
+        }
+    }
+
+    $user_ids = get_users([
+        'search'         => '*' . $query . '*',
+        'search_columns' => ['user_login', 'display_name'],
+        'number'         => 20
+    ]);
+
+    $count_users = 0;
+    foreach ($user_ids as $user) {
+        if ($count_users >= 10) break;
+        $results['users'][] = [
+            'id'   => $user->ID,
+            'name' => $user->display_name,
+            'link' => '/user/' . $user->user_login . '/'
+        ];
+        $count_users++;
+    }
+
+    $like = '%' . $wpdb->esc_like($query) . '%';
+
+    $sql = "
+        SELECT DISTINCT p.ID
+        FROM {$wpdb->posts} p
+        LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+        WHERE p.post_type = 'products'
+          AND p.post_status = 'publish'
+          AND (
+              p.post_title LIKE %s
+              OR (pm.meta_key IN ('_title_ro','_title_en')
+                  AND pm.meta_value LIKE %s)
+          )
+        LIMIT 10
+    ";
+
+    $product_ids = $wpdb->get_col($wpdb->prepare($sql, $like, $like));
+
+    if ($product_ids) {
+        $args = [
+            'post_type'      => 'products',
+            'post__in'       => $product_ids,
+            'orderby'        => 'post__in',
+            'posts_per_page' => 10,
+        ];
+
+        $query_posts = new WP_Query($args);
+
+        ob_start();
+        if ($query_posts->have_posts()): ?>
+            <ul class="products-list-row">
+                <?php while ($query_posts->have_posts()): $query_posts->the_post();
+                    get_template_part('template-parts/product/card-row');
+                endwhile; ?>
+            </ul>
+        <?php endif;
+        wp_reset_postdata();
+
+        $results['products_html'] = ob_get_clean();
+    }
+
+    wp_send_json_success($results);
+}
+
+
+add_action('wp_ajax_load_more_products', 'ajax_load_more_products');
+add_action('wp_ajax_nopriv_load_more_products', 'ajax_load_more_products');
+
+function ajax_load_more_products() {
+    global $wpdb;
+
+    $page = intval($_POST['page'] ?? 1);
+    $cat_id = intval($_POST['cat_id'] ?? 0);
+    $per_page = intval($_POST['per_page'] ?? 20);
+
+    $meta_query = ['relation' => 'AND'];
+
+    // Build meta_query dynamically based on selected filters
+    foreach ($_POST as $key => $value) {
+        if (in_array($key, ['action', 'page', 'cat_id', 'per_page']) || empty($value)) continue;
+        $meta_query[] = [
+            'key' => sanitize_text_field($key),
+            'value' => sanitize_text_field($value),
+            'compare' => '=',
         ];
     }
 
-    wp_send_json($result);
-}
-
-
-function sort_categories_by_hierarchy($categories) {
-    if (empty($categories)) return [];
-
-    $categories_by_id = [];
-    foreach ($categories as $term) {
-        $categories_by_id[$term->term_id] = $term;
-    }
-
-    $sorted = [];
-
-    // Найдём самого верхнего родителя
-    $leaf = null;
-    foreach ($categories as $term) {
-        if (!array_filter($categories, fn($t) => $t->parent === $term->term_id)) {
-            $leaf = $term;
-            break;
-        }
-    }
-
-    // Восстановим путь от листа к корню
-    while ($leaf) {
-        $sorted[] = $leaf->term_id;
-        $leaf = isset($categories_by_id[$leaf->parent]) ? $categories_by_id[$leaf->parent] : null;
-    }
-
-    return array_reverse($sorted); // от родителя к потомку
-}
-
-// В functions.php
-function create_messages_table() {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'private_messages';
-
-    $charset_collate = $wpdb->get_charset_collate();
-
-    $sql = "CREATE TABLE $table_name (
-        id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-        sender_id BIGINT(20) UNSIGNED NOT NULL,
-        receiver_id BIGINT(20) UNSIGNED NOT NULL,
-        message TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id)
-    ) $charset_collate;";
-
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    dbDelta($sql);
-}
-register_activation_hook(__FILE__, 'create_messages_table'); // или замени __FILE__ на путь к твоей теме
-
-add_action('wp_ajax_send_private_message', function() {
-    global $wpdb;
-    $sender_id = get_current_user_id();
-    $receiver_id = intval($_POST['receiver_id']);
-    $message = sanitize_text_field($_POST['message']);
-
-    $wpdb->insert("{$wpdb->prefix}private_messages", [
-        'sender_id' => $sender_id,
-        'receiver_id' => $receiver_id,
-        'message' => $message,
-    ]);
-
-    wp_die();
-});
-
-add_action('wp_ajax_load_private_messages', function() {
-    global $wpdb;
-    $current_user = get_current_user_id();
-    $receiver_id = intval($_GET['receiver_id']);
-
-    $messages = $wpdb->get_results($wpdb->prepare(
-        "SELECT * FROM {$wpdb->prefix}private_messages
-        WHERE (sender_id = %d AND receiver_id = %d)
-           OR (sender_id = %d AND receiver_id = %d)
-        ORDER BY created_at ASC",
-        $current_user, $receiver_id, $receiver_id, $current_user
-    ));
-
-    foreach ($messages as $msg) {
-        $from = ($msg->sender_id == $current_user) ? 'Вы' : 'Он/она';
-        echo "<p><strong>$from:</strong> " . esc_html($msg->message) . "</p>";
-    }
-
-    wp_die();
-});
-
-add_action('wp_ajax_autosave_product_draft', function () {
-    if (!is_user_logged_in()) wp_die();
-
-    $current_user_id = get_current_user_id();
-    $post_data = [
-        'post_title'   => sanitize_text_field($_POST['product_title'] ?? ''),
-        'post_content' => sanitize_textarea_field($_POST['product_content'] ?? ''),
-        'post_status'  => 'draft',
-        'post_type'    => 'product',
-        'post_author'  => $current_user_id,
+    $args = [
+        'post_type' => 'products',
+        'posts_per_page' => $per_page,
+        'paged' => $page,
+        'tax_query' => [
+            [
+                'taxonomy' => 'product_cat',
+                'field' => 'term_id',
+                'terms' => $cat_id,
+            ]
+        ],
+        'meta_query' => count($meta_query) > 1 ? $meta_query : [],
     ];
 
-    $existing_draft_id = get_user_meta($current_user_id, '_autosave_product_id', true);
+    $query = new WP_Query($args);
 
-    if ($existing_draft_id && get_post_status($existing_draft_id) === 'draft') {
-        $post_data['ID'] = $existing_draft_id;
-        wp_update_post($post_data);
-    } else {
-        $draft_id = wp_insert_post($post_data);
-        if ($draft_id) {
-            update_user_meta($current_user_id, '_autosave_product_id', $draft_id);
-        }
+    if ($query->have_posts()) {
+        while ($query->have_posts()) : $query->the_post();
+            get_template_part('template-parts/product/card');
+        endwhile;
     }
 
+    wp_reset_postdata();
     wp_die();
-});
-
-
-?>
+}

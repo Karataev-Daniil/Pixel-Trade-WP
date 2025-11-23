@@ -1,341 +1,302 @@
 <?php
 /* Template Name: Мои Товары */
 
-if (isset($_GET['delete_product'])) {
-    $product_id = intval($_GET['delete_product']);
-    if (current_user_can('edit_post', $product_id)) {
-        wp_trash_post($product_id);
-        wp_redirect(remove_query_arg(['delete_product']));
-        exit;
-    }
+if (!is_user_logged_in()) {
+    get_header();
+    ?>
+    <div class="container my-products-wrapper">
+        <p class="body-medium-regular">
+            <?php echo t('Пожалуйста,','Please,','Vă rugăm,'); ?>
+            <a href="<?php echo esc_url(wp_login_url()); ?>" class="link-medium-underline">
+                <?php echo t('войдите','login','autentificați-vă'); ?>
+            </a>
+            <?php echo t('чтобы просмотреть свои товары.','to view your products.','pentru a vedea produsele dvs.'); ?>
+        </p>
+    </div>
+    <?php
+    get_footer();
+    return;
 }
 
 get_header();
+$current_user_id = get_current_user_id();
+$author_info = get_userdata($current_user_id);
 
-if (!is_user_logged_in()) {
-    echo '<div class="container my-products-wrapper"><p class="body-medium-regular">Пожалуйста, <a href="' . wp_login_url() . '" class="link-medium-underline">войдите</a>, чтобы просмотреть свои товары.</p></div>';
-    get_footer();
-    exit;
+$status_map = [
+    'publish'  => t('Активные','Active','Active'),
+    'draft'    => t('Скрытые','Hidden','Ascunse'),
+    'pending'  => t('Неактивные','Inactive','Inactive'),
+    'private'  => t('Заблокированные','Blocked','Blocate')
+];
+
+$status_counts = [];
+foreach ($status_map as $status_key => $label) {
+    $query = new WP_Query([
+        'post_type' => 'products',
+        'post_status' => $status_key,
+        'author' => $current_user_id,
+        'posts_per_page' => -1,
+        'fields' => 'ids',
+    ]);
+    $status_counts[$status_key] = $query->found_posts;
 }
 
-$current_user_id = get_current_user_id();
-$args = [
-    'post_type'      => 'product',
+$all_cats = get_terms([
+    'taxonomy' => 'product_cat',
+    'hide_empty' => false,
+]);
+
+$user_products_by_cat = [];
+$user_posts = get_posts([
+    'post_type' => 'products',
+    'author' => $current_user_id,
+    'post_status' => ['publish','draft','pending','private'],
     'posts_per_page' => -1,
-    'author'         => $current_user_id,
-    'post_status'    => ['publish', 'draft', 'pending'],
-];
-$products = new WP_Query($args);
+    'fields' => 'ids'
+]);
+if($user_posts){
+    global $wpdb;
+    $placeholders = implode(',', array_fill(0, count($user_posts), '%d'));
+    $sql = "SELECT term_taxonomy_id, COUNT(*) as cnt 
+            FROM {$wpdb->term_relationships} 
+            WHERE object_id IN ($placeholders)
+            GROUP BY term_taxonomy_id";
+    $prepared = $wpdb->prepare($sql, $user_posts);
+    $rows = $wpdb->get_results($prepared);
+    foreach ($rows as $row){
+        $term_id = $wpdb->get_var($wpdb->prepare(
+            "SELECT term_id FROM {$wpdb->term_taxonomy} WHERE term_taxonomy_id=%d",
+            $row->term_taxonomy_id
+        ));
+        $user_products_by_cat[$term_id] = (int)$row->cnt;
+    }
+}
+
+function render_user_cats_options($cats, $counts, $parent = 0, $depth = 0){
+    foreach ($cats as $cat){
+        if ($cat->parent != $parent) continue;
+        $count = isset($counts[$cat->term_id]) ? $counts[$cat->term_id] : 0;
+        if($count > 0){
+            $prefix = str_repeat('- ',$depth);
+            echo '<option value="'.esc_attr($cat->term_id).'">'.esc_html($prefix.$cat->name).' ('.$count.')</option>';
+        }
+        render_user_cats_options($cats, $counts, $cat->term_id, $depth+1);
+    }
+}
+
+$ajax_nonce = wp_create_nonce('my_products_nonce');
 ?>
-<div class="dashboard__wrapper">
-    <div class="container-medium">
-        <div class="dashboard-header">
-            <h2 class="title-large">Мои товары</h2>
-            <a href="?add_product=true" class="primary-button-medium button-medium">Добавить товар</a>
-        </div>
 
-        <?php if ($products->have_posts()): ?>
-            <ul class="product-list">
-                <?php while ($products->have_posts()): $products->the_post(); ?>
-                    <li class="product-item">
-                        <div class="product-card">
-                            <?php
-                            $lang = $GLOBALS['language'] ?? 'ru';
+<div class="container-medium my-products-wrapper">
+    <main>
+        <h1 class="display-small">
+            <?php printf(t('Здравствуйте! %s','Hello! %s','Salut! %s'), esc_html($author_info->display_name)); ?>
+        </h1>
 
-                            // Получаем переводы из мета
-                            $title_translations = [
-                                'ru' => get_the_title(),
-                                'en' => get_post_meta(get_the_ID(), '_product_title_en', true),
-                                'ro' => get_post_meta(get_the_ID(), '_product_title_ro', true),
-                            ];
-                            $content_translations = [
-                                'ru' => get_the_content(),
-                                'en' => get_post_meta(get_the_ID(), '_product_content_en', true),
-                                'ro' => get_post_meta(get_the_ID(), '_product_content_ro', true),
-                            ];
-                        
-                            // Безопасный вывод
-                            $translated_title = esc_html($title_translations[$lang] ?? $title_translations['ru']);
-                            $translated_content = esc_html($content_translations[$lang] ?? $content_translations['ru']);
-                            ?>
+        <div class="filters-wrapper body-medium-regular my-filters-wrapper">
+            <div class="tabs-status">
+                <span class="status-tab label-larger active" data-status="all">
+                    <?php echo t('Все','All','Toate'); ?> 
+                    <span class="count" data-status="all">
+                        <?php 
+                        $all_count = array_sum($status_counts);
+                        echo $all_count; 
+                        ?>
+                    </span>
+                </span>
+                <?php foreach ($status_map as $key => $label): ?>
+                    <span class="status-tab label-larger" data-status="<?php echo esc_attr($key); ?>">
+                        <?php echo esc_html($label); ?> 
+                        <span class="count" data-status="<?php echo esc_attr($key); ?>">
+                            <?php echo isset($status_counts[$key]) ? $status_counts[$key] : 0; ?>
+                        </span>
+                    </span>
+                <?php endforeach; ?>
+            </div>
 
-                            <h3 class="title-medium"><?= $translated_title; ?></h3>
-                        
-                            <div class="thumbnail">
-                                <?php if (has_post_thumbnail()) the_post_thumbnail('thumbnail'); ?>
-                            </div>
-                        
-                            <p class="body-small"><?= $translated_content; ?></p>
-                        
-                            <div class="product-meta">
-                                <?php
-                                $price = get_post_meta(get_the_ID(), 'product_price', true);
-                                if ($price) {
-                                    echo '<p class="product-price">Цена: ' . esc_html($price) . ' ₽</p>';
-                                }
-                            
-                                $terms = get_the_terms(get_the_ID(), 'product_cat');
-                                if ($terms && !is_wp_error($terms)) {
-                                    echo '<p>Категория: ' . esc_html($terms[0]->name) . '</p>';
-                                }
-                            
-                                $views = get_post_meta(get_the_ID(), 'product_views', true);
-                                $views = $views ? (int)$views : 0;
-                                echo '<p>Просмотров: ' . $views . '</p>';
-                            
-                                echo '<p>Опубликовано: ' . get_the_date('d.m.Y') . '</p>';
-                                ?>
-                            </div>
-                            
-                            <div class="product-actions">
-                                <a href="<?php echo esc_url(add_query_arg('edit', '1', get_permalink())); ?>" class="secondary-button-small button-small">Редактировать</a>
-                                <a href="?delete_product=<?php the_ID(); ?>" onclick="return confirm('Удалить товар?')" class="accent-button-small button-small">Удалить</a>
-                            </div>
-                        </div>
-                    </li>
-                <?php endwhile; ?>
-            </ul>
-        <?php else: ?>
-            <p class="body-medium-regular no-products">У вас пока нет товаров.</p>
-        <?php endif; ?>
+            <div class="filters-controls">
+                <div class="filters-left">
+                    <label class="select-all-wrapper checkbox-block">
+                        <input type="checkbox" id="select-all-products">
+                    </label>
+                    
+                    <div class="select-info" id="selection-info"></div>
 
-
-        <!-- <?php
-        $current_user_id = get_current_user_id();
-                
-        $editing = false;
-        $product_id = 0;
-        $title = '';
-        $content = '';
-        $status = 'pending';
-        $thumbnail_id = '';
-        $gallery_ids = [];
-        $categories = [];
-        $price = '';
-                
-        // Функция перевода через OpenAI
-        function translate_text_openai($text, $target_lang) {
-            if (!defined('OPENAI_API_KEY') || empty(OPENAI_API_KEY)) return '';
-
-            if (!function_exists('wp_remote_post')) {
-                error_log('wp_remote_post is not available');
-                return '';
-            }
-        
-            $prompt = "Translate the following text into $target_lang:\n\n$text";
-        
-            $data = [
-                'model' => 'gpt-4',
-                'messages' => [
-                    ['role' => 'system', 'content' => 'You are a helpful translator.'],
-                    ['role' => 'user', 'content' => $prompt],
-                ],
-                'temperature' => 0.3,
-            ];
-        
-            $response = wp_remote_post('https://api.openai.com/v1/chat/completions', [
-                'headers' => [
-                    'Content-Type'  => 'application/json',
-                    'Authorization' => 'Bearer ' . OPENAI_API_KEY,
-                ],
-                'body' => json_encode($data),
-                'timeout' => 20, // увеличить таймаут, если сервер медленный
-            ]);
-        
-            if (is_wp_error($response)) {
-                error_log('OpenAI API error: ' . $response->get_error_message());
-                return '';
-            }
-        
-            $body = json_decode(wp_remote_retrieve_body($response), true);
-        
-            if (!isset($body['choices'][0]['message']['content'])) {
-                error_log('OpenAI API response invalid: ' . print_r($body, true));
-                return '';
-            }
-        
-            return trim($body['choices'][0]['message']['content']);
-        }
-
-        
-        // Обработка отправки формы
-        if (isset($_POST['submit_product']) && wp_verify_nonce($_POST['product_form_nonce'], 'save_product_form')) {
-            $current_user_id = get_current_user_id();
-            $title = sanitize_text_field($_POST['product_title']);
-            $content = sanitize_textarea_field($_POST['product_content']);
-            $product_id = intval($_POST['product_id']);
-            $post_status = in_array($_POST['product_status'], ['publish', 'pending', 'draft']) ? $_POST['product_status'] : 'pending';
-
-            $post_data = [
-                'post_title'   => $title,
-                'post_content' => $content,
-                'post_status'  => $post_status,
-                'post_type'    => 'product',
-                'post_author'  => $current_user_id,
-            ];
-        
-            if ($product_id) {
-                $post_data['ID'] = $product_id;
-                $product_id = wp_update_post($post_data);
-            } else {
-                $product_id = wp_insert_post($post_data);
-            }
-        
-            if ($product_id) {
-                // Обработка перевода через OpenAI
-                $title_en = translate_text_openai($title, 'English');
-                $title_ro = translate_text_openai($title, 'Romanian');
-                $content_en = translate_text_openai($content, 'English');
-                $content_ro = translate_text_openai($content, 'Romanian');
-            
-                update_post_meta($product_id, '_product_title_en', $title_en);
-                update_post_meta($product_id, '_product_title_ro', $title_ro);
-                update_post_meta($product_id, '_product_content_en', $content_en);
-                update_post_meta($product_id, '_product_content_ro', $content_ro);
-            }
-        
-            // Обработка миниатюры
-            if (!empty($_FILES['product_thumbnail']['name'])) {
-                if (!function_exists('media_handle_upload')) {
-                    require_once ABSPATH . 'wp-admin/includes/image.php';
-                    require_once ABSPATH . 'wp-admin/includes/file.php';
-                    require_once ABSPATH . 'wp-admin/includes/media.php';
-                }
-
-                $thumbnail_id = media_handle_upload('product_thumbnail', $product_id);
-                if (!is_wp_error($thumbnail_id)) {
-                    set_post_thumbnail($product_id, $thumbnail_id);
-                }
-            }
-        
-            // Обработка галереи
-            if (!empty($_FILES['product_gallery']['name'][0])) {
-                $gallery_ids = [];
-                foreach ($_FILES['product_gallery']['name'] as $key => $value) {
-                    if ($_FILES['product_gallery']['name'][$key]) {
-                        $file = [
-                            'name'     => $_FILES['product_gallery']['name'][$key],
-                            'type'     => $_FILES['product_gallery']['type'][$key],
-                            'tmp_name' => $_FILES['product_gallery']['tmp_name'][$key],
-                            'error'    => $_FILES['product_gallery']['error'][$key],
-                            'size'     => $_FILES['product_gallery']['size'][$key],
-                        ];
-                        $_FILES['single_gallery_image'] = $file;
-                        $attach_id = media_handle_upload('single_gallery_image', $product_id);
-                        if (!is_wp_error($attach_id)) {
-                            $gallery_ids[] = $attach_id;
-                        }
-                    }
-                }
-                update_post_meta($product_id, '_product_image_gallery', implode(',', $gallery_ids));
-            }
-        
-            // Обработка категорий
-            if (!empty($_POST['product_categories']) && is_array($_POST['product_categories'])) {
-                $category_ids = array_map('intval', $_POST['product_categories']);
-                wp_set_object_terms($product_id, $category_ids, 'product_cat');
-            }
-        
-            // Обработка цены
-            if (isset($_POST['product_price'])) {
-                $price = floatval($_POST['product_price']);
-                update_post_meta($product_id, 'product_price', $price);
-            }
-        
-            wp_redirect(get_permalink());
-            exit;
-        }
-        
-        // Подгрузка данных, если редактируем
-        if (isset($_GET['edit_product'])) {
-            $product_id = intval($_GET['edit_product']);
-            $post = get_post($product_id);
-            if ($post && $post->post_author == $current_user_id) {
-                $editing = true;
-                $title = esc_attr($post->post_title);
-                $content = esc_textarea($post->post_content);
-                $status = $post->post_status;
-                $thumbnail_id = get_post_thumbnail_id($product_id);
-                $gallery_ids = explode(',', get_post_meta($product_id, '_product_image_gallery', true));
-                $categories = wp_get_post_terms($product_id, 'product_cat', ['fields' => 'ids']);
-                $price = get_post_meta($product_id, 'product_price', true);
-            }
-        }
-        
-        // Вывод формы
-        if ($editing || isset($_GET['add_product'])):
-            $all_categories = get_terms([
-                'taxonomy' => 'product_cat',
-                'hide_empty' => false,
-            ]);
-        ?>
-            <div class="product-form-wrapper">
-                <h3 class="title-medium"><?php echo $editing ? 'Редактировать товар' : 'Добавить товар'; ?></h3>
-                <form method="post" enctype="multipart/form-data" class="product-form">
-                    <?php wp_nonce_field('save_product_form', 'product_form_nonce'); ?>
-        
-                    <div class="form-group">
-                        <label for="product_title" class="label-large">Название товара</label>
-                        <input type="text" id="product_title" name="product_title" value="<?php echo $title; ?>" required class="body-medium-regular">
+                    <div id="bulk-actions" class="product-actions" style="display:none;">
+                        <span class="action-btn" data-action="republish" title="Переопубликовать">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2a10 10 0 1 0 10 10h-2a8 8 0 1 1-8-8v4l5-5-5-5v4z"/>
+                            </svg>
+                        </span>
+                        <span class="action-btn" data-action="hide" title="Скрыть">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 12c-2.48 0-4.5-2.02-4.5-4.5S9.52 7.5 12 7.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5z"/>
+                                <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </span>
+                        <span class="action-btn" data-action="delete" title="Удалить">
+                            <svg viewBox="0 0 24 24">
+                                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+                                <line x1="6" y1="18" x2="18" y2="6" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </span>
                     </div>
-        
-                    <div class="form-group">
-                        <label for="product_content" class="label-large">Описание</label>
-                        <textarea id="product_content" name="product_content" rows="5" required class="body-medium-regular"><?php echo $content; ?></textarea>
-                    </div>
-        
-                    <div class="form-group">
-                        <label class="label-large">Категории</label>
-                        <?php foreach ($all_categories as $cat): ?>
-                            <label>
-                                <input type="checkbox" name="product_categories[]" value="<?php echo $cat->term_id; ?>" <?php checked(in_array($cat->term_id, $categories)); ?>>
-                                <?php echo esc_html($cat->name); ?>
-                            </label><br>
-                        <?php endforeach; ?>
-                    </div>
-                        
-                    <div class="form-group">
-                        <label class="label-large">Статус</label>
-                        <select name="product_status" class="body-medium-regular">
-                            <option value="publish" <?php selected($status, 'publish'); ?>>Опубликовано</option>
-                            <option value="pending" <?php selected($status, 'pending'); ?>>На модерации</option>
-                            <option value="draft" <?php selected($status, 'draft'); ?>>Черновик</option>
+
+                    <div class="input-block">
+                        <select class="filter-category select--secondary label-medium">
+                            <option value="all"><?php echo t('Все категории','All categories','Toate categoriile'); ?></option>
+                            <?php render_user_cats_options($all_cats, $user_products_by_cat); ?>
                         </select>
                     </div>
-                        
-                    <div class="form-group">
-                        <label class="label-large">Миниатюра</label>
-                        <input type="file" name="product_thumbnail" accept="image/*" class="body-medium-regular">
-                        <?php if ($thumbnail_id): echo wp_get_attachment_image($thumbnail_id, 'thumbnail'); endif; ?>
-                    </div>
-                        
-                    <div class="form-group">
-                        <label class="label-large">Галерея</label>
-                        <input type="file" name="product_gallery[]" accept="image/*" multiple class="body-medium-regular">
-                        <?php
-                        foreach ($gallery_ids as $id) {
-                            if ($id) echo wp_get_attachment_image($id, 'thumbnail');
-                        }
-                        ?>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="product_price" class="label-large">Цена (₽)</label>
-                        <input type="number" step="0.01" id="product_price" name="product_price" value="<?php echo esc_attr($price); ?>" required class="body-medium-regular">
-                    </div>
-                    
-                    <input type="hidden" name="product_id" value="<?php echo $product_id; ?>">
-                    
-                    <div class="form-actions">
-                        <input type="submit" name="submit_product" class="primary-button-large button-large" value="<?php echo $editing ? 'Обновить' : 'Создать'; ?>">
-                    </div>
-                </form>
-            </div>
-        <?php endif; ?> -->
-    </div>    
-</div>
 
-<?php
-wp_reset_postdata();
-get_footer();
-?>
+                    <div class="input-block">
+                        <input type="text" class="filter-search input--secondary label-medium" placeholder="<?php echo t('Найти в моих объявлениях','Search in my listings','Caută în anunțurile mele'); ?>">
+                    </div>
+                </div>
+
+                <div class="input-block">
+                    <select class="filter-sort select--secondary label-medium">
+                        <option value="date_new"><?php echo t('По дате (новые)','By date (new)','După dată (noi)'); ?></option>
+                        <option value="date_old"><?php echo t('По дате (старые)','By date (old)','După dată (vechi)'); ?></option>
+                        <option value="price_low"><?php echo t('По цене (дешевле)','By price (low)','După preț (mic)'); ?></option>
+                        <option value="price_high"><?php echo t('По цене (дороже)','By price (high)','După preț (mare)'); ?></option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <table class="my-products-table body-medium-regular">
+            <tbody id="products-list">
+                <tr><td colspan="5"><?php echo t('Загрузка товаров...','Loading products...','Se încarcă produsele...'); ?></td></tr>
+            </tbody>
+        </table>
+        <div id="pagination" style="margin-top:20px;text-align:center;"></div>
+    </main>
+</div>
+<style>
+.stats-popup {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+}
+
+.stats-popup .popup-inner {
+    background: var(--gray_6); /* белый */
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 760px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+    animation: fadeIn 0.25s ease;
+}
+
+.stats-popup .stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--gray_3);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+}
+.stats-popup .stats-header h2 {
+    font-size: 1.4rem;
+    margin: 0;
+    color: var(--gray_-6);
+}
+.stats-popup .close-popup {
+    background: transparent;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    line-height: 1;
+    color: var(--gray_-1);
+}
+.stats-popup .close-popup:hover {
+    color: var(--gray_-6);
+}
+
+.stats-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.stat-card {
+    background: var(--gray_5);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+}
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--gray_0);
+}
+.stat-value {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--gray_-6);
+    margin-top: 6px;
+}
+
+.stats-section {
+    margin-bottom: 28px;
+}
+.stats-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    color: var(--gray_-5);
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--gray_2);
+}
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 400px;
+}
+.stats-table th, .stats-table td {
+    border-bottom: 1px solid var(--gray_2);
+    padding: 8px 10px;
+    text-align: left;
+}
+.stats-table th {
+    background: var(--gray_4);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--gray_-6);
+}
+.stats-table td {
+    font-size: 0.9rem;
+    color: var(--gray_-6);
+}
+.stats-table tr:hover td {
+    background: var(--gray_5);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+    .stats-popup .popup-inner {
+        padding: 16px;
+    }
+    .stat-card {
+        padding: 10px;
+    }
+}
+</style>
+
+<?php get_footer(); ?>

@@ -1,4 +1,11 @@
 :root {
+    --popup-bg: rgba(0, 0, 0, 0.3);
+    --shadow: rgba(0, 0, 0, 0.5);
+    --bg-header-glass: rgba(255, 255, 255, 0.7);
+    --bg-light-glass-1: rgba(237, 238, 238, 0.7);
+    --bg-light-glass-2: rgba(246, 246, 247, 0.6);
+    --bg-light-glass-3: rgba(255, 255, 255, 0.65);
+
     /* Primary colors 'gray' */
     --gray_-6: #090909;
     --gray_-5: #131415;
@@ -184,6 +191,13 @@
     --danger_5: #FDF8F8;
 }
 html[data-theme="dark"] {
+    --popup-bg: rgba(0, 0, 0, 0.6);
+    --shadow: rgba(0, 0, 0, 0.8);
+    --bg-header-glass: rgba(0, 0, 0, 0.8);
+    --bg-dark-glass-1: rgba(30, 31, 32, 0.7);
+    --bg-dark-glass-2: rgba(19, 20, 21, 0.6);
+    --bg-dark-glass-3: rgba(9, 9, 9, 0.75);
+
     /* Primary colors 'gray' */
     --gray_-6: #FFFFFF;
     --gray_-5: #F6F6F7;
