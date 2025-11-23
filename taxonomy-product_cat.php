@@ -2,9 +2,13 @@
 get_header();
 $lang = $GLOBALS['language'] ?? 'ru';
 $current_cat = get_queried_object();
-
-// $features = get_product_category_features()[$current_cat->term_id] ?? [];
 $per_page = wp_is_mobile() ? 12 : 35;
+
+global $wpdb;
+$features = $wpdb->get_results($wpdb->prepare(
+    "SELECT * FROM wp_features WHERE category_id = %d",
+    $current_cat->term_id
+));
 ?>
 
 <div class="category__wrapper content-main">
@@ -62,28 +66,29 @@ $per_page = wp_is_mobile() ? 12 : 35;
                 </div>
             <?php endif; ?>
 
-            <!--
-            <?php if (!empty($features) && is_array($features)) : ?>
-                <form id="category-filters" class="category-filters">
-                    <?php foreach ($features as $key => $feature) : ?>
-                        <?php if (empty($feature['options'])) continue; ?>
-                        <?php $selected = $_GET[$key] ?? ''; ?>
-                        <div class="filter-group">
-                            <label><?= esc_html($feature['label'][$lang] ?? $feature['label']['ru']); ?></label>
-                            <select name="<?= esc_attr($key); ?>">
-                                <option value="">Любое</option>
-                                <?php foreach ($feature['options'] as $option) : ?>
-                                    <?php $value = esc_attr($option[$lang] ?? $option['ru']); ?>
-                                    <option value="<?= $value; ?>" <?= selected($selected, $value, false); ?>>
-                                        <?= esc_html($option[$lang] ?? $option['ru']); ?>
-                                    </option>
+            <?php if ($features): ?>
+                <form id="filters-form" class="category__filters">
+                    <?php foreach ($features as $feature):
+                        $options = $wpdb->get_results($wpdb->prepare(
+                            "SELECT * FROM wp_feature_options WHERE feature_id = %d",
+                            $feature->id
+                        ));
+                        $label = ($lang == 'en') ? $feature->label_en : (($lang == 'ro') ? $feature->label_ro : $feature->label_ru);
+                    ?>
+                        <div class="category__filter">
+                            <label><?= esc_html($label); ?></label>
+                            <select name="<?= esc_attr($feature->key); ?>">
+                                <option value=""><?= t('Все', 'All', 'Toate'); ?></option>
+                                <?php foreach ($options as $opt):
+                                    $value = ($lang == 'en') ? $opt->value_en : (($lang == 'ro') ? $opt->value_ro : $opt->value_ru);
+                                ?>
+                                    <option value="<?= esc_attr($value); ?>"><?= esc_html($value); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
                     <?php endforeach; ?>
-                    <button type="submit" class="button-small"><?= t('Фильтровать','Filter','Filtrează'); ?></button>
                 </form>
-            <?php endif; ?> -->
+            <?php endif; ?>
 
             <div class="category__products">
                 <div id="products-container">
@@ -101,7 +106,6 @@ $per_page = wp_is_mobile() ? 12 : 35;
                                 ]
                             ],
                         ];
-
                         $products_query = new WP_Query($args);
 
                         if ($products_query->have_posts()) :
@@ -111,13 +115,12 @@ $per_page = wp_is_mobile() ? 12 : 35;
                         else :
                             echo '<p>' . t('Ничего не найдено', 'Nothing found', 'Nimic găsit') . '</p>';
                         endif;
-
                         wp_reset_postdata();
                         ?>
                     </div>
 
                     <button id="load-more" class="category__load-more primary-button-medium button-medium">
-                        <?= t('Показать еще','Load more','Arată mai mult'); ?>
+                        <?= t('Показать еще', 'Load more', 'Arată mai mult'); ?>
                     </button>
                 </div>
             </div>
@@ -125,46 +128,81 @@ $per_page = wp_is_mobile() ? 12 : 35;
     </div>
 </div>
 
+<style>
+/* --- Filters layout --- */
+.category__filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.category__filter label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+.category__filter select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+}
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const filtersForm = document.getElementById('filters-form');
     const productsList = document.querySelector('.products-list');
     const loadMoreBtn = document.getElementById('load-more');
-    let offset = <?= $per_page; ?>;
-    const perPage = <?= $per_page; ?>;
+    let page = 1;
     const catId = <?= $current_cat->term_id; ?>;
+    const perPage = <?= $per_page; ?>;
+    let isLoading = false;
 
-    function loadProducts() {
-        if (!loadMoreBtn) return;
-
+    function fetchProducts(reset = false) {
+        if (isLoading) return;
+        isLoading = true;
         loadMoreBtn.disabled = true;
 
-        const formData = new FormData();
-        formData.append('offset', offset);
+        const formData = new FormData(filtersForm || document.createElement('form'));
         formData.append('cat_id', catId);
+        formData.append('page', page);
+        formData.append('per_page', perPage);
         formData.append('action', 'load_more_products');
 
         fetch('<?= admin_url('admin-ajax.php'); ?>', { method: 'POST', body: formData })
             .then(res => res.text())
             .then(html => {
-                if (html.trim() !== '') {
+                html = html.trim();
+                if (reset) productsList.innerHTML = '';
+                if (html) {
                     productsList.insertAdjacentHTML('beforeend', html);
-                    offset += perPage;
-
-                    const newItems = html.split('class="product-card"').length - 1;
-                    if (newItems < perPage) {
-                        loadMoreBtn.style.display = 'none';
-                    } else {
-                        loadMoreBtn.style.display = 'inline-block';
-                        loadMoreBtn.disabled = false;
-                    }
+                    loadMoreBtn.style.display = 'inline-block';
+                } else if (reset) {
+                    productsList.innerHTML = '<p><?= t('Ничего не найдено', 'Nothing found', 'Nimic găsit'); ?></p>';
+                    loadMoreBtn.style.display = 'none';
                 } else {
                     loadMoreBtn.style.display = 'none';
                 }
+                isLoading = false;
+                loadMoreBtn.disabled = false;
             });
     }
 
+    if (filtersForm) {
+        filtersForm.addEventListener('change', () => {
+            page = 1;
+            fetchProducts(true);
+        });
+    }
+
     if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', loadProducts);
+        loadMoreBtn.addEventListener('click', () => {
+            page++;
+            fetchProducts(false);
+        });
     }
 });
 </script>

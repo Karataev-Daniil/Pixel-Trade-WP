@@ -10,15 +10,17 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
 
     $limit = max(1, (int)$limit);
     $offset = max(0, (int)$offset);
-    $post_type = 'products';
+    $post_type = 'products'; // ✅ correct post type
 
+    // Create user-specific cache key
     $user_key = is_user_logged_in() 
         ? 'user_' . get_current_user_id() 
-        : 'ip_' . md5( $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] );
+        : 'ip_' . md5($_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR']);
 
     $cache_key = "recommended_products_{$user_key}_{$post_type}_{$limit}_{$offset}";
     $cached_ids = get_transient($cache_key);
 
+    // Use cached recommendations if available
     if (is_array($cached_ids) && count($cached_ids) >= 1) {
         return new WP_Query([
             'post_type' => $post_type,
@@ -30,6 +32,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
         ]);
     }
 
+    // Identify user or guest by IP
     $user_id = is_user_logged_in() ? get_current_user_id() : 0;
     $ip_raw = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
     if (strpos($ip_raw, ',') !== false) {
@@ -37,6 +40,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
     }
     $ip = filter_var($ip_raw, FILTER_VALIDATE_IP) ? $ip_raw : '';
 
+    // Get user's viewed products
     if ($user_id) {
         $viewed_ids = $wpdb->get_col($wpdb->prepare(
             "SELECT product_id FROM {$wpdb->prefix}product_views WHERE user_id = %d ORDER BY viewed_at DESC LIMIT %d",
@@ -50,12 +54,15 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
             ))
             : [];
     }
+
     $viewed_ids = array_map('intval', array_filter((array)$viewed_ids));
 
-    $exclude_ids = array_slice($viewed_ids, 0, 10 + $offset);
+    // Exclude recently viewed + custom excluded
+    $exclude_ids = array_slice($viewed_ids, 0, 5 + $offset);
     $exclude_ids = array_map('intval', $exclude_ids);
     $exclude_ids = array_merge($exclude_ids, $exclude_ids_custom);
 
+    // Calculate category weights
     $cats = [];
     foreach ($viewed_ids as $pid) {
         $terms = wp_get_post_terms($pid, 'product_cat', ['fields' => 'ids']);
@@ -69,12 +76,14 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
     arsort($cats);
     $cat_ids = array_keys($cats);
 
+    // Weight constants
     $W_CAT = 1000;
     $W_POP = 200;
     $W_RANDOM = 5;
 
     $candidates = [];
 
+    // Category-based recommendations
     if (!empty($cat_ids)) {
         $cat_query_limit = min(300, max($limit * 4, 60));
         $cat_args = [
@@ -92,7 +101,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
             ]]
         ];
         $cat_q = new WP_Query($cat_args);
-        $cat_ids_pool = $cat_q->have_posts() ? (array) $cat_q->posts : [];
+        $cat_ids_pool = $cat_q->have_posts() ? (array)$cat_q->posts : [];
 
         foreach ($cat_ids_pool as $candidate_id) {
             $tids = wp_get_post_terms($candidate_id, 'product_cat', ['fields' => 'ids']);
@@ -104,7 +113,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
             }
             if ($score_cat > 0) {
                 $post_date = get_post_time('U', true, $candidate_id);
-                $age_days = max(1, floor( (time() - $post_date) / DAY_IN_SECONDS ));
+                $age_days = max(1, floor((time() - $post_date) / DAY_IN_SECONDS));
                 $freshness_bonus = max(0, 30 - $age_days);
                 $score = ($score_cat * $W_CAT) + $freshness_bonus;
                 $candidates[(int)$candidate_id] = max($candidates[(int)$candidate_id] ?? 0, (int)$score);
@@ -113,6 +122,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
         wp_reset_postdata();
     }
 
+    // Popular products (last 7 days)
     $desired_additional = max(0, $limit - count($candidates));
     if ($desired_additional > 0) {
         $limit_pop = max($desired_additional * 3, 20);
@@ -126,7 +136,7 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
             ORDER BY total_views DESC
             LIMIT %d
         ";
-        $popular_rows = $wpdb->get_results( $wpdb->prepare($sql, $limit_pop) );
+        $popular_rows = $wpdb->get_results($wpdb->prepare($sql, $limit_pop));
         $max_views = 0;
         foreach ($popular_rows as $r) $max_views = max($max_views, (int)$r->total_views);
 
@@ -139,10 +149,15 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
         }
     }
 
+    // ✅ Add random products until we reach the limit
     $remaining = $limit - count($candidates);
-    if ($remaining > 0) {
+    $attempt = 0;
+
+    while ($remaining > 0 && $attempt < 3) { // up to 3 tries
+        $attempt++;
         $exclude_for_random = array_unique(array_merge($exclude_ids, array_keys($candidates)));
         $rand_pool = min($remaining * 8, 200);
+
         $rand_args = [
             'post_type' => $post_type,
             'posts_per_page' => $rand_pool,
@@ -152,21 +167,37 @@ function get_recommended_products_for_user($limit = 36, $offset = 0, $exclude_id
             'fields' => 'ids',
             'no_found_rows' => true,
         ];
+
         $rand_q = new WP_Query($rand_args);
         $rand_ids = $rand_q->have_posts() ? (array)$rand_q->posts : [];
+
         foreach ($rand_ids as $rid) {
             $candidates[(int)$rid] = ($candidates[(int)$rid] ?? 0) + rand(1, $W_RANDOM);
         }
+
         wp_reset_postdata();
+        $remaining = $limit - count($candidates);
     }
 
-    if (empty($candidates)) return new WP_Query(['post_type'=>$post_type,'posts_per_page'=>0,'no_found_rows'=>true]);
+    // Final fallback if still empty
+    if (empty($candidates)) {
+        return new WP_Query([
+            'post_type' => $post_type,
+            'posts_per_page' => $limit,
+            'post_status' => 'publish',
+            'orderby' => 'rand',
+            'no_found_rows' => true,
+        ]);
+    }
 
+    // Sort and slice final result
     arsort($candidates);
     $recommended_ids = array_slice(array_map('intval', array_keys($candidates)), 0, $limit);
 
-    set_transient($cache_key, $recommended_ids, MINUTE_IN_SECONDS * 5);
+    // Cache for 1 minute
+    set_transient($cache_key, $recommended_ids, MINUTE_IN_SECONDS * 1);
 
+    // Return query with final products
     return new WP_Query([
         'post_type' => $post_type,
         'post__in' => $recommended_ids,

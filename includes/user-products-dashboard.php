@@ -5,12 +5,14 @@ function my_products_get_cached($current_user_id, $statuses, $search, $category,
     $cached = get_transient($cache_key);
     if($cached !== false) return $cached;
 
+    $post_statuses = in_array('all',$statuses) ? ['publish','draft','pending','private'] : $statuses;
+
     $args = [
         'post_type'      => 'products',
         'posts_per_page' => $per_page,
         'paged'          => $paged,
         'author'         => $current_user_id,
-        'post_status'    => in_array('all',$statuses) ? ['publish','draft','pending','private'] : $statuses,
+        'post_status'    => $post_statuses,
     ];
 
     if($category && $category !== 'all') {
@@ -78,10 +80,23 @@ function my_products_get_cached($current_user_id, $statuses, $search, $category,
         wp_reset_postdata();
     }
 
+    $total_query = new WP_Query([
+        'post_type'      => 'products',
+        'author'         => $current_user_id,
+        'post_status'    => $post_statuses,
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+        's'              => $search ?: '',
+        'tax_query'      => isset($args['tax_query']) ? $args['tax_query'] : [],
+    ]);
+    $total_count = count($total_query->posts);
+
     $result = [
         'products'     => $products,
         'current_page' => (int)$paged,
-        'total_pages'  => (int)$query->max_num_pages
+        'total_pages'  => (int)$query->max_num_pages,
+        'page_count'   => count($products),
+        'total_count'  => $total_count
     ];
 
     set_transient($cache_key,$result,300);
@@ -100,9 +115,9 @@ function my_products_get_status_counts($user_id){
     $counts = [];
     foreach($statuses as $st){
         $q = new WP_Query([
-            'post_type'    => 'products',
-            'post_status'  => $st,
-            'author'       => $user_id,
+            'post_type'      => 'products',
+            'post_status'    => $st,
+            'author'         => $user_id,
             'posts_per_page' => 1
         ]);
         $counts[$st] = (int)$q->found_posts;
@@ -113,11 +128,10 @@ function my_products_get_status_counts($user_id){
 
 function my_products_clear_cache($user_id) {
     global $wpdb;
-    $transients = $wpdb->get_col("
-        SELECT option_name FROM {$wpdb->options}
-        WHERE option_name LIKE '_transient_recommended_products_user_{$user_id}_%'
-           OR option_name LIKE '_transient_timeout_recommended_products_user_{$user_id}_%'
-    ");
+    $pattern = '_transient_my_products_'.$user_id.'_%';
+    $transients = $wpdb->get_col("SELECT option_name FROM {$wpdb->options} 
+        WHERE option_name LIKE '{$pattern}' 
+           OR option_name LIKE '_transient_timeout_my_products_{$user_id}_%'");
     foreach ($transients as $t) {
         $key = str_replace('_transient_', '', $t);
         delete_transient($key);
@@ -138,6 +152,7 @@ function my_products_filter_callback(){
 
     $result = my_products_get_cached($current_user_id,$statuses,$search,$category,$paged,20,$sort);
     $result['status_counts'] = my_products_get_status_counts($current_user_id);
+
     wp_send_json_success($result);
 }
 
@@ -145,11 +160,31 @@ add_action('wp_ajax_product_action','my_products_action_callback');
 function my_products_action_callback(){
     check_ajax_referer('my_products_nonce','nonce');
 
-    if(!isset($_POST['product_ids'],$_POST['action_type'])) wp_send_json_error('Нет данных');
-
     $action = sanitize_text_field($_POST['action_type']);
-    $ids = array_map('intval',$_POST['product_ids']);
     $current_user_id = get_current_user_id();
+
+    $select_all = isset($_POST['select_all']) && $_POST['select_all'] == '1';
+    $ids = [];
+
+    if($select_all){
+        $all_query = new WP_Query([
+            'post_type'      => 'products',
+            'author'         => $current_user_id,
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'post_status'    => ['publish','draft','pending','private'],
+        ]);
+        $ids = $all_query->posts;
+
+        if(isset($_POST['deselected_ids'])){
+            $deselected_ids = array_map('intval', $_POST['deselected_ids']);
+            $ids = array_diff($ids, $deselected_ids);
+        }
+    } else {
+        if(!isset($_POST['product_ids'])) wp_send_json_error('Нет данных');
+        $ids = array_map('intval', $_POST['product_ids']);
+    }
+
 
     foreach($ids as $post_id){
         if(!current_user_can('edit_post',$post_id)) continue;
@@ -177,4 +212,48 @@ function my_products_action_callback(){
 
     my_products_clear_cache($current_user_id);
     wp_send_json_success();
+}
+
+add_action('wp_ajax_get_product_stats', 'get_product_views_stats');
+function get_product_views_stats() {
+    global $wpdb;
+
+    if (!isset($_POST['product_id']) || !is_user_logged_in()) {
+        wp_send_json_error('Invalid request');
+    }
+
+    $product_id = intval($_POST['product_id']);
+    $current_user = get_current_user_id();
+
+    $author_id = (int)$wpdb->get_var($wpdb->prepare(
+        "SELECT post_author FROM {$wpdb->posts} WHERE ID = %d AND post_type='products'",
+        $product_id
+    ));
+    if ($author_id !== $current_user) {
+        wp_send_json_error('Access denied');
+    }
+
+    $total_views = (int)$wpdb->get_var($wpdb->prepare(
+        "SELECT SUM(views) FROM wp_product_daily_views WHERE product_id = %d",
+        $product_id
+    ));
+
+    $daily = $wpdb->get_results($wpdb->prepare(
+        "SELECT view_date, views FROM wp_product_daily_views WHERE product_id = %d ORDER BY view_date DESC LIMIT 30",
+        $product_id
+    ));
+
+    $recent = $wpdb->get_results($wpdb->prepare(
+        "SELECT user_id, ip_address, viewed_at 
+         FROM wp_product_views 
+         WHERE product_id = %d 
+         ORDER BY viewed_at DESC LIMIT 10",
+        $product_id
+    ));
+
+    wp_send_json_success([
+        'total_views' => $total_views,
+        'daily'       => $daily,
+        'recent'      => $recent,
+    ]);
 }

@@ -96,6 +96,9 @@
 #bulk-actions .action-btn {
     background-color: var(--gray_5);
 }
+.product-actions {
+    min-width: 170px;
+}
 .product-actions .action-btn {
     display: inline-flex;
     align-items: center;
