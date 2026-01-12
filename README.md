@@ -1,7 +1,7 @@
 # Pixel Trade WP
 
 🛍️ **Pixel Trade WP** — hybrid WordPress + React e-commerce platform.  
-The backend is powered by **WordPress/PHP**, while the frontend (product catalog, search, interactive UI) is built using **React**, providing a modern, responsive shopping experience.
+The backend is powered by **WordPress/PHP**, while the frontend (product catalog, search, interactive UI) is built using **React**, providing a modern, responsive shopping experience with **AI-powered features** and **multilingual support (Russian, Romanian, English)**.
 
 ## 🚀 Features
 
@@ -12,6 +12,8 @@ The backend is powered by **WordPress/PHP**, while the frontend (product catalog
 ✔️ Responsive design for mobile and desktop  
 ✔️ Component-based React architecture  
 ✔️ Smooth integration between WP and React  
+✔️ AI-powered features (product recommendations, smart search, automated descriptions)  
+✔️ Multilingual support: Russian, Romanian, English  
 ✔️ Potential to extend with plugins like WooCommerce or custom APIs
 
 ## 🧠 Technologies Used
@@ -40,10 +42,11 @@ npm start
 Activate the theme in WordPress admin and configure pages.
 
 🛠 Future Improvements
-🔹 Headless WordPress with full REST API integration
+🔹 Full headless WordPress with REST API integration
 🔹 WooCommerce support for advanced e-commerce features
 🔹 User authentication and profiles
 🔹 Payment gateway integration
+🔹 Additional AI-powered tools (recommendations, search, analytics)
 🔹 Unit and integration tests for React components
 
 ❓ Contact / Contribute
